@@ -24,18 +24,27 @@ test('Shared-world restart regenerates the isolated page and real race ticks pre
 });
 
 test('Race shows both territories by default and sends the actual bot state to the scene',()=>{
- const h=raceHarness();assert.match(h.get('raceLead').textContent,/До первой доставки/);assert.equal(h.run('territory'),'both');assert.equal(h.run('map3d.focuses[0]'),'both');assert(h.run('map3d.rival===rival.state'));assert(h.run('map3d.rival!==state'));
- const overview=h.get('raceOverview');assert.match(overview.innerHTML,/Моя территория/);assert.match(overview.innerHTML,/Соперник/);assert.match(overview.innerHTML,/Обе территории/);
- for(const button of overview.buttons){overview.onclick({target:button});assert.equal(h.run('territory'),button.dataset.territory);assert.equal(h.run('map3d.focuses.at(-1)'),button.dataset.territory);assert.equal(button.attributes['aria-pressed'],'true');}
+ const h=raceHarness();assert.equal(h.run('territory'),'both');assert.equal(h.run('map3d.focuses[0]'),'both');assert(h.run('map3d.rival===rival.state'));assert(h.run('map3d.rival!==state'));
+ const overview=h.get('raceOverview');assert.doesNotMatch(overview.innerHTML,/data-territory|data-race-details|raceLead/);
  h.run('focusRaceTerritory("rival")');h.get('mapView').onclick();assert.equal(h.run('territory'),'both');
 });
-test('Visible progress compares delivered units and built sites without treating cargo in transit as delivered',()=>{
+test('Compact progress shows delivered units without status, construction counts or lead row',()=>{
  const h=raceHarness();h.run('state.delivered.iron=3;rival.state.delivered.iron=6;rival.state.sites.iron.active=true;racePanel()');
- assert.match(h.get('raceComparison').innerHTML,/Вы/);assert.match(h.get('raceComparison').innerHTML,/Построено 1\/5/);assert.match(h.get('raceLead').textContent,/отстаёте на 11.5 п.п. по доставке/);
- const before=h.get('raceLead').textContent;h.run('state.outgoing.iron=9;racePanel()');assert.equal(h.get('raceLead').textContent,before);
- h.run('state.delivered.iron=9;racePanel()');assert.match(h.get('raceLead').textContent,/опережаете на 11.5 п.п./);
- h.run('state.delivered.iron=6;racePanel()');assert.equal(h.get('raceLead').textContent,'Доставлено поровну');
+ const comparison=h.get('raceComparison').innerHTML;
+ assert.match(comparison,/Вы/);assert.match(comparison,/Соперник/);assert.match(comparison,/3\/12/);assert.match(comparison,/6\/12/);
+ assert.doesNotMatch(comparison,/Построено|Развивает|Строит|Запускает/);
+ h.run('state.outgoing.iron=9;racePanel()');assert.equal(h.get('raceComparison').innerHTML,comparison);
+ h.run('state.delivered.iron=9;racePanel()');assert.match(h.get('raceComparison').innerHTML,/9\/12/);
 });
+
+test('Shared journal keeps separate real player and rival events and refreshes on reset',()=>{
+ const h=raceHarness();assert(h.get('journal'));
+ h.run('state.log=[{t:15,text:"Действие игрока"}];rival.state.log=[{t:16,text:"Действие соперника <test>"}];racePanel()');
+ assert.match(h.get('rivalJournal').innerHTML,/16/);assert.match(h.get('rivalJournal').innerHTML,/Действие соперника &lt;test&gt;/);
+ assert.doesNotMatch(h.get('rivalJournal').innerHTML,/Действие игрока/);
+ h.run('state=E.create();render()');assert.doesNotMatch(h.get('rivalJournal').innerHTML,/Действие соперника/);
+});
+
 test('Rival selections are read-only and pause freezes both visible territories',()=>{
  const h=raceHarness();h.run('var beforeSelection=JSON.stringify(state);map3d.onRivalSelect("iron")');assert(h.run('JSON.stringify(state)===beforeSelection'));assert.equal(h.get('raceObject').hidden,false);assert.match(h.get('raceObject').textContent,/Железный рудник/);assert.match(h.get('raceObject').textContent,/Только просмотр/);
  h.run('state.paused=false;E.tick(state,.1);racePanel()');assert.equal(h.run('rival.state.paused'),false);assert.equal(h.run('state.time'),h.run('rival.state.time'));
