@@ -1,0 +1,109 @@
+'use strict';
+const E=Logistics,$=id=>document.getElementById(id),saveKey='logistics-race-v1';
+const demoMode=document.body.dataset.demo==='true',practiceMode=document.body.dataset.practice==='true';
+let state=demoMode?MapScene.demoState():E.create(),selected='iron',selectedTruck=1,speed=1,roadMode=false,pipeMode=false,dragging=false,held=false,mapSignature='',winShown=false,toastTimer;
+let storageAvailable=true;
+let cardUI=null,coach=null;
+try{const data=demoMode||practiceMode?null:JSON.parse(localStorage.getItem(saveKey));if(data?.version===1&&Array.isArray(data.trucks)&&data.city&&data.sites&&data.production&&data.enabled&&data.stats&&Array.isArray(data.roads)&&Array.isArray(data.log)){state=E.upgrade(data);state.paused=true;state.notice='';}}catch{storageAvailable=false;}
+const fmt=n=>Number(n).toLocaleString('ru-RU',{maximumFractionDigits:1}),time=n=>String(Math.floor(n/60)).padStart(2,'0')+':'+String(Math.floor(n%60)).padStart(2,'0');
+function html(id,value){if($(id)._html!==value){$(id).innerHTML=value;$(id)._html=value;}}
+function toast(text){if(!text)return;$('toast').textContent=text;$('toast').style.display='block';clearTimeout(toastTimer);toastTimer=setTimeout(()=>$('toast').style.display='none',4200);}
+function save(){if(demoMode||practiceMode)return;try{localStorage.setItem(saveKey,JSON.stringify(state));}catch{if(storageAvailable)toast('Сохранение недоступно. Не закрывайте страницу до конца партии.');storageAvailable=false;}}
+function perform(fn){const ok=fn();if(!ok&&state.notice)toast(state.notice);state.notice='';render();save();}
+function choose(id){if(roadMode||pipeMode)return;if(cardUI){cardUI.chooseSite(id);return;}selected=id;roadMode=false;pipeMode=false;$('pipeTool').classList.remove('active');$('roadTool').classList.remove('active');render();}
+const Scene=MapScene,xy=Scene.xy,mapClocks={},truckHeadings={};
+const map3d=typeof Map3D!=='undefined'?new Map3D.View($('map'),{onSelect:choose,onTruck:id=>{if(cardUI){cardUI.chooseTruck(id);return;}selectedTruck=id;render();},onCell:p=>perform(()=>(pipeMode?E.buildPipeCell:E.buildRoad)(state,p)),onBuildEnd:()=>{if(state.notice)toast(state.notice);state.notice='';render();save();}}):null;
+if(map3d&&document.body.dataset.training==='true'&&typeof globalRaceWorldEngines!=='undefined'){
+ const idleOpponent=globalRaceWorldEngines.rival.create();idleOpponent.paused=true;
+ map3d.setRivalState(idleOpponent,0,globalRaceWorldEngines.rival);map3d.focusTerritory('both');
+}
+function targetNode(x,y,target){if(map3d&&(roadMode||pipeMode))return null;const id=target?.closest?.('[data-node]')?.dataset.node||map3d?.nodeAt(x,y);return id?{dataset:{node:id}}:null;}
+function terrain(){return Scene.terrain(state,{selected,roadMode,pipeMode});}
+function drawMap(){if(map3d){map3d.update(state,{selected,selectedTruck,roadMode,pipeMode,extra:state.paused?0:acc});return;}$('map').classList.toggle('building',roadMode||pipeMode);const signature=JSON.stringify([state.roads,Object.keys(E.positions).map(id=>state.sites[id]||id==='oil'?E.siteStatus(state,id):''),state.pipeCells,selected,roadMode,pipeMode]);if(signature!==mapSignature){$('map').innerHTML=terrain();mapSignature=signature;}
+ for(const id of Object.keys(E.positions)){const el=$('stock-'+id);if(!el)continue;
+ const site=state.sites[id];let text='';
+ if(site?.active&&id!=='asphalt')text=(id==='oil2'?'Нефть':id==='gravel'?'Щебень':id==='iron'?'Fe-руда':'Cu-руда')+': '+site.stock;
+ if(id==='asphalt'&&site.active)text='Склад города: '+state.city.asphalt+' асф.';
+ if(id==='oil')text='Нефть у НПЗ: '+state.city.oil;
+ el.textContent=text;}
+ drawTrucks();}
+function drawTrucks(){if(map3d){map3d.update(state,{selected,selectedTruck,roadMode,pipeMode,extra:state.paused?0:acc});return;}Scene.update($('map'),state,{selectedTruck,extra:state.paused?0:acc,clocks:mapClocks,headings:truckHeadings});}
+function render(){
+ const cameraHelp=document.querySelector('.camera-help');if(map3d&&cameraHelp)cameraHelp.textContent=roadMode||pipeMode?'Рисование — левая кнопка · поворот — правая · сдвиг — средняя · масштаб — колесо. Для выбора объекта выйдите из режима.':'Выбор — щелчок · масштаб — колесо · поворот — левая кнопка · сдвиг — правая';
+ $('clock').textContent=time(state.time);$('pause').textContent=state.won?'Завершено':state.paused?(state.time?'Продолжить':'Начать'):'Пауза';$('pause').disabled=state.won;
+ if(!cardUI)html('resources',[['fuel','Топливо',state.fuel],['iron','Железо',state.city.iron],['copper','Медь',state.city.copper],['asphalt','Асфальт',state.city.asphalt],['gravel','Щебень',state.city.gravel]].map(([k,n,v])=>`<div class="resource ${k}"><i class="resource-icon"></i><div><span>${n}</span><br><b>${fmt(v)}</b></div></div>`).join(''));
+ html('objective',Object.entries(state.goal).map(([k,n])=>`<div class="goal-row"><span>${E.names[k]}</span><b>${state.delivered[k]} / ${n}${state.outgoing[k]?' · '+state.outgoing[k]+' в пути':''}</b><div class="bar"><span style="width:${state.delivered[k]/n*100}%"></span></div></div>`).join(''));
+ if(!held){
+  if(cardUI){cardUI.render();}else{
+  const t=state.trucks.find(t=>t.id===selectedTruck),r=E.routeInfo(state,selected),site=state.sites[selected];let body=`<span class="tag">${site?(site.active?'ОБЪЕКТ ЗАПУЩЕН':'ПРОЕКТ СТРОИТЕЛЬСТВА'):selected==='center'?'ПУНКТ НАЗНАЧЕНИЯ':'НАЧАЛЬНАЯ ИНФРАСТРУКТУРА'}</span><h2>${E.label(selected)}</h2>`;
+  if(selected!=='city')body+=`<p>${r.points.length-1} клеток · ${fmt(r.seconds)} с в одну сторону<br>Рейс туда и обратно: <b>${fmt(r.fuel)} топлива</b> · груз до ${r.capacity}</p>`;
+  if(site&&!site.active){body+=`<p>${Object.entries(E.costs[selected]).map(([k,n])=>`${E.names[k]}: <b>${site.received[k]}/${n}</b>${site.incoming[k]?' (+'+site.incoming[k]+' в пути)':''}`).join('<br>')}</p><div class="action-buttons"><button data-action="materials">Привезти материалы · машина ${selectedTruck}</button><button class="team-card entity-card" draggable="${state.builder===null&&!state.won}" data-action="crew"><span class="entity-heading"><i></i>СТРОИТЕЛИ</span><span class="entity-art"><img src="assets/builders.png" alt="" draggable="false"></span><span class="entity-info"><strong>${state.builder?'На задании · машина '+state.builder:'Команда готова'}</strong><span>${state.builder?'Ожидайте возвращения':'Отправить на машине '+selectedTruck}</span><span class="entity-hint">${state.builder?'Команда вернётся в город':'Нажмите или перетащите на объект'}</span></span><span class="grip" aria-hidden="true">⠿</span></button></div>`;if(site.construction)body+='<p>'+E.siteStatus(state,selected)+'</p>';}
+  else if(selected==='oil2')body+=`<p>Запас: <b>${site.stock} нефти</b><br>Добыча: 12 нефти / мин · расход 1,5 топлива / мин.</p><p>${E.pipeConnected(state)?'Нефтепровод подключён: до 12 нефти / мин поступает к НПЗ автоматически.':'Нефть копится на скважине. Нарисуйте непрерывную трубу до города. Цена: 1,5 железа за клетку. Машины нефть не перевозят.'}</p><div class="action-buttons"><button data-action="oil-pipe">Рисовать нефтепровод · 1,5 железа/клетка</button><button data-action="toggle-site">${site.enabled?'Приостановить добычу':'Возобновить добычу'}</button></div>`;
+  else if(site&&selected!=='asphalt')body+=`<p>На месторождении: <b>${site.stock}</b> · ${site.enabled?'добыча включена':'добыча остановлена'}</p><div class="action-buttons"><button data-action="haul" class="primary">Назначить вывоз · машина ${selectedTruck}</button><button data-action="toggle-site">${site.enabled?'Приостановить добычу':'Возобновить добычу'}</button></div><p class="subtle">Машина ждёт полный груз и повторяет рейсы. «Завершить маршрут» забирает неполный груз и возвращает машину.</p>`;
+  else if(selected==='center')body+='<div class="action-buttons"><button data-action="goal" class="primary">Отправить доступный груз</button><button data-action="road-center">Построить дорогу по маршруту</button></div><p class="subtle">Загружаются только недостающие для заказа ресурсы. Поставка — один рейс; новый отправляется вручную.</p>';
+  else if(selected==='asphalt')body+='<p>2 щебня → 2 асфальта за 4 секунды, расход 0,11 топлива.<br>Асфальт на дороге списывается со склада мгновенно.</p><button data-action="toggle-asphalt">'+(state.enabled.asphalt?'Приостановить завод':'Включить завод')+'</button>';
+  else if(selected==='oil')body+='<p>Скважина уже соединена с НПЗ трубопроводом. Машина не нужна. Добыча: 1 нефть / 10 с.</p>';
+  else body+='<p>Общий склад, НПЗ, металлургия и завод машин. Руда перерабатывается автоматически; очередью можно управлять ниже.</p>';
+  if(t?.job)body+='<p class="subtle">Выбранная машина занята. Для новой задачи выберите другую или дождитесь возвращения.</p>';
+  html('details',body);
+  html('fleet',state.trucks.map(t=>`<div class="fleet-item"><button class="truck-card entity-card ${t.id===selectedTruck?'selected':''} ${t.job?'is-busy':''}" data-truck="${t.id}" draggable="false" data-available="${!t.job&&!state.won}" aria-pressed="${t.id===selectedTruck}" aria-label="Машина ${t.id}: ${t.status}"><span class="entity-heading"><i></i>МАШИНА ${String(t.id).padStart(2,'0')}</span><span class="entity-art"><img src="assets/truck-v2.png" alt="" draggable="false"></span><span class="entity-info"><strong>${t.status}</strong><span>${t.job?E.label(t.job.target):'Готова к назначению'}</span><span class="entity-cargo">${Object.keys(t.cargo).length?E.cargoText(t.cargo):'Без груза'}</span><span class="entity-hint">${t.stop?'Последний рейс → город':t.job?'Вернётся после задания':state.won?'Партия завершена':'Выберите или перетащите'}</span></span><span class="grip" aria-hidden="true">⠿</span></button>${t.job?.type==='haul'&&!t.stop?`<button class="route-stop" data-stop="${t.id}">Завершить маршрут</button>`:''}</div>`).join(''));
+  $('fleetCount').textContent=state.trucks.filter(t=>!t.job).length+' свободно / '+state.trucks.length;
+  $('buy').disabled=!!state.production.vehicle||state.won;$('buy').textContent=state.production.vehicle?'Сборка · '+Math.ceil(state.production.vehicle.left)+' с':'＋ Собрать грузовик';
+  html('production',[['oil','Стартовая скважина','1 нефть / 10 с'],['refinery','НПЗ','0,11 топлива / цикл · нефть: '+state.city.oil],['metal','Металлургический завод','0,147 топлива / цикл · руда: железо '+state.city.ironOre+' · медь '+state.city.copperOre],['asphalt','Асфальтовый завод',state.sites.asphalt.active?'0,11 топлива / цикл · щебень: '+state.city.gravel:'Ещё не построен']].map(([id,title,sub])=>`<div class="plant"><div>${title}<small>${sub} · ${state.production[id]?'работает':state.enabled[id]?'ожидает':'пауза'}</small></div>${id==='metal'?`<select id="metalMode" aria-label="Приоритет металла"><option value="auto" ${state.metalMode==='auto'?'selected':''}>Автовыбор</option><option value="iron" ${state.metalMode==='iron'?'selected':''}>Железо</option><option value="copper" ${state.metalMode==='copper'?'selected':''}>Медь</option></select>`:''}<button data-plant="${id}" ${id==='asphalt'&&!state.sites.asphalt.active?'disabled':''}>${state.enabled[id]?'Пауза':'Пуск'}</button></div>`).join(''));
+ }
+ }
+ let guide;
+ if(state.won)guide='<b>Цель достигнута за '+time(state.time)+'</b>Попробуйте новую партию: сравните раннюю покупку третьей машины и строительство дороги.';
+ else if(!state.sites.iron.active)guide='<b>01 / Запустите железную добычу</b>Выберите железный рудник и доставьте 5 железа + 1 медь. Грузовик берёт 4 единицы: можно отправить обе машины. Когда все материалы отправлены, отдельной поездкой отправьте строителей — при необходимости они дождутся груза.';
+ else if(!state.sites.copper.active)guide='<b>02 / Обеспечьте металлы</b>Назначьте вывоз железной руды. Подготовьте медный рудник: 5 железа + 1 медь, затем строители. Не тратьте последнюю медь на лишние машины.';
+ else if(!state.sites.gravel.active)guide='<b>03 / Откройте дорожное производство</b>Карьер стоит 2 железа + 1 медь. Остановите регулярный маршрут, когда машина нужна для новой задачи: она вернётся после рейса.';
+ else if(!state.sites.asphalt.active)guide='<b>04 / Запустите асфальтовый завод</b>Доставьте на площадку 4 железа + 2 меди, затем строителей. После запуска организуйте вывоз щебня из карьера.';
+ else guide='<b>05 / Пора снабжать хаб</b>Отправляйте металл и асфальт в хаб. Или сначала постройте дорогу: полный маршрут удваивает грузоподъёмность. Приостанавливайте ненужную добычу, чтобы беречь топливо.';
+ if(state.fuel<1)guide='<b>Мало топлива</b>Приостановите лишнюю добычу и производство. Проверьте НПЗ: для следующей партии нужны 2 нефти и 0,11 топлива. При полном истощении цепочка может остановиться — можно перезапустить партию.';
+ html('guide',guide);html('journal',state.log.slice(0,12).map(e=>`<div class="logline"><time>${time(e.t)}</time><span>${e.text}</span></div>`).join(''));drawMap();if(coach)coach.render();
+ if(state.won&&!winShown){winShown=true;$('winText').textContent='Время: '+time(state.time)+'. Машин: '+state.trucks.length+'. Дорога: '+state.roads.length+' клеток. Топлива осталось: '+fmt(state.fuel)+'.';$('win').showModal();}
+}
+$('mapView').onclick=()=>{if(map3d){$('mapView').textContent=map3d.frameAll()?'К объектам':'Вся карта';return;}const map=$('map'),full=map.getAttribute('viewBox')==='0 0 960 660';map.setAttribute('viewBox',full?'0 100 960 560':'0 0 960 660');$('mapView').textContent=full?'Вся карта':'Ближе';};
+$('pause').onclick=()=>{state.paused=!state.paused;acc=0;render();save();};$('speed').onclick=()=>{speed=speed===1?2:speed===2?4:1;$('speed').textContent=speed+'×';};
+$('buy').onclick=()=>perform(()=>E.buyTruck(state));$('reset').onclick=()=>$('restart').showModal();$('cancelReset').onclick=()=>$('restart').close();$('confirmReset').onclick=()=>{state=demoMode?MapScene.demoState():E.create();selected='iron';selectedTruck=1;speed=1;roadMode=false;pipeMode=false;$('pipeTool').classList.remove('active');mapSignature='';winShown=false;$('speed').textContent='1×';$('roadTool').classList.remove('active');$('restart').close();save();render();};
+$('introClose').onclick=()=>$('intro').close();$('winClose').onclick=()=>$('win').close();
+$('fleet').onclick=e=>{if(suppressCardClick){suppressCardClick=false;return;}const stop=e.target.closest('[data-stop]');if(stop){perform(()=>E.stopTruck(state,Number(stop.dataset.stop)));return;}const card=e.target.closest('[data-truck]');if(card){if(cardUI){cardUI.chooseTruck(Number(card.dataset.truck));return;}selectedTruck=Number(card.dataset.truck);render();}};
+$('details').onclick=e=>{const action=e.target.closest('[data-action]')?.dataset.action;if(!action)return;if(cardUI){cardUI.handleAction(action);return;}perform(()=>{
+ if(['materials','crew','haul','goal'].includes(action))return E.start(state,selectedTruck,action,selected);
+ if(action==='oil-pipe'){$('pipeTool').click();return true;}
+ if(action==='road-center')return E.roadToCenter(state);
+ if(action==='toggle-site'){state.sites[selected].enabled=!state.sites[selected].enabled;return true;}
+ if(action==='toggle-asphalt'){state.enabled.asphalt=!state.enabled.asphalt;return true;}
+});};
+$('production').onclick=e=>{const id=e.target.closest('[data-plant]')?.dataset.plant;if(id){state.enabled[id]=!state.enabled[id];render();save();}};
+$('production').onchange=e=>{if(e.target.id==='metalMode'){state.metalMode=e.target.value;save();}};
+$('pipeTool').onclick=()=>{pipeMode=!pipeMode;roadMode=false;$('roadTool').classList.remove('active');$('pipeTool').classList.toggle('active',pipeMode);render();if(pipeMode)toast('Труба: от города или второй скважины, в том числе по диагонали. 1,5 железа за клетку. Колесо — масштаб, правая кнопка — поворот.');};
+$('roadTool').onclick=()=>{pipeMode=false;$('pipeTool').classList.remove('active');roadMode=!roadMode;$('roadTool').classList.toggle('active',roadMode);mapSignature='';render();if(roadMode)toast('Проведите по соседним клеткам от города. На каждую нужно 2 асфальта. Колесо — масштаб, правая кнопка — поворот.');};
+function cellAt(e){const pt=$('map').createSVGPoint();pt.x=e.clientX;pt.y=e.clientY;const p=pt.matrixTransform($('map').getScreenCTM().inverse());return [Math.round((p.x-54)/56),Math.round((p.y-44)/54)];}
+if(!map3d){
+$('map').addEventListener('pointerdown',e=>{if(roadMode||pipeMode){dragging=true;$('map').setPointerCapture(e.pointerId);perform(()=>(pipeMode?E.buildPipeCell:E.buildRoad)(state,cellAt(e)));}else{const node=e.target.closest('[data-node]');if(node)choose(node.dataset.node);}});
+$('map').addEventListener('pointermove',e=>{if(dragging&&(roadMode||pipeMode)){(pipeMode?E.buildPipeCell:E.buildRoad)(state,cellAt(e));drawMap();}});
+$('map').addEventListener('pointerup',()=>{dragging=false;if(state.notice)toast(state.notice);state.notice='';render();save();});
+$('map').addEventListener('pointercancel',()=>{dragging=false;save();});
+$('map').addEventListener('keydown',e=>{const id=e.target.closest('[data-node]')?.dataset.node;if(id&&(e.key==='Enter'||e.key===' ')){e.preventDefault();choose(id);}});
+}
+$('details').addEventListener('dragstart',e=>{if(cardUI){e.preventDefault();return;}if(e.target.closest('[data-action="crew"]')){if(state.builder!==null||state.won){e.preventDefault();return;}e.dataTransfer.setData('text/plain','builders');e.dataTransfer.effectAllowed='move';held=true;}});
+$('fleet').addEventListener('dragstart',e=>{if(cardUI){e.preventDefault();return;}const card=e.target.closest('[data-truck]');if(!card)return;const id=Number(card.dataset.truck),t=state.trucks.find(t=>t.id===id);if(!t||t.job||state.won){e.preventDefault();return;}selectedTruck=id;held=true;e.dataTransfer.setData('text/plain','truck:'+id);e.dataTransfer.effectAllowed='move';});
+document.addEventListener('dragend',()=>{held=false;render();});
+$('map').addEventListener('dragover',e=>e.preventDefault());$('map').addEventListener('drop',e=>{e.preventDefault();held=false;if(cardUI)return;const id=targetNode(e.clientX,e.clientY,e.target)?.dataset.node,data=e.dataTransfer.getData('text/plain');if(!id)return;if(data==='builders'){choose(id);perform(()=>E.start(state,selectedTruck,'crew',id));}else if(/^truck:\d+$/.test(data)){selectedTruck=Number(data.split(':')[1]);choose(id);toast('Машина '+selectedTruck+' выбрана. Назначьте действие в карточке объекта.');$('details').scrollIntoView({behavior:'smooth',block:'nearest'});}});
+document.addEventListener('pointerdown',()=>held=true);document.addEventListener('pointerup',()=>{held=false;});document.addEventListener('pointercancel',()=>held=false);
+document.addEventListener('visibilitychange',()=>{if(document.hidden){state.paused=true;save();render();}});window.addEventListener('pagehide',save);
+let last=performance.now(),acc=0,lastRender=0,lastSave=0;
+function frame(now){const dt=Math.min(.25,(now-last)/1000);last=now;if(!document.hidden&&!state.paused){acc+=dt*speed;while(acc>=.1){E.tick(state,.1);if(coach)coach.observe();acc-=.1;if(state.paused){acc=0;break;}}}else acc=0;drawTrucks();if(coach)coach.frame();if(now-lastRender>250){render();lastRender=now;}if(now-lastSave>5000){save();lastSave=now;}requestAnimationFrame(frame);}
+if(typeof LogisticsCardUI!=='undefined'&&$('siteGallery')){
+ cardUI=LogisticsCardUI.create({E,$,fmt,batchMaterials:true,state:()=>state,selected:()=>selected,truck:()=>selectedTruck,canSelectSite:()=>!roadMode&&!pipeMode,selectTruck:id=>{selectedTruck=id;},selectSite:id=>{selected=id;roadMode=false;pipeMode=false;$('pipeTool').classList.remove('active');$('roadTool').classList.remove('active');},refresh:()=>render(),perform,confirmRoad:cost=>{const dialog=$('roadConfirm');$('roadConfirmText').textContent='Построить дорогу к хабу за '+fmt(cost)+' асфальта?';dialog.showModal();}});
+ $('roadConfirmCancel').onclick=()=>$('roadConfirm').close();$('roadConfirmBuild').onclick=()=>{$('roadConfirm').close();perform(()=>E.roadToCenter(state));};
+}
+if(cardUI&&typeof LogisticsCoach!=='undefined')coach=LogisticsCoach.mount({E,state:()=>state,view:()=>({selected,truck:selectedTruck,mode:cardUI.getMode(),pending:cardUI.getPending(),drawing:pipeMode?'pipe':roadMode?'road':null,operations:$('operations').open}),projectCell:(p,type)=>map3d?.projectCell(p,type),projectSite:id=>map3d?.projectSite(id),overview:()=>map3d?.focusTerritory('both'),makeRoom:(ids,top)=>map3d?.makeTutorialRoom(ids,top),refresh:()=>render(),focus:()=>{if(typeof focusRaceTerritory==='function')focusRaceTerritory('player');else if(map3d){if(map3d.rival)map3d.focusTerritory('player');else{map3d.full=false;map3d.fit();}}}});
+render();if(state.time===0&&!cardUI)$('intro').showModal();requestAnimationFrame(frame);
+
+let cardDrag=null,suppressCardClick=false;
+$('fleet').addEventListener('pointerdown',e=>{if(cardUI)return;const card=e.target.closest('[data-truck]');if(!card||card.dataset.available!=='true'||e.button!==0)return;cardDrag={id:Number(card.dataset.truck),x:e.clientX,y:e.clientY,card,ghost:null};});
+document.addEventListener('pointermove',e=>{if(!cardDrag)return;const d=cardDrag;if(!d.ghost&&Math.hypot(e.clientX-d.x,e.clientY-d.y)>7){d.ghost=d.card.cloneNode(true);d.ghost.removeAttribute('data-truck');Object.assign(d.ghost.style,{position:'fixed',width:'130px',zIndex:'1000',pointerEvents:'none',opacity:'.85',transform:'rotate(-4deg)'});document.body.appendChild(d.ghost);}if(d.ghost){e.preventDefault();held=true;d.ghost.style.left=(e.clientX-65)+'px';d.ghost.style.top=(e.clientY-45)+'px';}},{passive:false});
+document.addEventListener('pointerup',e=>{if(!cardDrag)return;const d=cardDrag;cardDrag=null;if(d.ghost){d.ghost.remove();suppressCardClick=true;setTimeout(()=>suppressCardClick=false,0);const node=targetNode(e.clientX,e.clientY,document.elementFromPoint(e.clientX,e.clientY));if(node){selectedTruck=d.id;choose(node.dataset.node);toast('Машина '+selectedTruck+' выбрана. Назначьте действие в карточке объекта.');$('details').scrollIntoView({behavior:'smooth',block:'nearest'});}held=false;render();}});
+document.addEventListener('pointercancel',()=>{cardDrag?.ghost?.remove();cardDrag=null;held=false;});

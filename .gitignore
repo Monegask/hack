@@ -1,0 +1,17 @@
+**/node_modules/
+.vercel/
+.env
+.env.*
+!.env.example
+public/
+exports/
+output/
+tmp/
+prototypes/logistics-race/logistics-race-*.html
+prototypes/logistics-race/dist/game-3d/
+prototypes/logistics-race/dist/*-*.html
+prototypes/logistics-race/dist/animation-demo.html
+prototypes/logistics-race/dist/assets/city-hub.glb
+prototypes/logistics-race/dist/assets/asphalt-plant.glb
+**/build-report.json
+*.log

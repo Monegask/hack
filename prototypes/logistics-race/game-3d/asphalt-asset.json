@@ -1,0 +1,20 @@
+{
+  "asset": "dist/assets/asphalt-plant.glb",
+  "sha256": "26e6c9afc32a2db39d6427b881baf9c4f21929b9f35ad7ffe35c02a83ece770f",
+  "bytes": 478776,
+  "triangles": 4542,
+  "method": "procedural Three.js with generate-low-poly-model skill conventions",
+  "source": "game-3d/src/asphalt-model.mjs",
+  "runtimeAnimation": "game-3d/src/asphalt-motion.mjs",
+  "animationsEmbeddedInGlb": false,
+  "referencePending": true,
+  "styleApproved": false,
+  "referenceSources": [
+    "https://astecindustries.com/wp-content/uploads/how-it-works-cvr.pdf",
+    "https://astecindustries.com/wp-content/uploads/2021-bg-series-batch-plant-brochure.pdf"
+  ],
+  "validation": {
+    "errors": 0,
+    "warnings": 0
+  }
+}

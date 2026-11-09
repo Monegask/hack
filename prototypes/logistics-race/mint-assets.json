@@ -1,0 +1,358 @@
+{
+  "registryVersion": 1,
+  "mintProject": {
+    "projectId": "zd7ct56y264kvk5tfxrk66t8ks8hhwpt",
+    "name": "Линия снабжения · 3D"
+  },
+  "assetRoot": "dist/assets/mint",
+  "assets": {
+    "gravel-quarry": {
+      "source": {
+        "manifestVersion": 1,
+        "kind": "asset",
+        "assetType": "model",
+        "assetId": "ks71ya4szhz6fzct6s2vdpm89d8hh2sh"
+      },
+      "transform": {
+        "position": [
+          0,
+          0,
+          0
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": [
+          1,
+          1,
+          1
+        ]
+      },
+      "mode": "local_files",
+      "artifacts": {
+        "original_glb": {
+          "artifactId": "original_glb",
+          "role": "canonical_model",
+          "format": "glb",
+          "contentType": "model/gltf-binary",
+          "filename": "terraced-gravel-crusher-quarry-9d8hh2sh-original.glb",
+          "localPath": "dist/assets/mint/gravel-quarry/original_glb.glb",
+          "loaderHint": "gltf",
+          "byteSize": 2622264,
+          "extensionsUsed": [],
+          "extensionsRequired": [],
+          "usesDraco": false,
+          "requiresDraco": false,
+          "usesMeshopt": false,
+          "requiresMeshopt": false,
+          "usesKtx2": false,
+          "requiresKtx2": false,
+          "unknownRequiredExtensions": []
+        },
+        "preview_image": {
+          "artifactId": "preview_image",
+          "role": "preview_image",
+          "format": "webp",
+          "contentType": "image/webp",
+          "filename": "terraced-gravel-crusher-quarry-9d8hh2sh-preview.webp",
+          "localPath": "dist/assets/mint/gravel-quarry/preview_image.webp",
+          "loaderHint": "image",
+          "byteSize": 42494
+        }
+      },
+      "thumbnailUrl": "dist/assets/mint/gravel-quarry/preview_image.webp"
+    },
+    "metalworks": {
+      "source": {
+        "manifestVersion": 1,
+        "kind": "asset",
+        "assetType": "model",
+        "assetId": "ks7e82a7qdq3f7cwgw9sc63n118hkt7n"
+      },
+      "transform": {
+        "position": [
+          0,
+          0,
+          0
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": [
+          1,
+          1,
+          1
+        ]
+      },
+      "mode": "local_files",
+      "artifacts": {
+        "original_glb": {
+          "artifactId": "original_glb",
+          "role": "canonical_model",
+          "format": "glb",
+          "contentType": "model/gltf-binary",
+          "filename": "ivory-furnace-rolling-works-118hkt7n-original.glb",
+          "localPath": "dist/assets/mint/metalworks/original_glb.glb",
+          "loaderHint": "gltf",
+          "byteSize": 1200868,
+          "extensionsUsed": [],
+          "extensionsRequired": [],
+          "usesDraco": false,
+          "requiresDraco": false,
+          "usesMeshopt": false,
+          "requiresMeshopt": false,
+          "usesKtx2": false,
+          "requiresKtx2": false,
+          "unknownRequiredExtensions": []
+        },
+        "preview_image": {
+          "artifactId": "preview_image",
+          "role": "preview_image",
+          "format": "webp",
+          "contentType": "image/webp",
+          "filename": "ivory-furnace-rolling-works-118hkt7n-preview.webp",
+          "localPath": "dist/assets/mint/metalworks/preview_image.webp",
+          "loaderHint": "image",
+          "byteSize": 56228
+        }
+      },
+      "thumbnailUrl": "dist/assets/mint/metalworks/preview_image.webp"
+    },
+    "oil-pumpjack": {
+      "source": {
+        "manifestVersion": 1,
+        "kind": "asset",
+        "assetType": "model",
+        "assetId": "ks78m0mv3r9g9mw3dh94pmqcb18hh9jx"
+      },
+      "transform": {
+        "position": [
+          0,
+          0,
+          0
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": [
+          1,
+          1,
+          1
+        ]
+      },
+      "mode": "local_files",
+      "artifacts": {
+        "original_glb": {
+          "artifactId": "original_glb",
+          "role": "canonical_model",
+          "format": "glb",
+          "contentType": "model/gltf-binary",
+          "filename": "ivory-beam-pumpjack-b18hh9jx-original.glb",
+          "localPath": "dist/assets/mint/oil-pumpjack/original_glb.glb",
+          "loaderHint": "gltf",
+          "byteSize": 1662024,
+          "extensionsUsed": [],
+          "extensionsRequired": [],
+          "usesDraco": false,
+          "requiresDraco": false,
+          "usesMeshopt": false,
+          "requiresMeshopt": false,
+          "usesKtx2": false,
+          "requiresKtx2": false,
+          "unknownRequiredExtensions": []
+        },
+        "preview_image": {
+          "artifactId": "preview_image",
+          "role": "preview_image",
+          "format": "webp",
+          "contentType": "image/webp",
+          "filename": "ivory-beam-pumpjack-b18hh9jx-preview.webp",
+          "localPath": "dist/assets/mint/oil-pumpjack/preview_image.webp",
+          "loaderHint": "image",
+          "byteSize": 74034
+        }
+      },
+      "thumbnailUrl": "dist/assets/mint/oil-pumpjack/preview_image.webp"
+    },
+    "ore-mine": {
+      "source": {
+        "manifestVersion": 1,
+        "kind": "asset",
+        "assetType": "model",
+        "assetId": "ks70x8qyykd3xq7xvbwe4ptr6n8hk1dm"
+      },
+      "transform": {
+        "position": [
+          0,
+          0,
+          0
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": [
+          1,
+          1,
+          1
+        ]
+      },
+      "mode": "local_files",
+      "artifacts": {
+        "original_glb": {
+          "artifactId": "original_glb",
+          "role": "canonical_model",
+          "format": "glb",
+          "contentType": "model/gltf-binary",
+          "filename": "ivory-spoked-hoist-mine-6n8hk1dm-original.glb",
+          "localPath": "dist/assets/mint/ore-mine/original_glb.glb",
+          "loaderHint": "gltf",
+          "byteSize": 2150120,
+          "extensionsUsed": [],
+          "extensionsRequired": [],
+          "usesDraco": false,
+          "requiresDraco": false,
+          "usesMeshopt": false,
+          "requiresMeshopt": false,
+          "usesKtx2": false,
+          "requiresKtx2": false,
+          "unknownRequiredExtensions": []
+        },
+        "preview_image": {
+          "artifactId": "preview_image",
+          "role": "preview_image",
+          "format": "webp",
+          "contentType": "image/webp",
+          "filename": "ivory-spoked-hoist-mine-6n8hk1dm-preview.webp",
+          "localPath": "dist/assets/mint/ore-mine/preview_image.webp",
+          "loaderHint": "image",
+          "byteSize": 61130
+        }
+      },
+      "thumbnailUrl": "dist/assets/mint/ore-mine/preview_image.webp"
+    },
+    "trial-factory": {
+      "source": {
+        "manifestVersion": 1,
+        "kind": "asset",
+        "assetType": "model",
+        "assetId": "ks704qy01na3mdh2hxq61ras1s8hg3j7"
+      },
+      "transform": {
+        "position": [
+          0,
+          0,
+          0
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": [
+          1,
+          1,
+          1
+        ]
+      },
+      "mode": "local_files",
+      "artifacts": {
+        "original_glb": {
+          "artifactId": "original_glb",
+          "role": "canonical_model",
+          "format": "glb",
+          "contentType": "model/gltf-binary",
+          "filename": "ivory-sawtooth-workshop-1s8hg3j7-original.glb",
+          "localPath": "dist/assets/mint/trial-factory/original_glb.glb",
+          "loaderHint": "gltf",
+          "byteSize": 2245752,
+          "extensionsUsed": [],
+          "extensionsRequired": [],
+          "usesDraco": false,
+          "requiresDraco": false,
+          "usesMeshopt": false,
+          "requiresMeshopt": false,
+          "usesKtx2": false,
+          "requiresKtx2": false,
+          "unknownRequiredExtensions": []
+        },
+        "preview_image": {
+          "artifactId": "preview_image",
+          "role": "preview_image",
+          "format": "webp",
+          "contentType": "image/webp",
+          "filename": "ivory-sawtooth-workshop-1s8hg3j7-preview.webp",
+          "localPath": "dist/assets/mint/trial-factory/preview_image.webp",
+          "loaderHint": "image",
+          "byteSize": 40854
+        }
+      },
+      "thumbnailUrl": "dist/assets/mint/trial-factory/preview_image.webp"
+    },
+    "trial-factory-v1": {
+      "source": {
+        "manifestVersion": 1,
+        "kind": "asset",
+        "assetType": "model",
+        "assetId": "ks7dy14nf7mhazdn5d8ycwqntn8hg50d"
+      },
+      "transform": {
+        "position": [
+          0,
+          0,
+          0
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": [
+          1,
+          1,
+          1
+        ]
+      },
+      "mode": "local_files",
+      "artifacts": {
+        "original_glb": {
+          "artifactId": "original_glb",
+          "role": "canonical_model",
+          "format": "glb",
+          "contentType": "model/gltf-binary",
+          "filename": "ivory-sawtooth-depot-tn8hg50d-original.glb",
+          "localPath": "dist/assets/mint/trial-factory-v1/original_glb.glb",
+          "loaderHint": "gltf",
+          "byteSize": 1980928,
+          "extensionsUsed": [],
+          "extensionsRequired": [],
+          "usesDraco": false,
+          "requiresDraco": false,
+          "usesMeshopt": false,
+          "requiresMeshopt": false,
+          "usesKtx2": false,
+          "requiresKtx2": false,
+          "unknownRequiredExtensions": []
+        },
+        "preview_image": {
+          "artifactId": "preview_image",
+          "role": "preview_image",
+          "format": "webp",
+          "contentType": "image/webp",
+          "filename": "ivory-sawtooth-depot-tn8hg50d-preview.webp",
+          "localPath": "dist/assets/mint/trial-factory-v1/preview_image.webp",
+          "loaderHint": "image",
+          "byteSize": 33900
+        }
+      },
+      "thumbnailUrl": "dist/assets/mint/trial-factory-v1/preview_image.webp"
+    }
+  }
+}

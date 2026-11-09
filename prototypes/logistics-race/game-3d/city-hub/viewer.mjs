@@ -1,0 +1,16 @@
+import * as T from 'three';
+import {OrbitControls} from 'three/addons/controls/OrbitControls.js';
+import {GLTFLoader} from 'three/addons/loaders/GLTFLoader.js';
+import {buildTruck} from '../../threejs-trial/src/world.mjs';
+const scene=new T.Scene();scene.background=new T.Color(0xf1eadb);
+const camera=new T.OrthographicCamera(-6,6,5,-5,.1,100);camera.position.set(12,12,16);
+const renderer=new T.WebGLRenderer({antialias:true});renderer.setPixelRatio(Math.min(devicePixelRatio||1,1.5));renderer.outputColorSpace=T.SRGBColorSpace;renderer.toneMapping=T.ACESFilmicToneMapping;renderer.toneMappingExposure=1.12;renderer.shadowMap.enabled=true;renderer.shadowMap.type=T.PCFSoftShadowMap;document.body.prepend(renderer.domElement);
+const controls=new OrbitControls(camera,renderer.domElement);controls.enableDamping=true;controls.target.set(0,.9,0);controls.minZoom=.55;controls.maxZoom=3;controls.maxPolarAngle=Math.PI*.47;controls.update();
+scene.add(new T.HemisphereLight(0xfff8ec,0x9f9d8b,2.15));const sun=new T.DirectionalLight(0xfff4df,3.1);sun.position.set(-7,12,8);sun.castShadow=true;sun.shadow.mapSize.set(2048,2048);Object.assign(sun.shadow.camera,{left:-10,right:10,top:10,bottom:-10,near:.1,far:40});sun.shadow.camera.updateProjectionMatrix();sun.shadow.bias=-.00015;sun.shadow.normalBias=.015;scene.add(sun);
+const floor=new T.Mesh(new T.PlaneGeometry(200,200),new T.MeshStandardMaterial({color:0xf1eadb,roughness:1}));floor.rotation.x=-Math.PI/2;floor.position.y=-.012;floor.receiveShadow=true;scene.add(floor);
+let model;new GLTFLoader().load(__CITY_HUB_URL__,g=>{model=g.scene;model.traverse(o=>{if(o.isMesh){o.castShadow=true;o.receiveShadow=true;}});scene.add(model);const parking=model.children[0].userData.procedural.parking;for(const slot of parking.slots.slice(0,2)){const truck=buildTruck();truck.group.scale.setScalar(.66);truck.group.position.set(slot.x,parking.surfaceY+.008,slot.z);truck.group.rotation.y=slot.yaw;scene.add(truck.group);}document.querySelector('#status').textContent='Миниатюрный город · кварталы и производства';},undefined,()=>{document.querySelector('#status').textContent='Не удалось открыть модель';});
+function resize(){const w=innerWidth,h=innerHeight,aspect=w/h,half=7.3;Object.assign(camera,{left:-half*aspect,right:half*aspect,top:half,bottom:-half});camera.updateProjectionMatrix();renderer.setSize(w,h);}addEventListener('resize',resize);resize();
+document.querySelector('#top').onclick=()=>{camera.position.set(0,18,.001);camera.zoom=.91;camera.updateProjectionMatrix();controls.target.set(0,0,0);controls.update();};
+document.querySelector('#perspective').onclick=()=>{camera.position.set(12,12,16);camera.zoom=1;camera.updateProjectionMatrix();controls.target.set(0,.9,0);controls.update();};
+document.querySelector('#download').onclick=()=>{const data=Uint8Array.from(atob(__CITY_HUB_URL__.split(',')[1]),c=>c.charCodeAt(0)),url=URL.createObjectURL(new Blob([data],{type:'model/gltf-binary'})),a=document.createElement('a');a.href=url;a.download='city-hub.glb';document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),30000);};
+renderer.setAnimationLoop(()=>{controls.update();renderer.render(scene,camera);});

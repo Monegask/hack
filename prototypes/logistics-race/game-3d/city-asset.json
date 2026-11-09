@@ -1,0 +1,27 @@
+{
+  "asset": "dist/assets/city-hub.glb",
+  "sha256": "f7548d534a8e64aca7f982218c6ebd22e001c00936c692d969f0163505d18412",
+  "bytes": 2673396,
+  "triangles": 27704,
+  "materials": 10,
+  "source": "game-3d/city-hub/miniature.mjs",
+  "canonicalApproved": "output/models/city-hub-v3/city-hub.glb",
+  "method": "existing approved procedural city derivative, no Mint generation",
+  "derivativeChanges": [
+    "serviceLane:true",
+    "remove two trees from freight lane",
+    "curb cuts for freight lane"
+  ],
+  "placements": [
+    "city",
+    "center"
+  ],
+  "scale": 1.15,
+  "worldCellSize": 6,
+  "engineGrid": [
+    16,
+    11
+  ],
+  "engineChanged": false,
+  "validation": "output/models/city-hub-v3/game-validation.json"
+}

@@ -1,0 +1,12 @@
+{
+  "name": "supply-line-game",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Supply Line — browser logistics game with a tutorial and bot race",
+  "engines": { "node": "24.x" },
+  "scripts": {
+    "build": "node scripts/build.cjs",
+    "test": "node --test prototypes/logistics-race/tests/*.cjs prototypes/logistics-race/game-3d/tests/*.test.mjs",
+    "start": "node scripts/serve.cjs"
+  }
+}

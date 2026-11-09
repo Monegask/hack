@@ -1,0 +1,53 @@
+/* v30: dusk graphite, muted ivory and warm industrial orange. Layout and
+   interaction remain owned by card-ui.css; this sheet only changes appearance. */
+body.three-game{color-scheme:dark;--paper:#17232d;--ink:#dfdfd2;--muted:#a4b1b6;--line:#344650;--light:#263640;--ui-accent:#e2a568;--ui-shadow:#0b151e;background:var(--paper);color:var(--ink)}
+body.three-game .ui-shell,body.three-game aside{background:#17232d}
+body.three-game .map-panel,body.three-game .map-top,body.three-game .map-footer{background:#14232d}
+body.three-game .map-wrap,body.three-game .map-legend{background:#101c28}
+body.three-game button,body.three-game select{background:#293b46;color:var(--ink);border-color:var(--line)}
+body.three-game button:hover:not(:disabled){background:#354b56}
+body.three-game button.primary{background:#bd7b43;color:#101c28}
+body.three-game .brand strong{color:#c6c9bf}
+body.three-game .resourcebar{background:#1b2b36ed;border-color:#40535d;box-shadow:0 5px 18px #060e1740,inset 0 1px #62758024}
+body.three-game .resource-icon,body.three-game .resource .resource-icon,body.three-game .icon-disc{background:linear-gradient(140deg,#334650,#22323d);box-shadow:2px 3px 7px #0a131c,-1px -1px 3px #50626d50,inset 0 1px 0 #70828a30;color:#ced0c3}
+body.three-game .gallery-button,body.three-game .truck-button{background:transparent}
+body.three-game .gallery-button.selected,body.three-game .truck-button.selected{background:#263945}
+body.three-game .selected-disc{border-color:#344651;background:linear-gradient(140deg,#243541,#314550);box-shadow:2px 3px 7px #0a151c,inset 0 1px 2px #82939730;color:var(--ui-accent)}
+body.three-game .action-card,body.three-game .action-card.primary{background:linear-gradient(150deg,#30434d,#24353f);box-shadow:0 3px 8px #07101955,inset 0 1px 0 #66798230;color:var(--ink);border:1px solid #40545e}
+body.three-game .action-card.primary strong{color:#edba87}
+body.three-game .action-card:hover:not(:disabled){background:#3a515b}
+body.three-game .truck-number{background:#41545d;color:#eeeadd}
+body.three-game .bar,body.three-game .truck-progress{background:#354954}
+body.three-game .truck-progress span{background:#d99b5d}
+body.three-game .ingot{color:#cad0c4}
+body.three-game .ingot>span:after{background:#2a3c46}
+body.three-game .card-path:not(:empty),body.three-game .card-message:not(:empty){background:#344037;color:#f0c393}
+body.three-game .haul-assigned{background:#294b42;color:#c1d6c8}
+body.three-game .tutorial-panel{background:#1b2b36f5;border-color:#d5965c;box-shadow:0 6px 24px #030d1866}
+body.three-game .tutorial-kicker{color:#ecb782}
+body.three-game .tutorial-focus{background-color:#3b4b4c!important;color:#fff1d8!important;outline-color:#e4a05e!important;box-shadow:0 0 0 7px #e4a05e20}
+body.three-game dialog{background:#1d2e39;border-color:#526671;color:var(--ink);box-shadow:0 15px 70px #030b17b0}
+body.three-game dialog::backdrop{background:#030a14b0}
+body.three-game #operations .guide,body.three-game #operations .plant,body.three-game #operations .journal-row{background:#263943;color:var(--ink);border-color:#3e535e}
+body.three-game #toast{background:#30454d;color:#f0e4ce;border:1px solid #6f7b75;box-shadow:0 5px 20px #020b1860}
+body.three-game .map3d-label,body.three-game .rival-labels .map3d-label,body.three-game .map3d-label.overview,body.three-game .rival-labels .map3d-label.overview{background:#1b2e38ed;border-color:#6c7e80;color:#d2d7cf;box-shadow:0 2px 6px #06101940}
+body.three-game .map3d-label:first-line{color:#e3e4d5}
+body.three-game .map3d-label.selected{background:#3c4134f2;border-color:#f0b57a;box-shadow:0 0 0 1px #e9a25b50}
+body.three-game .map3d-label:hover{background:#344b55}
+body.three-game .map3d-label:not(.overview){background:#1b2e38ed;border:1px solid #6c7e80;color:#d2d7cf;box-shadow:0 2px 6px #06101940}
+body.three-game .map3d-label:not(.overview).selected{background:#3c4134f2;border-color:#f0b57a}
+body.three-game .map3d-label.overview::before{background:#91a4a5}
+body.three-game .map3d-label.overview[data-state=working]::before{background:#88c5a0}
+body.three-game .map3d-label.overview[data-state=construction]::before{background:#e3a667}
+body.three-game .map3d-territory-title{background:#223944f0;color:#e2e3d4;border-color:#81958d;box-shadow:0 3px 10px #040f1b60}
+body.three-game .map3d-loading{background:#243843f5;border-color:#6e8388;color:#dde2d6}
+body.three-game .map3d-loading.error{color:#ffc1a0}
+body.three-game .map3d-portal{background:#d4ab77;color:#14222c;border-color:#e4c99d}
+body.three-game[data-race] .race-overview{color:#d2d9d2}
+body.three-game[data-race] .race-territories button{background:#293e49;border-color:#4b626c;color:#c9d3d1}
+body.three-game[data-race] .race-territories button[aria-pressed=true]{background:#bb7e46;border-color:#e9ae70;color:#101d27}
+body.three-game[data-race] .race-meter{background:#354c58}
+body.three-game[data-race] .race-contender:first-child .race-meter span{background:#8eaa8b}
+body.three-game[data-race] .race-contender:last-child .race-meter span{background:#dd9d5e}
+body.three-game[data-race] .race-object,body.three-game[data-race] .race-status{background:#263e48;border-color:#526d73;color:#cbd6d0}
+body.three-game[data-race] #rival{border-color:#d49658}
