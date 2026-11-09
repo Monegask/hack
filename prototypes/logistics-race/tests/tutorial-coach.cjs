@@ -11,14 +11,14 @@ test('Real first loop requires two material loads, crew, ore return, paid smelti
  assert(E.start(h.s,1,'materials','iron'));h.c.observe();assert.equal(h.s.sites.iron.incoming.iron,4);assert.equal(h.c.current().id,'materials-iron');
  assert(E.start(h.s,2,'materials','iron'));h.c.observe();assert.equal(h.c.current().id,'wait-truck');h.runUntil(()=>!h.s.trucks[0].job);assert.equal(h.c.current().id,'crew-iron');
  assert(E.start(h.s,1,'crew','iron'));h.c.observe();h.runUntil(()=>h.s.sites.iron.active);assert.equal(h.c.facts().producedIron,false);h.runUntil(()=>!h.s.trucks[1].job);assert(E.start(h.s,2,'haul','iron'));h.c.observe();assert.equal(h.c.facts().producedIron,false);
- h.runUntil(()=>h.c.facts().oreReturned);assert.equal(h.c.current().id,'smelt');h.runUntil(()=>h.c.facts().producedIron);assert.equal(h.c.current().id,'recall');assert(!h.c.p.coreDone);
+ h.runUntil(()=>h.c.facts().oreReturned);assert.equal(h.c.current().id,'smelt');h.runUntil(()=>h.c.facts().producedIron);assert.equal(h.c.current().id,'truck-help');h.c.next();assert(!h.c.p.coreDone);
  assert(E.stopTruck(h.s,2));h.c.observe();h.runUntil(()=>!h.s.trucks[1].job);assert.equal(h.c.current().id,'core-done');assert(h.s.paused);assert.equal(h.c.current().id,'core-done','Reading pause must not replace finish with resume');h.c.next();assert(h.c.p.coreDone);assert(!h.s.paused);assert.equal(h.c.current(),null);
 });
 test('A loaded stock of starting iron cannot finish the first production lesson',()=>{
  const h=harness();for(let i=0;i<C.INTRO_COUNT;i++)h.c.next();h.s.paused=false;h.s.sites.iron.active=true;h.s.city.iron=100;h.c.observe();assert.equal(h.c.facts().producedIron,false);assert.notEqual(h.c.current().id,'core-done');
 });
 test('Pending assignments respect eligibility, paid departure, pause and shortage',()=>{
- const h=harness({coreDone:true,skipped:true});h.c.start('road');h.c.next();h.s.paused=false;h.view.pending={type:'materials',target:'iron',truck:null};const before=JSON.stringify(h.s);assert.equal(h.c.current().id,'pick-truck');assert.equal(JSON.stringify(h.s),before);h.s.fuel=0;assert.equal(h.c.current().id,'no-eligible');h.s.fuel=12;h.s.paused=true;h.view.pending.truck=1;assert.equal(h.c.current().id,'resume-send');
+ const h=harness({coreDone:true,skipped:true});h.c.start('road');h.c.next();h.s.paused=false;h.view.pending={type:'materials',target:'iron',truck:null};const before=JSON.stringify(h.s);assert.equal(h.c.current().id,'pick-truck');assert.equal(JSON.stringify(h.s),before);h.s.fuel=0;assert.equal(h.c.current().id,'no-eligible');h.s.fuel=12;h.s.paused=true;h.view.pending.truck=1;assert.notEqual(h.c.current().id,'resume-send');
 });
 test('Drawing cannot be called a full-road connection; exit is part of road lesson',()=>{
  const h=harness({coreDone:true,skipped:true});h.s.paused=false;h.s.city.asphalt=2;h.c.start('road');h.c.next();h.view.drawing='road';assert.equal(h.c.current().id,'road-draw');const route=E.routeInfo(h.s,'iron');for(const cell of route.points)if(E.buildRoad(h.s,cell))break;assert.equal(h.c.current().id,'road-exit');h.view.drawing=null;assert.equal(h.c.current().id,'road-done');assert.equal(E.routeInfo(h.s,'iron').capacity,4);h.c.next();assert(h.c.p.seen.road);
@@ -45,7 +45,7 @@ test('Revised introduction uses the approved order, three blocks and the real un
  const h=harness();let q=h.c.current();assert.equal(q.title,'Цель игры - снабдить хаб ресурсами');assert.match(q.text,/12 железа, 6 меди и 8 асфальта/);assert.equal(q.count,'1/3');h.c.next();q=h.c.current();assert.equal(q.title,'Стартовый набор');assert.equal(q.pose,'up');assert.match(q.text,/пока нет добычи, запас не бесконечен/);h.c.next();q=h.c.current();assert.equal(q.title,'Переработка');assert.equal(q.pose,'folded');assert.deepEqual(q.mapSites,['city','oil']);h.c.next();q=h.c.current();assert.equal(q.id,'resume');assert.equal(q.title,'Начни игру');assert.equal(q.pose,'up');assert(q.dimMap);assert(!q.manual);assert.deepEqual(h.s.goal,{iron:12,copper:6,asphalt:8});
 });
 test('Materials and truck text match the revised lesson while later assignment types retain their explanation',()=>{
- const s=E.create();s.paused=false;const v={selected:'iron',mode:'site',truck:1,pending:null};let q=C.buildStep(E,s,v,'iron');assert.equal(q.text,'Доставь материалы к руднику, нужно 5 железа и 1 медь.');assert(!q.manual&&!q.dimMap);v.pending={type:'materials',target:'iron'};q=C.pendingStep(E,s,v);assert.equal(q.title,'Выбери грузовик');assert.match(q.text,/можно выбрать несколько/);assert.match(q.text,/Вместимость груза по пересечённой местности 4/);assert(!q.manual&&!q.dimMap);
+ const s=E.create();s.paused=false;const v={selected:'iron',mode:'site',truck:1,pending:null};let q=C.buildStep(E,s,v,'iron');assert.equal(q.text,'Доставь материалы к руднику, чтобы построить его. Нужны 5 железа и 1 медь.');assert(!q.manual&&!q.dimMap);v.pending={type:'materials',target:'iron'};q=C.pendingStep(E,s,v);assert.equal(q.title,'Выбери грузовик');assert.match(q.text,/до 4 единиц/);assert.match(q.text,/до 4 единиц по пересечённой местности/);assert(!q.manual&&!q.dimMap);
 });
 test('Folded map pose sits above its target rather than beside it',()=>{
  for(const width of [390,1440]){const target={x:width/2-30,y:500,width:60,height:55},p=C.placement(target,{x:0,y:150,width:width<640?width:width-420,height:600},{width,height:900},'folded',240);assert.equal(p.pose,'folded');assert(p.character.y+p.character.height<target.y);}
@@ -68,4 +68,19 @@ test('Unlock lessons queue after the active chapter and stay suppressed when ski
  const h=harness({coreDone:true});h.s.paused=false;h.c.start('fleet');h.s.sites.asphalt.active=true;h.s.sites.oil2.active=true;
  assert.equal(h.c.current().id,'fleet');h.c.next();assert.equal(h.c.current().id,'pipe-intro');h.c.closeChapter();assert.equal(h.c.current().id,'road-intro');h.c.closeChapter();assert.equal(h.c.current(),null);
  const skipped=harness({coreDone:true,skipped:true});skipped.s.sites.asphalt.active=true;skipped.s.sites.oil2.active=true;assert.equal(skipped.c.current(),null);
+});
+
+test('Course finishes with active hauling and never auto-opens a later chapter',()=>{
+ const h=harness();for(let i=0;i<C.INTRO_COUNT;i++)h.c.next();h.s.paused=false;
+ assert(E.start(h.s,1,'materials','iron'));assert(E.start(h.s,2,'materials','iron'));h.runUntil(()=>!h.s.trucks[0].job);
+ assert(E.start(h.s,1,'crew','iron'));h.runUntil(()=>h.s.sites.iron.active);h.runUntil(()=>!h.s.trucks[1].job);
+ assert(E.start(h.s,2,'haul','iron'));h.runUntil(()=>h.c.facts().producedIron);
+ assert.equal(h.c.current().id,'truck-help');h.c.next();assert.equal(h.c.current().id,'core-done');h.c.next();
+ assert(h.s.trucks[1].job);assert(h.c.p.coreDone);h.s.sites.asphalt.active=true;h.s.sites.oil2.active=true;h.view.selected='copper';assert.equal(h.c.current(),null);
+ h.c.start('road');assert.equal(h.c.current().id,'road-intro');
+});
+test('Second material truck gets its own instruction and target button is absent',()=>{
+ const h=harness();h.s.paused=false;assert(E.start(h.s,1,'materials','iron'));h.view.pending={type:'materials',target:'iron'};
+ const q=C.pendingStep(E,h.s,h.view);assert.equal(q.id,'pick-truck');assert.match(q.text,/another truck|ещё одну машину/);
+ const source=require('node:fs').readFileSync(require.resolve('../dist/tutorial-coach.js'),'utf8');assert(!source.includes("button('reveal'"));assert(!source.includes("make('resume-send'"));
 });

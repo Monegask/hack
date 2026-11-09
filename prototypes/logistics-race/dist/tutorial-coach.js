@@ -50,14 +50,13 @@ function buildStep(E,s,v,id){
  const covered=Object.entries(E.costs[id]).every(([k,n])=>site.received[k]+site.incoming[k]>=n);
  if(covered)return make('crew-'+id,'Теперь — строительная команда','Все материалы уже доставлены или едут. Нажми «Отправить строителей», затем выбери свободную машину.','[data-action="crew"]');
  const cost=Object.entries(E.costs[id]).map(([k,n])=>n+' '+E.names[k].toLowerCase()).join(' и '),capacity=E.routeInfo(s,id).capacity;
- return make('materials-'+id,'Привези материалы',id==='iron'?'Доставь материалы к руднику, нужно 5 железа и 1 медь.':label+': '+cost+'. Вместимость здесь — '+capacity+'. Если всё не помещается, отправь второй груз. Потом повезём строителей.','[data-action="materials"]');
+ return make('materials-'+id,'Привези материалы',id==='iron'?'Доставь материалы к руднику, чтобы построить его. Нужны 5 железа и 1 медь.':label+': '+cost+'. Вместимость здесь — '+capacity+'. Если всё не помещается, отправь второй груз. Потом повезём строителей.','[data-action="materials"]');
 }
 function pendingStep(E,s,v){
  if(!v.pending)return null;
- if(s.paused&&v.pending.truck)return make('resume-send','Машина выбрана','Нажми «Продолжить и отправить». Ресурсы спишутся по обычным правилам рейса.','[data-action="resume"]');
  const suitable=s.trucks.some(t=>{if(t.job||t.leg)return false;const copy=JSON.parse(JSON.stringify(s));copy.paused=false;return E.start(copy,t.id,v.pending.type,v.pending.target);});
  if(!suitable)return make('no-eligible','Сейчас рейс недоступен','Причина показана в карточке. Проверь топливо и груз; если машины заняты, отмени назначение и дождись возврата.','[data-action="cancel"]');
- return make('pick-truck','Выбери грузовик',v.pending.type==='materials'?'Выбери свободную машину, которая выполнит заказ (можно выбрать несколько). Вместимость груза по пересечённой местности 4. Доставь материалы, потом отвезём строителей.':s.paused?'Выбери свободную машину. Затем появится «Продолжить и отправить».':'Нажатие подходящей машины сразу отправит её в рейс. Топливо оплачивает путь туда и обратно.','.truck-button.eligible',v.pending.type==='crew'?{pose:'peek'}:{});
+ return make('pick-truck','Выбери грузовик',v.pending.type==='materials'?(s.trucks.some(t=>t.job?.type==='materials'&&t.job.target===v.pending.target)?'Назначь ещё одну машину, чтобы привезти материалы быстрее. Как только их будет достаточно, отправим строителей.':'Выбери машину, которая выполнит доставку. Ты можешь отвезти до 4 единиц по пересечённой местности.'):s.paused?'Выбери свободную машину. Затем появится «Продолжить и отправить».':'Нажатие подходящей машины сразу отправит её в рейс. Топливо оплачивает путь туда и обратно.','.truck-button.eligible',v.pending.type==='crew'?{pose:'peek'}:{});
 }
 function step(E,s,v,p,f){
  if(s.won)return make('won','Заказ доставлен','Хаб получил весь заказ. Можно рассмотреть результат или начать новую партию.','#objective',{finish:true});
@@ -83,8 +82,8 @@ function step(E,s,v,p,f){
    return v.selected==='iron'&&v.mode==='site'?make('haul','Руда остаётся у рудника','Нажми «Организовать вывоз», затем выбери машину. Только после доставки в город руда попадёт в металлургию.','[data-action="haul"]'):make('open-haul','Теперь организуем вывоз','Выбери железный рудник. Построить его недостаточно: сырьё нужно перевезти в город.','[data-site="iron"]',{site:'iron'});
   }
   const haul=s.trucks.find(t=>t.job?.type==='haul'&&t.job.target==='iron');
-  if(haul){if(haul.stop)return make('recall-wait','Грузовик возвращается','Он заберёт доступный груз и вернётся. Дождись статуса «Свободен».','[data-truck="'+haul.id+'"]');return make('recall','Освободи машину для новой работы','Вывоз повторяется сам. Открой машину и нажми «Завершить маршрут». Новые задания выбираются через предприятие.',v.mode==='truck'&&v.truck===haul.id?'[data-action="stop"]':'[data-truck="'+haul.id+'"]');}
-  return make('core-done','Первый цикл готов','Ты построил рудник, вывез руду и получил металл. Дальше нужны медь и асфальт. Я подскажу новые инструменты, когда они понадобятся.','#resources',{finish:true,hold:true});
+  if(haul&&!f.truckHelpRead)return make('truck-help','Управление задачами машин','Чтобы управлять задачами машин, ты можешь нажать на их иконку и выбрать нужное действие.','[data-truck="'+haul.id+'"]',{manual:true,hold:true});
+  return make('core-done','Первый цикл готов','Ты построил рудник, вывез руду и получил металл. Дальше нужны медь и асфальт. Другие подсказки доступны в меню «Темы».','#resources',{finish:true,hold:true});
  }
  if(p.chapter==='copper'){const b=buildStep(E,s,v,'copper');return b||make('copper-done','Теперь вывоз меди','Медная руда тоже едет в город и перерабатывается автоматически. Назначай вывоз через рудник, управляй им через машину.','[data-site="copper"]',{finish:true});}
  if(p.chapter==='asphalt'){
@@ -129,7 +128,7 @@ function create(ctx,stored){
   if(!p.visible&&!p.skipped&&p.coreDone){let chapter=null;if(v.drawing==='road'&&!p.seen.road)chapter='road';else if(v.drawing==='pipe'&&!p.seen.pipe)chapter='pipe';else if((v.selected==='oil2'||s.sites.oil2.active)&&!p.seen.pipe)chapter='pipe';else if(s.sites.asphalt.active&&!p.seen.road)chapter='road';else if(v.selected==='center'&&!p.seen.goal)chapter='goal';else if(v.selected==='copper'&&!p.seen.copper)chapter='copper';else if(['gravel','asphalt'].includes(v.selected)&&!p.seen.asphalt)chapter='asphalt';else if(s.production.vehicle&&!p.seen.fleet)chapter='fleet';if(chapter)start(chapter);}
   if(!p.visible)return null;const result=step(ctx.E,loan&&!loan.touched?{...s,paused:loan.paused}:s,v,p,facts);if(result.hold)hold();else release();return result;
  }
- function next(){const result=current();if(!result)return;if(result.manual){p.intro++;if(p.chapter!=='core'||p.intro===INTRO_COUNT)release();}else if(result.finish){if(p.chapter==='core')p.coreDone=true;else p.seen[p.chapter]=true;p.visible=false;p.chapter=null;release();}persist();ctx.refresh?.();}
+ function next(){const result=current();if(!result)return;if(result.manual){if(result.id==='truck-help')facts.truckHelpRead=true;else p.intro++;if(p.chapter!=='core'||p.intro===INTRO_COUNT)release();}else if(result.finish){if(p.chapter==='core'){p.coreDone=true;p.skipped=true;}else p.seen[p.chapter]=true;p.visible=false;p.chapter=null;release();}persist();ctx.refresh?.();}
  function dismiss(){p.skipped=true;p.visible=false;p.chapter=null;release();persist();ctx.refresh?.();}
  function closeChapter(){if(p.chapter&&p.chapter!=='menu')p.seen[p.chapter]=true;p.visible=false;p.chapter=null;release();persist();ctx.refresh?.();}
  if(!p.coreDone&&!p.skipped&&s.time===0)start('core');
@@ -147,7 +146,7 @@ function mount(ctx){
  function render(){active=controller.current();layer.hidden=!active;if(!active)return;
   const sig=JSON.stringify([active,controller.p.chapter]);if(signature!==sig){signature=sig;delete layer.dataset.framed;layer.dataset.step=active.id;layer.dataset.chapter=controller.p.chapter;figure.dataset.pose=active.pose||'explain';bubble.querySelector('.coach-eyebrow span').textContent=active.count||({core:'ОСНОВЫ',menu:'ПОМОЩЬ',road:'ДОРОГИ',pipe:'НЕФТЕПРОВОД',goal:'ЗАКАЗ',asphalt:'АСФАЛЬТ',copper:'МЕДЬ',fleet:'ТРАНСПОРТ'}[controller.p.chapter]||'ПОМОЩЬ');bubble.querySelector('h2').textContent=active.title;bubble.querySelector('p').textContent=active.text;let actions='';
    if(active.menu){for(const [key,label] of [['core','Основы'],['road','Дороги'],['pipe','Труба'],['asphalt','Асфальт'],['goal','Доставка'],['fleet','Машины']])actions+=button('lesson:'+key,label);actions+='<a href="'+(location.protocol==='file:'?'logistics-race-tutorial.html':'game-3d-tutorial.html')+'">Отдельная учебная партия ↗</a>';if(document.body.dataset.training==='true')actions+=raceLink();actions+=button('close','Вернуться к игре');}
-   else{if(active.manual||active.finish)actions+=button('next',active.finish?'Продолжить самостоятельно':'Дальше',true);else actions+=button('reveal','Показать цель');if(active.id==='core-done'&&document.body.dataset.training==='true')actions+=raceLink();actions+=button('menu','Темы');actions+=button('dismiss','Пропустить обучение');}
+   else{if(active.manual||active.finish)actions+=button('next',active.finish?'Продолжить самостоятельно':'Дальше',true);if(active.id==='core-done'&&document.body.dataset.training==='true')actions+=raceLink();actions+=button('menu','Темы');actions+=button('dismiss','Пропустить обучение');}
    const focus=bubble.contains(document.activeElement)?document.activeElement?.dataset.coach:null;bubble.querySelector('.coach-actions').innerHTML=actions;if(focus)(bubble.querySelector('[data-coach="'+focus+'"]')||bubble.querySelector('button'))?.focus({preventScroll:true});if(active.id==='intro-goal')ctx.overview?.();else if(active.mapSites)ctx.focus?.();if(!matchMedia('(prefers-reduced-motion: reduce)').matches)figure.animate([{opacity:.3},{opacity:1}],{duration:160});
   }
   frame();
