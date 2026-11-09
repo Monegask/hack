@@ -182,3 +182,14 @@ body.three-game .card-path:empty,body.three-game .card-message:empty{display:non
  body.three-game .truck-status{font-size:10px}
  body.three-game .truck-target{font-size:9px}
 }
+
+/* Compact stock strip: one readable row, with a narrow-screen fallback. */
+body.three-game .resourcebar{top:5px;padding:5px 12px;gap:6px 12px;border-radius:16px;flex-wrap:nowrap}
+body.three-game .resource{gap:6px;min-width:0}
+body.three-game .resource>span:last-child{display:flex;align-items:baseline;gap:6px;min-width:0}
+body.three-game .resource small{font-size:10px;white-space:nowrap}
+body.three-game .resource b{font-size:15px;line-height:1.2}
+body.three-game .resource .resource-icon{width:24px;height:24px}
+body.three-game .resource svg{width:15px;height:15px}
+@media(max-width:1100px){body.three-game .resource>span:last-child{display:grid;gap:0}body.three-game .resourcebar{gap:6px;padding:4px 9px}body.three-game .resource{gap:5px}body.three-game .resource small{font-size:9px}body.three-game .resource .resource-icon{width:22px;height:22px}}
+@media(max-width:520px){body.three-game .resourcebar{left:8px;right:8px;top:4px;padding:4px 6px;gap:4px;border-radius:12px}body.three-game .resource{gap:3px}body.three-game .resource .resource-icon{width:20px;height:20px}body.three-game .resource b{font-size:14px}body.three-game .resource small{font-size:8px}}

@@ -28,13 +28,13 @@ test('Race shows both territories by default and sends the actual bot state to t
  const overview=h.get('raceOverview');assert.doesNotMatch(overview.innerHTML,/data-territory|data-race-details|raceLead/);
  h.run('focusRaceTerritory("rival")');h.get('mapView').onclick();assert.equal(h.run('territory'),'both');
 });
-test('Compact progress shows delivered units without status, construction counts or lead row',()=>{
+test('Compact progress shows percentages only, without delivery text, status or counts',()=>{
  const h=raceHarness();h.run('state.delivered.iron=3;rival.state.delivered.iron=6;rival.state.sites.iron.active=true;racePanel()');
  const comparison=h.get('raceComparison').innerHTML;
- assert.match(comparison,/Вы/);assert.match(comparison,/Соперник/);assert.match(comparison,/3\/12/);assert.match(comparison,/6\/12/);
- assert.doesNotMatch(comparison,/Построено|Развивает|Строит|Запускает/);
+ assert.match(comparison,/Вы/);assert.match(comparison,/Соперник/);assert.match(comparison,/11.5%/);assert.match(comparison,/23.1%/);
+ assert.doesNotMatch(comparison,/Доставлено|<small>|Построено|Развивает|Строит|Запускает/);
  h.run('state.outgoing.iron=9;racePanel()');assert.equal(h.get('raceComparison').innerHTML,comparison);
- h.run('state.delivered.iron=9;racePanel()');assert.match(h.get('raceComparison').innerHTML,/9\/12/);
+ h.run('state.delivered.iron=9;racePanel()');assert.match(h.get('raceComparison').innerHTML,/34.6%/);
 });
 
 test('Shared journal keeps separate real player and rival events and refreshes on reset',()=>{

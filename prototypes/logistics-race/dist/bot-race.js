@@ -34,7 +34,7 @@ function deliveryProgress(s){const total=Object.values(s.goal).reduce((n,v)=>n+v
 function raceOverviewPanel(){
  if(!raceComparison)return;
  const row=(s,name)=>{const progress=deliveryProgress(s);
-  return '<div class="race-contender"><strong>'+name+' <span>'+fmt(progress)+'%</span></strong><div class="race-meter" role="progressbar" aria-label="'+name+': доставлено заказа" aria-valuemin="0" aria-valuemax="100" aria-valuenow="'+progress.toFixed(1)+'"><span style="width:'+progress+'%"></span></div><small>Доставлено '+Object.entries(s.goal).map(([k,n])=>fmt(s.delivered[k])+'/'+n+' '+E.names[k].toLowerCase()).join(' · ')+'</small></div>';};
+  return '<div class="race-contender"><strong>'+name+' <span>'+fmt(progress)+'%</span></strong><div class="race-meter" role="progressbar" aria-label="'+name+': доставлено заказа" aria-valuemin="0" aria-valuemax="100" aria-valuenow="'+progress.toFixed(1)+'"><span style="width:'+progress+'%"></span></div></div>';};
  const html=row(state,'Вы')+row(rival.state,'Соперник');if(raceComparison._raceHTML!==html){raceComparison.innerHTML=html;raceComparison._raceHTML=html;}
  if(raceObject){raceObject.hidden=!rivalSelection;if(rivalSelection){const s=rival.state,id=rivalSelection,site=s.sites[id];raceObject.textContent='Соперник · '+E.label(id)+' · '+(site?E.siteStatus(s,id):id==='center'?'Доставлено '+fmt(deliveryProgress(s))+'% заказа':id==='city'?'Общий склад и производство':'Добыча нефти')+(site?.active?' · На складе: '+fmt(site.stock):site?' · Материалы: '+Object.entries(E.costs[id]).map(([k,n])=>E.names[k]+' '+fmt(site.received[k])+'/'+n+(site.incoming[k]?' ('+fmt(site.incoming[k])+' в пути)':'')).join(', '):'')+' · Только просмотр';}}
 }
@@ -45,7 +45,6 @@ body.three-game .race-overview{flex:1 0 100%;min-width:0;color:#d2d9d2}
 body.three-game .race-comparison{display:grid;grid-template-columns:1fr 1fr;gap:8px 16px}
 body.three-game .race-contender{min-width:0}
 body.three-game .race-contender strong{display:flex;justify-content:space-between;font:600 12px/1.3 Arial,sans-serif}
-body.three-game .race-contender small{display:block;font:10px/1.4 Arial,sans-serif;overflow-wrap:anywhere}
 body.three-game .race-meter{height:4px;background:#354c58;border-radius:3px;overflow:hidden;margin:3px 0}
 body.three-game .race-meter span{display:block;height:100%;background:#8eaa8b}
 body.three-game .race-contender:last-child .race-meter span{background:#dd9d5e}
@@ -58,7 +57,7 @@ body.three-game .race-journal h4{margin:0 0 10px;font-size:13px}
 body.three-game .race-journal #journal,body.three-game #rivalJournal{max-height:220px;overflow:auto}
 body.three-game .race-journal .logline{gap:8px;overflow-wrap:anywhere}
 body.three-game .race-journal time{flex-shrink:0}
-@media(max-width:520px){body.three-game .race-comparison{gap:8px}body.three-game .race-contender small{font-size:9px}body.three-game .race-journal>section{padding-right:8px}body.three-game #operations .race-journal>section+section{padding-left:8px}body.three-game .race-journal .logline{flex-direction:column;gap:2px;font-size:11px}}
+@media(max-width:520px){body.three-game .race-comparison{gap:8px}body.three-game .race-journal>section{padding-right:8px}body.three-game #operations .race-journal>section+section{padding-left:8px}body.three-game .race-journal .logline{flex-direction:column;gap:2px;font-size:11px}}
 `;
 document.head.appendChild(rivalStyle);
 function raceReset(){
