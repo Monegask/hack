@@ -4,6 +4,8 @@ A browser logistics game: build mines and factories, manage trucks and fuel, and
 
 ## Try the game
 
+**Play: https://supply-line-game.vercel.app/**
+
 Open the deployed site and choose **«Пройти обучение»** for the interactive tutorial or **«Играть против бота»** for a race. The current interface is in Russian and designed primarily for desktop browsers with WebGL. No wallet or installation is needed.
 
 The tutorial introduces building supplies, crews, production, and hauling. The race uses one shared map and hub with separate inventories for the player and bot. Race progress is not saved; reloading starts a new session.

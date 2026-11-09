@@ -1,0 +1,11 @@
+**/node_modules
+.git
+.env*
+public
+exports
+output
+tmp
+prototypes/logistics-race/logistics-race-*.html
+prototypes/logistics-race/dist/game-3d
+prototypes/logistics-race/dist/*-*.html
+**/build-report.json
