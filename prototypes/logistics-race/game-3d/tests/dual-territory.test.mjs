@@ -79,6 +79,24 @@ test('Common world renders one continuous ground and one center with independent
  const primary=new View(host,{},shared,world.player);primary.isCompanion=false;primary.scene.clear();primary.sites.clear();primary.dynamic=new T.Group();primary.scene.add(primary.dynamic);primary.buildTerrain();primary.buildSites();primary.controls={target:new T.Vector3(),update(){},mouseButtons:{}};primary.update(player);primary.setRivalState(rival,0,world.rival);const before=JSON.stringify([player,rival]);primary.frame();assert.equal(JSON.stringify([player,rival]),before);assert.equal(primary.rival.scene.position.x,0);assert.equal(primary.rival.E,world.rival);assert.equal(primary.sites.has('center'),true);assert.equal(primary.rival.sites.has('center'),false);let terrains=0,centers=0;primary.scene.traverse(o=>{if(o.name==='LivingLandscape')terrains++;if(o.userData.node==='center')centers++;});assert.equal(terrains,1);assert.equal(centers,1);assert.equal(primary.environment.plan.land.width,228);assert.equal(primary.environment.plan.sites.length,15);assert.equal(primary.environment.plan.peaks.length,world.player.mountainPeaks.length);assert(primary.trucks.get(1).group.position.x<0);assert(primary.rival.trucks.get(1).group.position.x>130);assert.equal(primary.rival.dynamic.getObjectByName('paid-roads'),undefined);assert(primary.dynamic.getObjectByName('paid-roads'));assert(playerGround({x:141,z:18},world.player));
 });
 
+test('Wheel zoom restores both sides statuses in the shared overview and hides them again on zoom out',()=>{
+ const {host,shared}=setup(),world=RaceWorld.create(42),primary=new View(host,{},shared,world.player);primary.isCompanion=false;
+ primary.controls={target:new T.Vector3(),update(){},mouseButtons:{}};
+ const player=world.player.create(),rival=world.rival.create();rival.sites.iron.active=true;rival.sites.iron.stock=7;
+ primary.update(player);primary.setRivalState(rival,0,world.rival);
+ const before=JSON.stringify([player,rival]);
+ for(const zoom of [1,1.79,1.8,4,1]){
+  primary.camera.zoom=zoom;primary.frame();
+  for(const view of [primary,primary.rival]){
+   const label=view.sites.get('iron').label;
+   assert.equal(label.textContent.includes('\n'),zoom>=1.8,`zoom ${zoom}, rival ${view.isCompanion}`);
+   if(zoom>=1.8)assert(label.textContent.includes(view.E.siteStatus(view.state,'iron')));
+  }
+  if(zoom>=1.8)assert(primary.rival.sites.get('iron').label.textContent.includes('7'));
+ }
+ assert.equal(primary.overview,true);assert.equal(JSON.stringify([player,rival]),before);
+});
+
 test('Both authoritative routes and truck arrival animations meet the exact same center, while bot parking is mirrored',()=>{
  const world=RaceWorld.create(),poses=[];
  for(const engine of [world.player,world.rival]){const state=engine.create();state.paused=false;const info=engine.routeInfo(state,'center'),costs=info.points.slice(1).map((p,i)=>Math.hypot(p[0]-info.points[i][0],p[1]-info.points[i][1])*4),t={id:1,job:{target:'center'},leg:{points:info.points,costs,elapsed:costs.reduce((a,b)=>a+b,0)}};poses.push(truckPose(state,t,0,0,engine,MapScene.models));}

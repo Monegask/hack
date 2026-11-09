@@ -7,7 +7,7 @@ import Scene from '../../dist/map-scene.js';
 import {createTerrainPlan} from '../src/terrain-layout.mjs';
 import {clearanceSegments,treeIsClear} from '../src/forest-clearance.mjs';
 
-const bundled=await build({stdin:{contents:"import * as T from 'three'; export {T};export * from './theme.mjs';export * from './active-route.mjs';export * from './spruce-model.mjs';",resolveDir:fileURLToPath(new URL('../src',import.meta.url))},nodePaths:[fileURLToPath(new URL('../../threejs-trial/node_modules',import.meta.url))],bundle:true,format:'esm',platform:'node',write:false});
+const bundled=await build({stdin:{contents:"import * as T from 'three'; export {T};export * from './truck-details.mjs';export * from './theme.mjs';export * from './active-route.mjs';export * from './spruce-model.mjs';",resolveDir:fileURLToPath(new URL('../src',import.meta.url))},nodePaths:[fileURLToPath(new URL('../../threejs-trial/node_modules',import.meta.url))],bundle:true,format:'esm',platform:'node',write:false});
 const api=await import('data:text/javascript;base64,'+Buffer.from(bundled.outputFiles[0].text).toString('base64')),T=api.T;
 
 test('Roads and actual trips clear dense forest for both territories without changing state or route cost',()=>{
@@ -41,4 +41,14 @@ test('Selected route follows the paid leg, stays on pause and disappears while d
 
 test('Blender spruce has multiple materials, a grounded trunk and a unit-height instancing derivative',()=>{
  const root=api.createSpruce(T),box=new T.Box3().setFromObject(root);assert.equal(root.children.length,4);assert(Math.abs(box.min.y)<1e-5);assert(Math.abs(box.max.y-1)<1e-5);assert(root.children.every(m=>m.geometry.attributes.normal.count===m.geometry.attributes.position.count));
+});
+
+test('Overview truck compensation is bounded, continuous and leaves close-up scale intact',()=>{
+ for(const moving of [false,true]){
+  assert.equal(api.truckVisibilityScale(4,moving),1);
+  assert.equal(api.truckVisibilityScale(1.8,moving),1);
+  const max=moving?2.2:1.18;
+  assert.equal(api.truckVisibilityScale(.55,moving),max);
+  let last=max;for(let z=.55;z<=4;z+=.01){const n=api.truckVisibilityScale(z,moving);assert(n>=1&&n<=max);assert(n<=last+1e-10);last=n;}
+ }
 });

@@ -16,7 +16,7 @@ import {articulateAsphalt} from './asphalt-motion.mjs';
 import {TERRITORY_OFFSET,territoryCamera,territoryHeadingPoint,playerGround,overviewLabel} from './territory-layout.mjs';
 import {THEME,applyIndustrialPalette,disposeTheme} from './theme.mjs';
 import {selectedRoutePoints,activeRoute} from './active-route.mjs';
-import {addTruckAccents} from './truck-details.mjs';
+import {addTruckAccents,truckVisibilityScale} from './truck-details.mjs';
 
 function compact(group,exclude=[]){
  group.updateMatrixWorld(true);const inverse=group.matrixWorld.clone().invert(),batches=new Map(),old=[];
@@ -103,7 +103,7 @@ export class View{
   for(const [id,site] of this.sites){const built=active(s,id);site.construction.visible=!built;site.selection.visible=o.selected===id;if(site.model)site.model.visible=built;site.rig?.update(clocks[id]||0);
    if(site.smoke){site.smoke.group.visible=built&&working(s,id);for(const [i,puff] of site.smoke.puffs.entries()){const u=((clocks[id]||0)*.22+i/7)%1;puff.position.copy(site.smoke.origin).add(new T.Vector3(u*.6,u*1.6,Math.sin(i+u*3)*u*.12));puff.scale.setScalar(.6+u*1.8);puff.material.opacity=Math.sin(u*Math.PI)*.34;}}
    const row=s.sites[id],status=id==='city'?'Общий склад и производство':id==='center'&&this.rival?`Вы ${Object.values(s.delivered).reduce((a,b)=>a+b,0)}/26 · Соперник ${Object.values(this.rival.state?.delivered||{}).reduce((a,b)=>a+b,0)}/26`:id==='center'?`${s.delivered.iron}/12 Fe · ${s.delivered.copper}/6 Cu · ${s.delivered.asphalt}/8 асф.`:this.E.siteStatus(s,id),stock=row?.active&&id!=='asphalt'?` · ${row.stock}`:'';
-   const brief=this.overview||(this.E.width>16&&this.camera.zoom<1.8),fullText=`${this.E.label(id)}\n${status}${stock?'\nНа складе: '+row.stock:''}`,labelText=brief?overviewLabel(id):fullText;
+   const brief=(this.overview||this.E.width>16)&&this.camera.zoom<1.8,fullText=`${this.E.label(id)}\n${status}${stock?'\nНа складе: '+row.stock:''}`,labelText=brief?overviewLabel(id):fullText;
    if(site.text!==labelText||site.fullText!==fullText){site.text=labelText;site.fullText=fullText;site.label.textContent=labelText;site.label.title=fullText;site.label.setAttribute('aria-label',fullText);site.label.dataset.built=String(built);}
    site.label.classList.toggle('overview',Boolean(brief));site.label.dataset.state=id==='city'?'city':!built?'construction':working(s,id)?'working':'idle';site.label.classList.toggle('selected',o.selected===id);
    if(row?.construction){site.construction.scale.y=1+Math.max(0,2-row.construction.left)*.45;}else site.construction.scale.y=1;
@@ -116,7 +116,7 @@ export class View{
   if(this.isCompanion&&this.E.width>16){const center=this.owner.sites.get('center');if(center?.hubBounds)bounds.push(...center.hubBounds);}
   for(const [id,rig] of this.trucks)if(!s.trucks.some(t=>t.id===id)){rig.group.traverse(o=>{if(o.isMesh)o.geometry.dispose();});rig.group.removeFromParent();this.trucks.delete(id);}
   for(const t of s.trucks){let rig=this.trucks.get(t.id);if(!rig){rig=buildTruck();applyIndustrialPalette(rig.group,{truck:true});addTruckAccents(rig.group);for(const wheel of rig.wheels)compact(wheel);compact(rig.group,rig.wheels);rig.group.scale.setScalar(TRUCK_SCALE);rig.group.userData.truckId=t.id;rig.distance=0;rig.last=null;rig.ring=outline(1.35,.74,THEME.orange);rig.ring.position.y=-.015;rig.group.add(rig.ring);this.scene.add(rig.group);this.trucks.set(t.id,rig);}
-   const p=truckPose(s,t,extra,rig.group.rotation.y,this.E,this.models),distance=rig.last?Math.hypot(p.x-rig.last.x,p.z-rig.last.z):0;if(p.moving&&distance<CELL)rig.distance+=p.reverse?-distance:distance;rig.last=p;rig.group.visible=!hiddenByEnterprise(p,bounds);rig.group.position.set(p.x,p.y??.071,p.z);rig.group.rotation.y=p.yaw;for(const wheel of rig.wheels)wheel.rotation.z=-rig.distance/(.18*TRUCK_SCALE);rig.ring.visible=selected===t.id;
+   const p=truckPose(s,t,extra,rig.group.rotation.y,this.E,this.models),distance=rig.last?Math.hypot(p.x-rig.last.x,p.z-rig.last.z):0;if(p.moving&&distance<CELL)rig.distance+=p.reverse?-distance:distance;rig.last=p;rig.group.scale.setScalar(TRUCK_SCALE*truckVisibilityScale(this.camera.zoom,p.moving));rig.group.visible=!hiddenByEnterprise(p,bounds);rig.group.position.set(p.x,p.y??.071,p.z);rig.group.rotation.y=p.yaw;for(const wheel of rig.wheels)wheel.rotation.z=-rig.distance/(.18*TRUCK_SCALE);rig.ring.visible=selected===t.id;
   }
  }
  projectSite(id){const site=this.sites.get(id);if(!site)return null;const object=site.model?.visible?site.model:site.construction;object.updateWorldMatrix(true,true);const box=object===site.model?(site.tutorialBounds??=new T.Box3().setFromObject(object)):new T.Box3().setFromObject(object),r=this.host.getBoundingClientRect(),points=[];for(const x of [box.min.x,box.max.x])for(const y of [box.min.y,box.max.y])for(const z of [box.min.z,box.max.z]){const p=new T.Vector3(x,y,z).project(this.camera);if(p.z>=-1&&p.z<=1)points.push({x:r.x+(p.x*.5+.5)*r.width,y:r.y+(-p.y*.5+.5)*r.height});}if(!points.length)return null;const xs=points.map(p=>p.x),ys=points.map(p=>p.y);return {x:Math.min(...xs),y:Math.min(...ys),width:Math.max(...xs)-Math.min(...xs),height:Math.max(...ys)-Math.min(...ys)};}

@@ -22,7 +22,7 @@ function darkAtlas(source){
  ctx.putImageData(pixels,0,0);const map=source.clone();map.image=canvas;map.colorSpace=T.SRGBColorSpace;map.needsUpdate=true;maps.set(source,map);return map;
 }
 const named={stone:0x48545b,light:0x6b777c,paving:0x26343c,ink:0x1c2931,cream:0x39464f,glass:0xceb991,red:THEME.orange,steel:0x7c898f,green:0x274b40,water:0x2d5965,gravel:0x606b6d};
-const truckColors=new Map([[0xeee5d3,0x3c4a53],[0xf5eedd,0xb8b8a9],[0xb9ae99,0x56636b],[0x343c37,0x18262f],[0xbe6048,THEME.orange],[0x394b49,0x5d8490]]);
+const truckColors=new Map([[0xeee5d3,0x71858d],[0xf5eedd,0xb8b8a9],[0xb9ae99,0x56636b],[0x343c37,0x18262f],[0xbe6048,THEME.orange],[0x394b49,0x5d8490]]);
 export function applyIndustrialPalette(root,{truck=false}={}){
  root.traverse(o=>{if(!o.isMesh)return;const change=source=>{
   if(source.userData.darkV30)return source;
