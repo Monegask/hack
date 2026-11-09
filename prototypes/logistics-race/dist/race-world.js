@@ -10,7 +10,7 @@ function create(seed=freshSeed()){
  const random=()=>{rng=(Math.imul(rng,1664525)+1013904223)>>>0;return rng/4294967296;};
  const plots=resourcePlots.map(p=>[...p]);for(let i=plots.length-1;i>0;i--){const j=Math.floor(random()*(i+1));[plots[i],plots[j]]=[plots[j],plots[i]];}
  const width=35,height=11,mirror=p=>[34-p[0],10-p[1]],reflect=p=>({x:114-p.x,z:-p.z}),world=p=>({x:(p[0]-7.5)*6,z:(p[1]-5)*6});
- const positions={oil:[1,8],city:[1,4],asphalt:[6,8],center:[17,5],...Object.fromEntries(['iron','copper','gravel','oil2'].map((id,i)=>[id,plots[i]]))};
+ const positions={oil:[1,8],city:[1,4],asphalt:[2,8],center:[17,5],...Object.fromEntries(['iron','copper','gravel','oil2'].map((id,i)=>[id,plots[i]]))};
  const rivalPositions=Object.fromEntries(Object.entries(positions).map(([id,p])=>[id,id==='center'?[...p]:mirror(p)]));
  // A bowed ridge cups each basin. Its left shoulder meets the board edge;
  // the retracted right shoulder leaves a two-row passage towards the centre.
@@ -48,7 +48,7 @@ function create(seed=freshSeed()){
  const initialPipeCells=Array.from({length:5},(_,i)=>[1,8-i]);
  const player=Base.createForWorld({...common,positions,travelAnchors,initialPipeCells});
  const rival=Base.createForWorld({...common,positions:rivalPositions,travelAnchors:rivalAnchors,hubMirrors:{city:'rotate'},initialPipeCells:initialPipeCells.map(mirror),directions:Base.directions.map(([x,z])=>[-x,-z])});
- return {player,rival,layout:{...common,seed,version:6,resourcePlots:resourcePlots.map(p=>[...p]),positions,rivalPositions,travelFootprints:player.travelFootprints,sharedCenter:positions.center}};
+ return {player,rival,layout:{...common,seed,version:7,resourcePlots:resourcePlots.map(p=>[...p]),positions,rivalPositions,travelFootprints:player.travelFootprints,sharedCenter:positions.center}};
 }
 if(typeof module!=='undefined')module.exports={create};else {const engines=create(root.document?.body?.dataset?.training==='true'?42:undefined);root.globalRaceWorldEngines=engines;root.Logistics=engines.player;}
 })(typeof globalThis!=='undefined'?globalThis:this);

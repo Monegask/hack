@@ -20,7 +20,8 @@ test('Departures and returns meet their own stall and road continuously without 
 });
 test('Vehicle body disappears before a building intersection, in both orientations, and reappears clear',()=>{
  const bounds=[{min:{x:0,z:0},max:{x:3,z:3}}];
- assert(hiddenByEnterprise({x:-.6,z:1,yaw:0},bounds));assert(!hiddenByEnterprise({x:-.63,z:1,yaw:0},bounds));assert(hiddenByEnterprise({x:1,z:-.6,yaw:Math.PI/2},bounds));assert(!hiddenByEnterprise({x:4,z:1,yaw:0},bounds));assert(!hiddenByEnterprise({x:1,z:1,yaw:0},[]));
+ near(TRUCK_SCALE,.66*1.07);const halfLength=.62*1.07;
+ assert(hiddenByEnterprise({x:-halfLength+.01,z:1,yaw:0},bounds));assert(!hiddenByEnterprise({x:-halfLength-.01,z:1,yaw:0},bounds));assert(hiddenByEnterprise({x:1,z:-halfLength+.01,yaw:Math.PI/2},bounds));assert(!hiddenByEnterprise({x:4,z:1,yaw:0},bounds));assert(!hiddenByEnterprise({x:1,z:1,yaw:0},[]));
 });
 
 test('Expanded 3D projection preserves saved engine gates and spaces hub models behind their access gates',()=>{

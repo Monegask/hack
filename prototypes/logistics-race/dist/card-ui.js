@@ -30,6 +30,11 @@ const asphaltMark='<g data-part="silos"><path d="M2.5 4c0-1.3 4-1.3 4 0v9l-2 3-2
 const hardhatMark='<path d="M10 10V5a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v5 M14 6a6 6 0 0 1 6 6v3 M4 15v-3a6 6 0 0 1 6-6"/><rect x="2" y="15" width="20" height="4" rx="1"/>';
 function icon(id){return '<svg data-icon="'+id+'" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round">'+(id==='asphalt'?asphaltMark:id==='hardhat'?hardhatMark:'<path d="'+(shapes[id]||shapes.plus)+'"/>')+'</svg>';}
 function siteIcon(state,id){const site=state.sites[id];return icon(site&&!site.active?'hardhat':['iron','copper'].includes(id)?'pickaxe':id);}
+function truckPresentation(E,t){
+ if(!t.job&&!t.leg)return {direction:'idle',status:'Свободен',place:E.label('city'),prefix:''};
+ const back=t.leg?.kind==='back',moving=Boolean(t.leg),target=t.job?.target||t.at||'city';
+ return {direction:back?'back':'out',status:back?'Возвращается':moving?'В рейсе':t.status,place:E.label(moving?target:t.at||target),prefix:moving?(back?'Из: ':'К: '):''};
+}
 function create(ctx){
  const {E,$,fmt}=ctx;let mode='site',pending=null,notice='',reference=ctx.state();
  const tutorialKey='logistics-tutorial-v1';let tutorialActive=ctx.state().time===0,tutorialDelivered=false,tutorialWatch=null,roadHintDone=false;
@@ -45,7 +50,7 @@ function create(ctx){
  function animate(source){if(!source||matchMedia('(prefers-reduced-motion: reduce)').matches)return;const to=$('details').querySelector('.selected-disc');if(!to)return;const a=source.getBoundingClientRect?source.getBoundingClientRect():source,b=to.getBoundingClientRect();to.animate([{transform:'translate('+(a.x+a.width/2-b.x-b.width/2)+'px,'+(a.y+a.height/2-b.y-b.height/2)+'px) scale(.7)'},{transform:'none'}],{duration:320,easing:'cubic-bezier(.2,.8,.2,1)'});}
  function dispatch(){if(!pending?.truck)return;const p={...pending},s=ctx.state();pending.truck=null;ctx.perform(()=>{const ok=E.start(s,p.truck,p.type,p.target);if(ok){
   const site=s.sites[p.target],more=ctx.batchMaterials&&p.type==='materials'&&Object.entries(E.costs[p.target]||{}).some(([k,n])=>site.received[k]+site.incoming[k]<n);
-  pending=more?{type:p.type,target:p.target,truck:null,sent:(p.sent||0)+1}:null;mode='site';ctx.selectSite(p.target);ctx.selectTruck(p.truck);notice='Машина '+p.truck+' отправлена: '+labels[p.type].toLowerCase()+'.'+(more?' Можно выбрать следующую свободную машину для оставшегося груза.':'');
+  pending=more?{type:p.type,target:p.target,truck:null,sent:(p.sent||0)+1}:null;mode='site';ctx.selectSite(p.target);ctx.selectTruck(p.truck);notice=more?'Выберите следующую свободную машину для оставшегося груза.':'';
  }else notice=s.notice;return ok;});}
  function chooseTruck(id){if(!selectionAllowed())return;const s=ctx.state(),t=s.trucks.find(t=>t.id===id);if(!t)return;
   const source=$('fleet').querySelector('[data-truck="'+id+'"] .icon-disc')?.getBoundingClientRect();
@@ -58,8 +63,8 @@ function create(ctx){
   markup('resources',[['fuel','Топливо',s.fuel],['iron','Железо',s.city.iron],['copper','Медь',s.city.copper],['asphalt','Асфальт',s.city.asphalt],['gravel','Щебень',s.city.gravel]].map(([k,n,v])=>'<div class="resource"><span class="resource-icon">'+(['iron','copper'].includes(k)?'<span class="ingot"><span></span><span></span><span></span></span>':icon(k==='asphalt'?'route':k))+'</span><span><small>'+n+'</small><b>'+fmt(v)+'</b></span></div>').join(''));
   markup('siteGallery',gallery.map(id=>'<button class="gallery-button '+(mode==='site'&&ctx.selected()===id?'selected':'')+'" data-site="'+id+'" aria-pressed="'+(mode==='site'&&ctx.selected()===id)+'" aria-label="'+E.label(id)+'"><span class="icon-disc">'+siteIcon(s,id)+'</span><span class="gallery-label">'+short[id]+'</span><span class="gallery-status">'+(s.sites[id]?E.siteStatus(s,id):'Заказ')+'</span></button>').join(''));
   const checks=pending?Object.fromEntries(s.trucks.map(t=>[t.id,inspect(E,s,t.id,pending.type,pending.target)])):{};
-  markup('fleet',s.trucks.map(t=>{const eligible=!!pending&&checks[t.id].ok,active=(pending?.truck===t.id)||(!pending&&mode==='truck'&&ctx.truck()===t.id);
-   return '<button class="truck-button '+(active?'selected ':'')+(pending?(eligible?'eligible':'unavailable'):'')+'" data-truck="'+t.id+'" data-available="'+(!t.job&&!t.leg&&!s.won)+'" aria-pressed="'+active+'" aria-label="Машина '+t.id+': '+t.status+'"><span class="icon-disc">'+icon('truck')+'<span class="truck-number">'+String(t.id).padStart(2,'0')+'</span></span><span class="truck-status">'+(eligible?'Выбрать':t.stop?'Последний рейс':t.status)+'</span><span class="truck-target">'+(t.job?E.label(t.job.target):'В городе')+'</span></button>';
+  markup('fleet',s.trucks.map(t=>{const eligible=!!pending&&checks[t.id].ok,active=(pending?.truck===t.id)||(!pending&&mode==='truck'&&ctx.truck()===t.id),travel=truckPresentation(E,t);
+   return '<button class="truck-button '+(active?'selected ':'')+(pending?(eligible?'eligible':'unavailable'):'')+'" data-truck="'+t.id+'" data-direction="'+travel.direction+'" data-available="'+(!t.job&&!t.leg&&!s.won)+'" aria-pressed="'+active+'" aria-label="Машина '+t.id+': '+travel.status+' · '+travel.prefix+travel.place+'"><span class="icon-disc">'+icon('truck')+'<span class="truck-number">'+String(t.id).padStart(2,'0')+'</span></span><span class="truck-state-line" aria-hidden="true"></span><span class="truck-status">'+(eligible?'Выбрать':t.stop?'Последний рейс':travel.status)+'</span><span class="truck-target">'+travel.prefix+travel.place+'</span></button>';
   }).join(''));
   $('fleetCount').textContent=s.trucks.filter(t=>!t.job&&!t.leg).length+' свободно / '+s.trucks.length;
   $('buy').disabled=!!s.production.vehicle||s.won;$('buy').textContent=s.production.vehicle?'Сборка · '+Math.ceil(s.production.vehicle.left)+' с':'＋ Собрать машину';
@@ -89,7 +94,7 @@ function create(ctx){
     else if(!covered)acts+='<p class="subtle">Сначала отправьте все материалы. Затем можно отправить строителей, не дожидаясь разгрузки.</p>';
    }
    else if(id==='oil2'){sub+=' · запас '+site.stock+' нефти';acts='<div class="assignment-summary">'+(E.pipeConnected(s)?'Нефтепровод подключён':'Нужна непрерывная труба до города')+'</div>';button('oil-pipe','Проложить трубу','1,5 железа / клетка · на карте',s.won,true);button('toggle-site',site.enabled?'Приостановить добычу':'Возобновить добычу','Оплаченный цикл завершится',s.won);}
-   else if(site&&id!=='asphalt'){sub+=' · запас '+site.stock;const assigned=s.trucks.filter(t=>t.job?.type==='haul'&&t.job.target===id&&!t.stop);if(assigned.length){acts+='<p class="haul-assigned">Вывоз назначен · '+assigned.map(t=>'машина '+t.id).join(', ')+'</p>';button('haul-transport','Управление вывозом','Посмотреть машину или завершить маршрут');}else button('haul','Организовать вывоз','Выбрать машину · повторять рейсы',s.won,true);button('toggle-site',site.enabled?'Приостановить добычу':'Возобновить добычу','Управление добычей независимо от перевозок',s.won);}
+   else if(site&&id!=='asphalt'){sub+=' · запас '+site.stock;const assigned=s.trucks.filter(t=>t.job?.type==='haul'&&t.job.target===id&&!t.stop);if(assigned.length){button('haul-transport','Управление вывозом','Посмотреть машину или завершить маршрут');}else button('haul','Организовать вывоз','Выбрать машину · повторять рейсы',s.won,true);button('toggle-site',site.enabled?'Приостановить добычу':'Возобновить добычу','Управление добычей независимо от перевозок',s.won);}
    else if(id==='asphalt'){sub+=' · щебень на складе '+s.city.gravel;button('toggle-asphalt',s.enabled.asphalt?'Приостановить завод':'Включить завод','2 щебня → 2 асфальта',s.won,true);}
    else if(id==='center'){const route=E.routeInfo(s,'center');acts+='<div class="assignment-summary">'+(route.capacity===8?'Дорога подключена к въезду · груз до 8':'Дорога не подключена к въезду · груз до 4')+'<br><small>'+(route.capacity===8?'Весь путь проходит по асфальту.':'Доведите непрерывную дорогу до отмеченного въезда хаба. На готовых участках машина едет быстрее.')+'</small></div>';button('goal','Доставить в хаб','Недостающий груз · один рейс',s.won,true);}
    else if(id==='oil'){button('production','Открыть производство','Скважина, НПЗ и металлургия');}
@@ -158,5 +163,5 @@ function create(ctx){
  $('operationsOpen').onclick=()=>$('operations').showModal();$('operationsClose').onclick=()=>$('operations').close();
  return {render,chooseSite,chooseTruck,handleAction,startTutorial,dismissTutorial,cancel:()=>{pending=null;notice='';},getPending:()=>pending,getMode:()=>mode};
 }
-const api={create,inspect,icon};if(typeof module==='object'&&module.exports)module.exports=api;else root.LogisticsCardUI=api;
+const api={create,inspect,icon,truckPresentation};if(typeof module==='object'&&module.exports)module.exports=api;else root.LogisticsCardUI=api;
 })(typeof globalThis!=='undefined'?globalThis:this);

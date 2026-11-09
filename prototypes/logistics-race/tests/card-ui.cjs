@@ -4,6 +4,7 @@ const fs=require('node:fs'),path=require('node:path');
 const vm=require('node:vm');
 const E=require('../dist/engine.js');
 const {inspect}=require('../dist/card-ui.js');
+const {truckPresentation}=require('../dist/card-ui.js');
 
 function preview(s,id,type,target){
  const snapshot=structuredClone(s),serialized=JSON.stringify(s);
@@ -12,6 +13,16 @@ function preview(s,id,type,target){
  assert.equal(JSON.stringify(s),serialized,'Preview must preserve serialized save state');
  return result;
 }
+
+test('Fleet direction and place follow actual outbound, loading, return and released truck state',()=>{
+ const s=E.create();s.paused=false;s.sites.iron.active=true;s.sites.iron.enabled=false;s.sites.iron.stock=0;
+ const t=s.trucks[0];assert.equal(truckPresentation(E,t).direction,'idle');assert.equal(truckPresentation(E,t).place,'Город');
+ assert(E.start(s,t.id,'haul','iron'));const before=JSON.stringify(s);assert.equal(truckPresentation(E,t).direction,'out');assert.equal(truckPresentation(E,t).place,'Железный рудник');assert.equal(JSON.stringify(s),before);
+ const advance=condition=>{for(let i=0;i<5000&&!condition();i++)E.tick(s,.1);assert(condition());};
+ advance(()=>!t.leg);assert.equal(t.at,'iron');assert.equal(truckPresentation(E,t).direction,'out');assert.equal(truckPresentation(E,t).status,'Ожидает груз');
+ E.stopTruck(s,t.id);assert.equal(truckPresentation(E,t).direction,'back');assert.equal(truckPresentation(E,t).prefix,'Из: ');
+ advance(()=>!t.job);assert.equal(truckPresentation(E,t).direction,'idle');assert.equal(truckPresentation(E,t).place,'Город');
+});
 function assertRoute(s,target,actual){
  const expected=E.routeInfo(s,target);
  assert.deepEqual(actual,expected,'Preview uses actual engine route, duration and capacity');
@@ -188,4 +199,10 @@ test('Materials assignment accepts successive free trucks until the real remaini
 });
 test('Cancelling after a partial multi-truck dispatch preserves and correctly describes the paid journey',()=>{
  const s=E.create();s.paused=false;const h=controller(s,{batchMaterials:true});h.clickAction('materials');h.ui.chooseTruck(1);const before=JSON.stringify(s);h.ui.handleAction('cancel');assert.equal(h.ui.getPending(),null);assert.equal(JSON.stringify(s),before);assert.match(h.$('details').innerHTML,/Уже отправленные машины продолжают рейсы/);
+});
+
+test('A successful haul keeps route controls without the duplicate assignment and departure banners',()=>{
+ const s=E.create();s.paused=false;s.sites.iron.active=true;const h=controller(s);h.ui.chooseSite('iron');assert(h.clickAction('haul'));h.ui.chooseTruck(1);
+ assert.equal(s.trucks[0].job.type,'haul');assert(h.hasAction('haul-transport'));assert(!h.$('details').innerHTML.includes('Вывоз назначен'));assert(!h.$('details').innerHTML.includes('Машина 1 отправлена'));
+ assert(h.$('fleet').innerHTML.includes('data-direction="out"'));assert(h.$('fleet').innerHTML.includes('К: Железный рудник'));
 });

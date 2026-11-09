@@ -59,7 +59,7 @@ export function createTerrainPlan(E,models){
   const bx=Math.floor(p.x/spacing),bz=Math.floor(p.z/spacing);let near=false;
   for(let dx=-1;dx<=1;dx++)for(let dz=-1;dz<=1;dz++)for(const t of buckets.get((bx+dx)+','+(bz+dz))||[])if(Math.hypot(t.x-p.x,t.z-p.z)<spacing)near=true;
   if(near)continue;
-  const tree={...p,y:heightAt(p.x,p.z),radius,height:2.7+random()*1.75,type:random()<.93?'pine':'oak',yaw:random()*Math.PI*2};
+  const tree={...p,y:heightAt(p.x,p.z),radius,height:2.7+random()*1.75,variation:random(),type:'pine',yaw:random()*Math.PI*2};
   trees.push(tree);const key=bucketKey(p.x,p.z);if(!buckets.has(key))buckets.set(key,[]);buckets.get(key).push(tree);
  }
  for(let i=0;i<520*scale;i++){const p={x:cx+(random()-.5)*(land.width-8),z:(random()-.5)*76};if(!allows(p,.13))continue;const y=heightAt(p.x,p.z);if(y>4.4)continue;const a={...p,y,scale:.18+random()*.24,yaw:random()*6.28};if(random()<.32)rocks.push(a);else shrubs.push(a);}

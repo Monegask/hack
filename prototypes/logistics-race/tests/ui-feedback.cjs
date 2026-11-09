@@ -76,7 +76,7 @@ test('Early builders can dispatch while materials travel and wait at the site un
 });
 test('An assigned haul is replaced by fleet management and reappears after its recall is requested',()=>{
  const h=harness(),s=h.s;s.paused=false;s.sites.iron.active=true;h.ui.render();assert(h.has('haul'));
- h.act('haul');h.ui.chooseTruck(1);assert(!h.has('haul'));assert(h.has('haul-transport'));assert.match(h.$('details').innerHTML,/Вывоз назначен/);
+ h.act('haul');h.ui.chooseTruck(1);assert(!h.has('haul'));assert(h.has('haul-transport'));assert.doesNotMatch(h.$('details').innerHTML,/Вывоз назначен|Машина 1 отправлена/);
  const before=structuredClone(s);h.act('haul');assert.equal(h.ui.getPending(),null);assert.deepEqual(s,before,'Hidden duplicate hauling cannot be dispatched by calling the controller');
  h.act('haul-transport');assert.equal(h.truck,1);assert(h.has('stop'));h.act('stop');h.ui.chooseSite('iron');assert(h.has('haul'),'A finishing haul does not reserve the site for another cycle');
 });

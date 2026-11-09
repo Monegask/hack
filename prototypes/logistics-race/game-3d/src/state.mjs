@@ -1,7 +1,7 @@
 // Engine coordinates remain authoritative. X/Z is the ground, +Y is up.
 // Each saved engine cell now spans six world units; vehicle forward is local +X.
 import {HUB,placeHub,hubStall,hubApproach,pathPose} from './hub-layout.mjs';
-export const CELL=6,ROAD_WIDTH=1.44,LANE=.28,TRUCK_SCALE=.66;
+export const CELL=6,ROAD_WIDTH=1.44,LANE=.28,TRUCK_SCALE=.7062;
 export const key=p=>p.join(',');
 export const world=p=>({x:(p[0]-7.5)*CELL,z:(p[1]-5)*CELL});
 export const cell=(x,z)=>[Math.round(x/CELL+7.5),Math.round(z/CELL+5)];
@@ -56,7 +56,7 @@ export function truckPose(s,t,extra=0,lastYaw=0,E,models){
 // Hide the whole vehicle before its oriented footprint enters an active site.
 // This is presentation only: the authoritative route and paid travel do not change.
 export function hiddenByEnterprise(p,bounds){
- const c=Math.abs(Math.cos(p.yaw)),s=Math.abs(Math.sin(p.yaw)),x=c*.62+s*.28,z=s*.62+c*.28;
+ const c=Math.abs(Math.cos(p.yaw)),s=Math.abs(Math.sin(p.yaw)),growth=TRUCK_SCALE/.66,x=(c*.62+s*.28)*growth,z=(s*.62+c*.28)*growth;
  return bounds.some(b=>p.x+x>b.min.x&&p.x-x<b.max.x&&p.z+z>b.min.z&&p.z-z<b.max.z);
 }
 export function roadCells(s,E){const all=[...(E.initialRoadCells||[E.positions.city]).map(p=>typeof p==='string'?p.split(',').map(Number):p),...s.roads.map(k=>k.split(',').map(Number))];return [...new Map(all.map(p=>[key(p),p])).values()];}

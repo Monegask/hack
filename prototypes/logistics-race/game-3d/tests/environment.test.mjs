@@ -19,7 +19,7 @@ test('Shared mountain bowls contain extra relief and dominant tall summits while
 });
 test('Dense forest is deterministic, clustered inside the map, with permanent yards and hub access clear',()=>{
  assert(plan.trees.length>1100&&plan.trees.length<1800);assert(plan.shrubs.length>50);assert(plan.rocks.length>30);assert.deepEqual(plan.trees,createTerrainPlan(E,Scene.models).trees);
- assert(plan.trees.filter(t=>Math.abs(t.z)<26&&Math.abs(t.x)<43).length>500);assert(plan.trees.filter(t=>t.type==='pine').length/plan.trees.length>.9);
+ assert(plan.trees.filter(t=>Math.abs(t.z)<26&&Math.abs(t.x)<43).length>500);assert(plan.trees.every(t=>t.type==='pine'),'All trees use the detailed layered spruce, with no stretched oak crowns');
  for(const tree of plan.trees){assert(plan.allowsTree(tree,tree.radius));for(const [a,b] of plan.access)assert(pointSegmentDistance(tree,a,b)>tree.radius+.80);assert(Number.isFinite(tree.y));}
  for(const hill of plan.hills)assert(plan.allows(hill,hill.r),'Decorative hills must leave every possible future road flat');
 });

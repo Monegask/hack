@@ -1,6 +1,6 @@
 import * as T from 'three';
 import {mergeGeometries} from 'three/addons/utils/BufferGeometryUtils.js';
-import {createLowPolyPineTree,createLowPolyOakTree,createLowPolyBush,createLowPolyRock} from '../../../../tools/skills/generate-low-poly-model/scripts/procedural-low-poly-models.js';
+import {createLowPolyBush,createLowPolyRock} from '../../../../tools/skills/generate-low-poly-model/scripts/procedural-low-poly-models.js';
 import {CELL,world} from './state.mjs';
 import {LAND,createTerrainPlan} from './terrain-layout.mjs';
 import {createMountainMaterial} from './mountain-surface.mjs';
@@ -30,7 +30,6 @@ export function createEnvironment(E,models){
   const meshes=[];for(const [color,list] of batches){const geometry=mergeGeometries(list),mesh=new T.InstancedMesh(geometry,material(color),items.length),transform=new T.Object3D();for(const [i,p] of items.entries()){transform.position.set(p.x,p.y,p.z);transform.rotation.set(0,p.yaw,0);if(p.height)transform.scale.set(p.radius,p.height,p.radius);else transform.scale.setScalar(p.scale);transform.updateMatrix();mesh.setMatrixAt(i,transform.matrix);}mesh.castShadow=true;mesh.receiveShadow=true;mesh.computeBoundingSphere();group.add(mesh);meshes.push(mesh);for(const g of list)g.dispose();}if(forest)forestBatches.push({items,meshes});prototype.traverse(o=>{if(o.isMesh){o.geometry.dispose();o.material.dispose();}});
  }
  instanceFactory(plan.trees.filter(t=>t.type==='pine'),createSpruce,{},true);
- instanceFactory(plan.trees.filter(t=>t.type==='oak'),createLowPolyOakTree,{height:1,crownRadius:1,trunkColor:0x4c4638,leafColor:0x365443},true);
  instanceFactory(plan.rocks,createLowPolyRock,{size:1,color:0x687270});
  instanceFactory(plan.shrubs,createLowPolyBush,{radius:1,color:0x3c5946});
  group.userData.environment={seed:LAND.seed,trees:plan.trees.length,rocks:plan.rocks.length,shrubs:plan.shrubs.length,mountainCells:E.mountains.length,reliefTriangles:positions.length/9};

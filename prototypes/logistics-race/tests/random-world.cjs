@@ -7,7 +7,7 @@ test('Seed reproduces a complete match; both fixed bases and the solo engine sur
  const solo=JSON.stringify(Base.create()),a=World.create(42),b=World.create(42);
  assert.deepEqual(a.layout,b.layout);assert.deepEqual(a.player.create(),b.player.create());
  assert.equal(a.layout.seed,42);assert.equal(World.create(0).layout.seed,0);
- assert.deepEqual(a.player.positions.oil,[1,8]);assert.deepEqual(a.player.positions.asphalt,[6,8]);
+ assert.deepEqual(a.player.positions.oil,[1,8]);assert.deepEqual(a.player.positions.asphalt,[2,8]);
  assert.equal(JSON.stringify(Base.create()),solo);assert.equal(Base.width,16);assert.equal(Base.mountains.length,9);
 });
 
