@@ -84,3 +84,11 @@ test('Second material truck gets its own instruction and target button is absent
  const q=C.pendingStep(E,h.s,h.view);assert.equal(q.id,'pick-truck');assert.match(q.text,/another truck|ещё одну машину/);
  const source=require('node:fs').readFileSync(require.resolve('../dist/tutorial-coach.js'),'utf8');assert(!source.includes("button('reveal'"));assert(!source.includes("make('resume-send'"));
 });
+
+
+test('Explicit bot entry can suppress auto-teaching without completing or skipping the course',()=>{
+ let state=E.create();const saved=[],ctx={E,autoStart:false,state:()=>state,view:()=>({selected:'iron',mode:'site',truck:1,pending:null,drawing:null}),save:v=>saved.push(v)};
+ const coach=C.create(ctx);assert.equal(coach.current(),null);assert.equal(coach.p.coreDone,false);assert.equal(coach.p.skipped,false);assert.equal(saved.length,0);
+ state.paused=false;E.tick(state,.1);coach.observe();assert.equal(coach.current(),null);assert(!state.paused);assert(state.time>0);
+ state=E.create();coach.observe();assert.equal(coach.current(),null);coach.start('core');assert.equal(coach.current().id,'intro-goal');assert(state.paused);assert(!coach.p.coreDone);
+});

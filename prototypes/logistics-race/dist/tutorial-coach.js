@@ -123,7 +123,7 @@ function create(ctx,stored){
  function release(){if(loan){if(loan.state===ctx.state()&&!loan.touched&&!ctx.state().won)ctx.state().paused=loan.paused;loan=null;}}
  function persist(){ctx.save?.({version:2,coreDone:p.coreDone,seen:{...p.seen},skipped:p.skipped});}
  function start(chapter='core'){release();p.chapter=chapter;p.visible=true;if(chapter==='core')p.skipped=false;p.intro=['core','pipe','road'].includes(chapter)?0:INTRO_COUNT;p.baseline=ctx.state().roads.length;if(chapter==='goal')facts.delivered=false;if(chapter==='menu'||chapter==='core')hold();persist();}
- function tick(){const s=ctx.state();if(ref!==s){release();ref=s;old=snapshot(s);facts={oreReturned:s.city.ironOre>0,producedIron:false,recalled:false,delivered:false};p.visible=false;p.chapter=null;if(!p.coreDone&&!p.skipped&&s.time===0)start('core');}observe(facts,old,s);old=snapshot(s);}
+ function tick(){const s=ctx.state();if(ref!==s){release();ref=s;old=snapshot(s);facts={oreReturned:s.city.ironOre>0,producedIron:false,recalled:false,delivered:false};p.visible=false;p.chapter=null;if(ctx.autoStart!==false&&!p.coreDone&&!p.skipped&&s.time===0)start('core');}observe(facts,old,s);old=snapshot(s);}
  function current(){tick();const s=ctx.state(),v=ctx.view();
   if(!p.visible&&!p.skipped&&p.coreDone){let chapter=null;if(v.drawing==='road'&&!p.seen.road)chapter='road';else if(v.drawing==='pipe'&&!p.seen.pipe)chapter='pipe';else if((v.selected==='oil2'||s.sites.oil2.active)&&!p.seen.pipe)chapter='pipe';else if(s.sites.asphalt.active&&!p.seen.road)chapter='road';else if(v.selected==='center'&&!p.seen.goal)chapter='goal';else if(v.selected==='copper'&&!p.seen.copper)chapter='copper';else if(['gravel','asphalt'].includes(v.selected)&&!p.seen.asphalt)chapter='asphalt';else if(s.production.vehicle&&!p.seen.fleet)chapter='fleet';if(chapter)start(chapter);}
   if(!p.visible)return null;const result=step(ctx.E,loan&&!loan.touched?{...s,paused:loan.paused}:s,v,p,facts);if(result.hold)hold();else release();return result;
@@ -131,13 +131,13 @@ function create(ctx,stored){
  function next(){const result=current();if(!result)return;if(result.manual){if(result.id==='truck-help')facts.truckHelpRead=true;else p.intro++;if(p.chapter!=='core'||p.intro===INTRO_COUNT)release();}else if(result.finish){if(p.chapter==='core'){p.coreDone=true;p.skipped=true;}else p.seen[p.chapter]=true;p.visible=false;p.chapter=null;release();}persist();ctx.refresh?.();}
  function dismiss(){p.skipped=true;p.visible=false;p.chapter=null;release();persist();ctx.refresh?.();}
  function closeChapter(){if(p.chapter&&p.chapter!=='menu')p.seen[p.chapter]=true;p.visible=false;p.chapter=null;release();persist();ctx.refresh?.();}
- if(!p.coreDone&&!p.skipped&&s.time===0)start('core');
+ if(ctx.autoStart!==false&&!p.coreDone&&!p.skipped&&s.time===0)start('core');
  return {p,start,current,next,dismiss,closeChapter,observe:tick,userPause:()=>{if(loan)loan.touched=true;},facts:()=>({...facts})};
 }
 function mount(ctx){
  const practice=document.body.dataset.practice==='true'&&document.body.dataset.race!=='true';let stored;
  if(!practice)try{stored=JSON.parse(localStorage.getItem(KEY));if(!stored){const legacy=JSON.parse(localStorage.getItem('logistics-tutorial-v1'));if(legacy?.active===false)stored={coreDone:true,skipped:true};}}catch{}
- const controller=create({...ctx,save:data=>{if(!practice)try{localStorage.setItem(KEY,JSON.stringify(data));}catch{}}},stored);
+ const controller=create({...ctx,autoStart:!(document.body.dataset.race==='true'&&globalThis.__supplyLineEmbedded===true),save:data=>{if(!practice)try{localStorage.setItem(KEY,JSON.stringify(data));}catch{}}},stored);
  const layer=document.createElement('div');layer.id='coachLayer';layer.className='coach-layer';layer.hidden=true;
  layer.innerHTML='<div class="coach-map-dim" aria-hidden="true"></div><div class="coach-spotlight" aria-hidden="true"></div><svg class="coach-gesture-svg" aria-hidden="true"><path fill="none"/><circle class="coach-origin" r="6"/><circle class="coach-cursor" r="7"/></svg><div class="coach-figure" aria-hidden="true"></div><section class="coach-bubble" aria-label="Tutorial" aria-live="polite"><div class="coach-eyebrow"><span></span></div><h2></h2><p></p><div class="coach-actions"></div></section><div class="coach-gesture" aria-hidden="true">Hold and drag · example gesture</div>';
  document.body.append(layer);const bubble=layer.querySelector('.coach-bubble'),figure=layer.querySelector('.coach-figure'),spot=layer.querySelector('.coach-spotlight'),mapDim=layer.querySelector('.coach-map-dim'),gesture=layer.querySelector('.coach-gesture'),guide=layer.querySelector('.coach-gesture-svg');let active=null,signature='',target=null,guideKey='',guideCells=[];
