@@ -13,7 +13,7 @@ test('Builders may leave after all cargo is dispatched, wait for actual arrival,
  assert(E.start(s,2,'materials','iron'));
  s.city.asphalt=4;assert(E.buildRoad(s,[2,7]));assert(E.buildRoad(s,[1,7]));
  assert(E.start(s,3,'crew','iron'));run(s,6);
- assert.equal(s.trucks[2].status,'Ожидает материалы');assert(!s.sites.iron.active);
+ assert.equal(s.trucks[2].status,'Waiting for materials');assert(!s.sites.iron.active);
  assert.equal(s.sites.iron.construction.left,2);
  const restored=E.upgrade(JSON.parse(JSON.stringify(s)));run(restored,5);
  assert(!restored.sites.iron.active);run(restored,2);assert(restored.sites.iron.active);

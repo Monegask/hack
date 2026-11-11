@@ -11,10 +11,10 @@ test('Diagonal road affects time, capacity and fuel; cannot cut a blocked corner
 });
 test('Pause status completes the paid cycle then shows stopped, resume starts production',()=>{
  const s=E.create();s.paused=false;s.sites.iron.active=true;run(s,.1);
- s.sites.iron.enabled=false;assert.equal(E.siteStatus(s,'iron'),'ЗАВЕРШАЕТ ЦИКЛ');run(s,6);
- assert.equal(E.siteStatus(s,'iron'),'ПРИОСТАНОВЛЕНО');assert.equal(s.sites.iron.stock,1);
- s.sites.iron.enabled=true;run(s,.1);assert.equal(E.siteStatus(s,'iron'),'РАБОТАЕТ');
- s.enabled.oil=false;run(s,11);assert.equal(E.siteStatus(s,'oil'),'ПРИОСТАНОВЛЕНО');
+ s.sites.iron.enabled=false;assert.equal(E.siteStatus(s,'iron'),'FINISHING CYCLE');run(s,6);
+ assert.equal(E.siteStatus(s,'iron'),'PAUSED');assert.equal(s.sites.iron.stock,1);
+ s.sites.iron.enabled=true;run(s,.1);assert.equal(E.siteStatus(s,'iron'),'WORKING');
+ s.enabled.oil=false;run(s,11);assert.equal(E.siteStatus(s,'oil'),'PAUSED');
 });
 test('Existing saves gain the new deposit without resetting inventory or journeys',()=>{
  const s=E.create();s.paused=false;E.start(s,1,'materials','iron');run(s,2);

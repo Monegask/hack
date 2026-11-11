@@ -37,7 +37,7 @@ test('Race clocks, shared pause, bot victory and restart are independent of solo
  assert.equal(run('state.time'),run('rival.state.time'));
  run('state.paused=true;E.tick(state,.1)');assert.equal(run('state.time'),run('rival.state.time'));
  run('state.paused=false;for(let i=0;i<12000&&!raceResult;i++)E.tick(state,.1)');
- assert.equal(run('raceResult'),'Бот победил');assert(run('state.paused'));assert.equal(run('state.won'),false);
+ assert.equal(run('raceResult'),'Bot wins');assert(run('state.paused'));assert.equal(run('state.won'),false);
  assert(run('rival.state.won'));assert(run("$('pause').disabled"));
  run('state=E.create();render()');assert.equal(run('rival.state.time'),0);assert.equal(run('raceResult'),null);
 });
@@ -45,7 +45,7 @@ test('Race resolves human victory and same-step tie',()=>{
  for(const tie of [false,true]){
   const run=raceHarness();
   run(`state.paused=false;const finish=s=>{s.delivered={iron:12,copper:6,asphalt:7};s.outgoing.asphalt=1;const t=s.trucks[0];t.cargo={asphalt:1};t.job={type:'goal',target:'center',route:[E.positions.city,E.positions.center]};t.leg={kind:'out',points:[E.positions.city,E.positions.center],costs:[.1],elapsed:0};};finish(state);${tie?'finish(rival.state);':''}E.tick(state,.1);`);
-  assert.equal(run('raceResult'),tie?'Ничья':'Вы победили!');assert(run('state.won'));
+  assert.equal(run('raceResult'),tie?'Draw':'You win!');assert(run('state.won'));
  }
 });
 test('Race web and autonomous pages isolate saves and include both bot modules',()=>{

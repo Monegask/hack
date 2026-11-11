@@ -13,4 +13,4 @@ export function playerGround(point,E){const b=E?.worldBounds||{minX:-58,maxX:58,
 export function projectTerritoryPoint(point,rival=false){return {...point,x:point.x+(rival?TERRITORY_OFFSET:0)};}
 export function territoryHeadingPoint(E,rival=false,sceneX=0){return E?.width>16?{x:rival?E.worldBounds.maxX+3:E.worldBounds.minX-3,y:1,z:0}:{x:sceneX,y:1,z:-34};}
 
-export function overviewLabel(id){return {iron:'Железо',copper:'Медь',gravel:'Карьер',asphalt:'Асфальт',city:'Город',center:'Хаб',oil:'Скважина',oil2:'Скважина 2'}[id]||id;}
+export function overviewLabel(id){return {iron:'Iron',copper:'Copper',gravel:'Quarry',asphalt:'Asphalt',city:'City',center:'Hub',oil:'Oil well',oil2:'Well 2'}[id]||id;}

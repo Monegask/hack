@@ -16,12 +16,12 @@ function preview(s,id,type,target){
 
 test('Fleet direction and place follow actual outbound, loading, return and released truck state',()=>{
  const s=E.create();s.paused=false;s.sites.iron.active=true;s.sites.iron.enabled=false;s.sites.iron.stock=0;
- const t=s.trucks[0];assert.equal(truckPresentation(E,t).direction,'idle');assert.equal(truckPresentation(E,t).place,'Город');
- assert(E.start(s,t.id,'haul','iron'));const before=JSON.stringify(s);assert.equal(truckPresentation(E,t).direction,'out');assert.equal(truckPresentation(E,t).place,'Железный рудник');assert.equal(JSON.stringify(s),before);
+ const t=s.trucks[0];assert.equal(truckPresentation(E,t).direction,'idle');assert.equal(truckPresentation(E,t).place,'City');
+ assert(E.start(s,t.id,'haul','iron'));const before=JSON.stringify(s);assert.equal(truckPresentation(E,t).direction,'out');assert.equal(truckPresentation(E,t).place,'Iron mine');assert.equal(JSON.stringify(s),before);
  const advance=condition=>{for(let i=0;i<5000&&!condition();i++)E.tick(s,.1);assert(condition());};
- advance(()=>!t.leg);assert.equal(t.at,'iron');assert.equal(truckPresentation(E,t).direction,'out');assert.equal(truckPresentation(E,t).status,'Ожидает груз');
- E.stopTruck(s,t.id);assert.equal(truckPresentation(E,t).direction,'back');assert.equal(truckPresentation(E,t).prefix,'Из: ');
- advance(()=>!t.job);assert.equal(truckPresentation(E,t).direction,'idle');assert.equal(truckPresentation(E,t).place,'Город');
+ advance(()=>!t.leg);assert.equal(t.at,'iron');assert.equal(truckPresentation(E,t).direction,'out');assert.equal(truckPresentation(E,t).status,'Waiting for cargo');
+ E.stopTruck(s,t.id);assert.equal(truckPresentation(E,t).direction,'back');assert.equal(truckPresentation(E,t).prefix,'From: ');
+ advance(()=>!t.job);assert.equal(truckPresentation(E,t).direction,'idle');assert.equal(truckPresentation(E,t).place,'City');
 });
 function assertRoute(s,target,actual){
  const expected=E.routeInfo(s,target);
@@ -56,7 +56,7 @@ test('Busy trucks are excluded without disturbing an existing trip or incoming m
  assert(E.start(s,1,'materials','iron'));
  s.paused=true;
  const p=preview(s,1,'materials','copper');
- assert.equal(p.ok,false);assert.match(p.reason,/занята/i);assert.deepEqual(p.cargo,{});
+ assert.equal(p.ok,false);assert.match(p.reason,/busy/i);assert.deepEqual(p.cargo,{});
  assert(s.trucks[0].job);assert(s.trucks[0].leg);
  assert.equal(s.sites.iron.incoming.iron,4);
 });
@@ -64,12 +64,12 @@ test('Busy trucks are excluded without disturbing an existing trip or incoming m
 test('Builders remain unavailable until received plus incoming covers every construction material',()=>{
  const s=E.create();
  const empty=preview(s,1,'crew','iron');
- assert.equal(empty.ok,false);assert.match(empty.reason,/отправьте все строительные материалы/i);
+ assert.equal(empty.ok,false);assert.match(empty.reason,/Send all construction materials/i);
  s.paused=false;
  const spare=structuredClone(s.trucks[0]);spare.id=3;s.trucks.push(spare);
  assert(E.start(s,1,'materials','iron'));
  const partial=preview(s,3,'crew','iron');
- assert.equal(partial.ok,false);assert.match(partial.reason,/отправьте все строительные материалы/i);
+ assert.equal(partial.ok,false);assert.match(partial.reason,/Send all construction materials/i);
  assert(E.start(s,2,'materials','iron'));
  assert.deepEqual(s.sites.iron.received,{iron:0,copper:0});
  assert.deepEqual(s.sites.iron.incoming,{iron:5,copper:1});
@@ -83,7 +83,7 @@ test('Builders remain unavailable until received plus incoming covers every cons
 test('Oil cannot be hauled by truck even when the second well is active',()=>{
  const s=E.create();s.sites.oil2.active=true;s.sites.oil2.stock=40;
  const p=preview(s,1,'haul','oil2');
- assert.equal(p.ok,false);assert.match(p.reason,/нефтепровод/i);assert.deepEqual(p.cargo,{});
+ assert.equal(p.ok,false);assert.match(p.reason,/pipeline/i);assert.deepEqual(p.cargo,{});
  assert.equal(s.sites.oil2.claimed,0);
 });
 
@@ -96,16 +96,16 @@ test('Order preview only loads needed cargo after accounting for deliveries alre
  assert.equal(s.outgoing.iron,1);assert.equal(s.outgoing.copper,0);assert.equal(s.outgoing.asphalt,0);
  s.outgoing.copper=1;s.outgoing.asphalt=1;
  const covered=preview(s,1,'goal','center');
- assert.equal(covered.ok,false);assert.match(covered.reason,/Нет нужных/i);
+ assert.equal(covered.ok,false);assert.match(covered.reason,/No cargo needed/i);
 });
 
 test('Won and underfunded states are rejected without changing the original state',()=>{
  const won=E.create();won.won=true;
  const p=preview(won,1,'materials','iron');
- assert.equal(p.ok,false);assert.match(p.reason,/завершена/i);
+ assert.equal(p.ok,false);assert.match(p.reason,/complete/i);
  const poor=E.create();poor.fuel=0;
  const q=preview(poor,1,'materials','iron');
- assert.equal(q.ok,false);assert.match(q.reason,/Недостаточно топлива/i);assert.deepEqual(q.cargo,{});
+ assert.equal(q.ok,false);assert.match(q.reason,/Not enough fuel/i);assert.deepEqual(q.cargo,{});
 });
 
 test('3D card template preserves app, manufacturing, road confirmation and bot extension hooks',()=>{
@@ -146,7 +146,7 @@ test('Controller begins a preview, rejects a busy truck and cancels a free choic
  assert.equal(h.ui.getPending().truck,null);assert.deepEqual(s,before);
  h.ui.chooseTruck(1);
  assert.equal(h.ui.getPending().truck,null,'Busy truck never enters confirmation');
- assert.match(h.$('details').innerHTML,/занята/i);assert.deepEqual(s,before);
+ assert.match(h.$('details').innerHTML,/busy/i);assert.deepEqual(s,before);
  h.ui.chooseTruck(2);
  assert.equal(h.ui.getPending().truck,2);assert(h.hasAction('resume'));
  assert.equal(h.hasAction('send'),false,'Paused UI offers resume, not dispatch');
@@ -198,11 +198,11 @@ test('Materials assignment accepts successive free trucks until the real remaini
  const before=JSON.stringify(s);h.ui.chooseTruck(1);assert.equal(JSON.stringify(s),before,'Clicking a sent truck cannot repeat its shipment');
 });
 test('Cancelling after a partial multi-truck dispatch preserves and correctly describes the paid journey',()=>{
- const s=E.create();s.paused=false;const h=controller(s,{batchMaterials:true});h.clickAction('materials');h.ui.chooseTruck(1);const before=JSON.stringify(s);h.ui.handleAction('cancel');assert.equal(h.ui.getPending(),null);assert.equal(JSON.stringify(s),before);assert.match(h.$('details').innerHTML,/Уже отправленные машины продолжают рейсы/);
+ const s=E.create();s.paused=false;const h=controller(s,{batchMaterials:true});h.clickAction('materials');h.ui.chooseTruck(1);const before=JSON.stringify(s);h.ui.handleAction('cancel');assert.equal(h.ui.getPending(),null);assert.equal(JSON.stringify(s),before);assert.match(h.$('details').innerHTML,/Trucks already sent will continue their trips/);
 });
 
 test('A successful haul keeps route controls without the duplicate assignment and departure banners',()=>{
  const s=E.create();s.paused=false;s.sites.iron.active=true;const h=controller(s);h.ui.chooseSite('iron');assert(h.clickAction('haul'));h.ui.chooseTruck(1);
- assert.equal(s.trucks[0].job.type,'haul');assert(h.hasAction('haul-transport'));assert(!h.$('details').innerHTML.includes('Вывоз назначен'));assert(!h.$('details').innerHTML.includes('Машина 1 отправлена'));
- assert(h.$('fleet').innerHTML.includes('data-direction="out"'));assert(h.$('fleet').innerHTML.includes('К: Железный рудник'));
+ assert.equal(s.trucks[0].job.type,'haul');assert(h.hasAction('haul-transport'));assert(!h.$('details').innerHTML.includes('Hauling assigned'));assert(!h.$('details').innerHTML.includes('Truck 1 sent'));
+ assert(h.$('fleet').innerHTML.includes('data-direction="out"'));assert(h.$('fleet').innerHTML.includes('To: Iron mine'));
 });

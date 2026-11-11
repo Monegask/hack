@@ -70,7 +70,7 @@ test('One directional shadow map covers both territories without introducing a s
 
 
 test('Overview shows short one-line labels with full status retained, and focus restores full detail',()=>{
- const {host,shared}=setup(),primary=new View(host,{},shared);primary.isCompanion=false;primary.controls={target:new T.Vector3(),update(){},mouseButtons:{}};const player=E.create(),rival=E.create();rival.sites.iron.active=true;rival.sites.iron.stock=7;primary.update(player);primary.setRivalState(rival);primary.frame();const a=primary.sites.get('iron').label,b=primary.rival.sites.get('iron').label;assert.equal(a.textContent,'Железо');assert.equal(b.textContent,'Железо');assert(!b.textContent.includes('\n'));assert(b.title.includes('7'));assert.equal(b.dataset.state,'idle');primary.focusTerritory('rival');primary.frame();assert(b.textContent.includes('\n'));assert(b.textContent.includes('7'));assert.equal(primary.overview,false);assert.equal(primary.rival.overview,false);
+ const {host,shared}=setup(),primary=new View(host,{},shared);primary.isCompanion=false;primary.controls={target:new T.Vector3(),update(){},mouseButtons:{}};const player=E.create(),rival=E.create();rival.sites.iron.active=true;rival.sites.iron.stock=7;primary.update(player);primary.setRivalState(rival);primary.frame();const a=primary.sites.get('iron').label,b=primary.rival.sites.get('iron').label;assert.equal(a.textContent,'Iron');assert.equal(b.textContent,'Iron');assert(!b.textContent.includes('\n'));assert(b.title.includes('7'));assert.equal(b.dataset.state,'idle');primary.focusTerritory('rival');primary.frame();assert(b.textContent.includes('\n'));assert(b.textContent.includes('7'));assert.equal(primary.overview,false);assert.equal(primary.rival.overview,false);
 });
 
 

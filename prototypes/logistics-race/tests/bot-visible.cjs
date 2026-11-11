@@ -31,22 +31,22 @@ test('Race shows both territories by default and sends the actual bot state to t
 test('Compact progress shows percentages only, without delivery text, status or counts',()=>{
  const h=raceHarness();h.run('state.delivered.iron=3;rival.state.delivered.iron=6;rival.state.sites.iron.active=true;racePanel()');
  const comparison=h.get('raceComparison').innerHTML;
- assert.match(comparison,/Вы/);assert.match(comparison,/Соперник/);assert.match(comparison,/11.5%/);assert.match(comparison,/23.1%/);
- assert.doesNotMatch(comparison,/Доставлено|<small>|Построено|Развивает|Строит|Запускает/);
+ assert.match(comparison,/You/);assert.match(comparison,/Opponent/);assert.match(comparison,/11.5%/);assert.match(comparison,/23.1%/);
+ assert.doesNotMatch(comparison,/Delivered|<small>|Built|Expanding|Building|Starting/);
  h.run('state.outgoing.iron=9;racePanel()');assert.equal(h.get('raceComparison').innerHTML,comparison);
  h.run('state.delivered.iron=9;racePanel()');assert.match(h.get('raceComparison').innerHTML,/34.6%/);
 });
 
 test('Shared journal keeps separate real player and rival events and refreshes on reset',()=>{
  const h=raceHarness();assert(h.get('journal'));
- h.run('state.log=[{t:15,text:"Действие игрока"}];rival.state.log=[{t:16,text:"Действие соперника <test>"}];racePanel()');
- assert.match(h.get('rivalJournal').innerHTML,/16/);assert.match(h.get('rivalJournal').innerHTML,/Действие соперника &lt;test&gt;/);
- assert.doesNotMatch(h.get('rivalJournal').innerHTML,/Действие игрока/);
- h.run('state=E.create();render()');assert.doesNotMatch(h.get('rivalJournal').innerHTML,/Действие соперника/);
+ h.run('state.log=[{t:15,text:"Player action"}];rival.state.log=[{t:16,text:"Opponent action <test>"}];racePanel()');
+ assert.match(h.get('rivalJournal').innerHTML,/16/);assert.match(h.get('rivalJournal').innerHTML,/Opponent action &lt;test&gt;/);
+ assert.doesNotMatch(h.get('rivalJournal').innerHTML,/Player action/);
+ h.run('state=E.create();render()');assert.doesNotMatch(h.get('rivalJournal').innerHTML,/Opponent action/);
 });
 
 test('Rival selections are read-only and pause freezes both visible territories',()=>{
- const h=raceHarness();h.run('var beforeSelection=JSON.stringify(state);map3d.onRivalSelect("iron")');assert(h.run('JSON.stringify(state)===beforeSelection'));assert.equal(h.get('raceObject').hidden,false);assert.match(h.get('raceObject').textContent,/Железный рудник/);assert.match(h.get('raceObject').textContent,/Только просмотр/);
+ const h=raceHarness();h.run('var beforeSelection=JSON.stringify(state);map3d.onRivalSelect("iron")');assert(h.run('JSON.stringify(state)===beforeSelection'));assert.equal(h.get('raceObject').hidden,false);assert.match(h.get('raceObject').textContent,/Iron mine/);assert.match(h.get('raceObject').textContent,/View only/);
  h.run('state.paused=false;E.tick(state,.1);racePanel()');assert.equal(h.run('rival.state.paused'),false);assert.equal(h.run('state.time'),h.run('rival.state.time'));
  h.run('state.paused=true;racePanel();var frozenTime=rival.state.time;E.tick(state,1)');assert(h.run('rival.state.paused'));assert(h.run('rival.state.time===frozenTime'));
 });

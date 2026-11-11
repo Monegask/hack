@@ -1,6 +1,6 @@
 .coach-layer{position:fixed;inset:0;z-index:100;pointer-events:none;font:14px/1.45 Arial,sans-serif;color:#e7e7d9}
 .coach-layer[hidden],.coach-layer [hidden]{display:none!important}
-body[data-training=true] .brand:after{content:'Учебная партия · соперник не действует';display:block;font:10px/1.4 Arial,sans-serif;color:var(--muted,#a4b1b6);margin-top:3px}
+body[data-training=true] .brand:after{content:'Training · opponent inactive';display:block;font:10px/1.4 Arial,sans-serif;color:var(--muted,#a4b1b6);margin-top:3px}
 .coach-figure{position:fixed;z-index:3;background-image:url('assets/coach-sheet-v1.png');background-size:200% 200%;background-repeat:no-repeat;filter:drop-shadow(0 4px 9px #0009);pointer-events:none}
 .coach-figure[data-pose=explain]{background-position:0 0}.coach-figure[data-pose=right]{background-position:100% 0}.coach-figure[data-pose=left]{background-position:0 100%}.coach-figure[data-pose=peek]{background-position:100% 100%}
 .coach-figure[data-pose=folded],.coach-figure[data-pose=up]{background-image:url('assets/coach-poses-v2.png');background-size:200% 100%}.coach-figure[data-pose=folded]{background-position:0 0}.coach-figure[data-pose=up]{background-position:100% 0}
@@ -14,3 +14,7 @@ body[data-training=true] .brand:after{content:'Учебная партия · с
 @media(max-width:640px){.coach-bubble{padding:12px 14px}.coach-bubble h2{font-size:16px}.coach-bubble p{font-size:13px}.coach-actions button,.coach-actions a{min-height:36px}}
 @media(pointer:coarse){.coach-actions button,.coach-actions a{min-height:44px}}
 @media(prefers-reduced-motion:reduce){.coach-figure,.coach-bubble{transition:none}.coach-gesture:after{animation:none;transform:translate(110px,-10px)}}
+/* Long lessons remain readable and all actions stay reachable on short screens. */
+.coach-bubble{max-height:calc(100dvh - 24px);overflow-y:auto;overscroll-behavior:contain}
+.coach-actions{flex-wrap:wrap;gap:6px}
+.coach-actions button,.coach-actions a{white-space:normal;line-height:1.3}

@@ -28,7 +28,7 @@ test('Pause freezes travel and production; save reload preserves a paid journey'
 });
 test('A route can return a partial load, freeing its truck and claim',()=>{
  const s=fresh();s.sites.iron.active=true;s.sites.iron.enabled=false;s.sites.iron.stock=2;
- assert(E.start(s,1,'haul','iron'));advance(s,13);assert.equal(s.trucks[0].status,'Ожидает груз');
+ assert(E.start(s,1,'haul','iron'));advance(s,13);assert.equal(s.trucks[0].status,'Waiting for cargo');
  E.stopTruck(s,1);advance(s,13);assert.equal(s.trucks[0].job,null);assert.equal(s.sites.iron.claimed,0);
  assert(s.city.ironOre>0||s.production.metal||s.city.iron>14);
 });

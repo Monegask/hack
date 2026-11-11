@@ -193,3 +193,16 @@ body.three-game .resource .resource-icon{width:24px;height:24px}
 body.three-game .resource svg{width:15px;height:15px}
 @media(max-width:1100px){body.three-game .resource>span:last-child{display:grid;gap:0}body.three-game .resourcebar{gap:6px;padding:4px 9px}body.three-game .resource{gap:5px}body.three-game .resource small{font-size:9px}body.three-game .resource .resource-icon{width:22px;height:22px}}
 @media(max-width:520px){body.three-game .resourcebar{left:8px;right:8px;top:4px;padding:4px 6px;gap:4px;border-radius:12px}body.three-game .resource{gap:3px}body.three-game .resource .resource-icon{width:20px;height:20px}body.three-game .resource b{font-size:14px}body.three-game .resource small{font-size:8px}}
+/* English copy: keep controls grouped and allow longer labels to wrap. */
+body.three-game .map-top{flex-wrap:wrap;gap:8px 14px}
+body.three-game .map-top .controls{margin-left:auto;justify-content:flex-end}
+body.three-game .map-tools{display:flex;flex-wrap:wrap;gap:6px;align-items:stretch}
+body.three-game .map-tools button{white-space:normal;line-height:1.35}
+body.three-game .action-card{min-width:0;height:auto}
+body.three-game .action-card strong,body.three-game .action-card small,body.three-game .card-subtitle{white-space:normal;overflow-wrap:break-word}
+body.three-game .gallery-button{min-width:0}
+body.three-game .gallery-name,body.three-game .gallery-status{white-space:normal;line-height:1.25}
+body.three-game .plant{gap:10px;flex-wrap:wrap}
+body.three-game dialog .controls{justify-content:flex-end}
+@media(max-width:800px){body.three-game .map-top .controls{margin-left:0;justify-content:flex-start}body.three-game .camera-help{display:none}}
+@media(max-width:520px){body.three-game .map-tools #mapView{flex-basis:100%}body.three-game .map-tools #roadTool,body.three-game .map-tools #pipeTool{flex:1}body.three-game .site-gallery{grid-template-columns:repeat(3,minmax(0,1fr))}body.three-game .resourcebar{flex-wrap:wrap}body.three-game .resource{flex:1 0 25%;min-width:0}}

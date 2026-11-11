@@ -1,9 +1,9 @@
 <!doctype html>
-<html lang="ru">
+<html lang="en">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>Линия снабжения · 3D</title>
+  <title>Supply Line · 3D</title>
   <link rel="icon" href="data:,">
   <link rel="stylesheet" href="style.css">
   <link rel="stylesheet" href="game-3d/style.css">
@@ -13,68 +13,68 @@
 </head>
 <body class="three-game">
   <main class="ui-shell">
-    <section class="map-panel" aria-label="Карта и управление партией">
+    <section class="map-panel" aria-label="Map and game controls">
       <div class="map-top">
-        <div class="brand"><strong>ЛИНИЯ СНАБЖЕНИЯ</strong></div>
+        <div class="brand"><strong>SUPPLY LINE</strong></div>
         <div class="controls">
-          <span id="clock" aria-label="Время партии">00:00</span>
-          <button id="pause" class="primary">Начать</button>
-          <button id="speed" aria-label="Скорость игры">1×</button>
-          <button id="operationsOpen" aria-haspopup="dialog">Производство и журнал</button>
-          <button id="tutorialReplay">Обучение</button>
-          <button id="reset">Новая партия</button>
+          <span id="clock" aria-label="Game time">00:00</span>
+          <button id="pause" class="primary">Start</button>
+          <button id="speed" aria-label="Game speed">1×</button>
+          <button id="operationsOpen" aria-haspopup="dialog">Production & log</button>
+          <button id="tutorialReplay">Tutorial</button>
+          <button id="reset">New game</button>
         </div>
       </div>
       <div class="map-wrap">
-        <section class="resourcebar" id="resources" aria-label="Склад города и общее топливо"></section>
-        <section id="tutorial" class="tutorial-panel" aria-label="Пошаговое обучение" aria-live="polite"></section>
-        <div id="map" role="region" aria-label="Игровая 3D-карта"></div>
+        <section class="resourcebar" id="resources" aria-label="City storage and shared fuel"></section>
+        <section id="tutorial" class="tutorial-panel" aria-label="Step-by-step tutorial" aria-live="polite"></section>
+        <div id="map" role="region" aria-label="Game 3D-map"></div>
       </div>
       <div class="map-footer">
-        <nav class="map-tools" aria-label="Карта и строительство">
-          <button id="mapView">Вся карта</button>
-          <button id="roadTool">Дорога <span>2 асфальта / клетка</span></button>
-          <button id="pipeTool">Нефтепровод <span>1,5 железа / клетка</span></button>
+        <nav class="map-tools" aria-label="Map and construction">
+          <button id="mapView">Full map</button>
+          <button id="roadTool">Road <span>2 asphalt / cell</span></button>
+          <button id="pipeTool">Pipeline <span>1.5 iron / cell</span></button>
         </nav>
-        <span class="camera-help">Выбор — щелчок · масштаб — колесо · поворот — левая кнопка · сдвиг — правая</span>
+        <span class="camera-help">Select: click · zoom: wheel · rotate: left drag · pan: right drag</span>
       </div>
     </section>
 
-    <aside aria-label="Предприятия, действия и транспорт">
+    <aside aria-label="Sites, actions and fleet">
       <section class="objective">
-        <h1>Цель · снабдить хаб</h1>
+        <h1>Goal · supply the hub</h1>
         <div id="objective"></div>
       </section>
-      <nav id="siteGallery" class="site-gallery" aria-label="Предприятия и хаб"></nav>
-      <section class="selection" aria-label="Действия выбранного объекта">
+      <nav id="siteGallery" class="site-gallery" aria-label="Sites and hub"></nav>
+      <section class="selection" aria-label="Selected site actions">
         <div id="details"></div>
       </section>
       <section class="fleet">
-        <div class="section-title"><h2>Транспорт</h2><span id="fleetCount"></span></div>
-        <div id="fleet" aria-label="Машины"></div>
-        <button id="buy" class="full">Собрать грузовик</button>
-        <p class="assembly-cost">3 железа · 1 медь · 0,4 топлива · 12 с</p>
+        <div class="section-title"><h2>Fleet</h2><span id="fleetCount"></span></div>
+        <div id="fleet" aria-label="Trucks"></div>
+        <button id="buy" class="full">Assemble truck</button>
+        <p class="assembly-cost">3 iron · 1 copper · 0.4 fuel · 12 s</p>
       </section>
     </aside>
   </main>
 
   <dialog id="operations" aria-labelledby="operationsTitle">
-    <div class="dialog-heading"><h2 id="operationsTitle">Производство и журнал</h2><button id="operationsClose" aria-label="Закрыть производство и журнал">Закрыть</button></div>
-    <section><h3>Производство города</h3><p class="subtle">Переработка работает автоматически. Здесь можно приостановить производство или изменить приоритет металлов.</p><div id="production"></div></section>
-    <section><h3>Подсказка</h3><div class="guide" id="guide"></div></section>
-    <section><h3>Журнал операций</h3><div id="journal"></div></section>
-    <p class="prototype-note">Полная игровая 3D-карта. Город работает автоматически. Сохранение партии — в этом браузере.</p>
+    <div class="dialog-heading"><h2 id="operationsTitle">Production & log</h2><button id="operationsClose" aria-label="Close production and log">Close</button></div>
+    <section><h3>City production</h3><p class="subtle">Processing is automatic. Pause production or change metal priorities here.</p><div id="production"></div></section>
+    <section><h3>Hint</h3><div class="guide" id="guide"></div></section>
+    <section><h3>Operations log</h3><div id="journal"></div></section>
+    <p class="prototype-note">Full 3D-map. The city runs automatically. Progress is saved in this browser.</p>
   </dialog>
   <div id="toast" role="status" aria-live="polite"></div>
 
   <dialog id="intro" aria-labelledby="introTitle">
-    <h2 id="introTitle">Первые шаги</h2>
-    <p>Пошаговое обучение выделяет следующее действие прямо в игре. Его можно пропустить и открыть снова кнопкой «Обучение».</p>
-    <button id="introClose" class="primary full">К игре</button>
+    <h2 id="introTitle">First steps</h2>
+    <p>The tutorial highlights your next action in the game. Skip it anytime and reopen it with “Tutorial”.</p>
+    <button id="introClose" class="primary full">Play</button>
   </dialog>
-  <dialog id="win"><span class="eyebrow">ЗАКАЗ ВЫПОЛНЕН</span><h2>Хаб снова работает.</h2><p id="winText"></p><button id="winClose" class="primary full">Рассмотреть результат</button></dialog>
-  <dialog id="roadConfirm" aria-labelledby="roadConfirmTitle"><h2 id="roadConfirmTitle">Дорога к хабу</h2><p id="roadConfirmText"></p><div class="controls"><button id="roadConfirmCancel">Отмена</button><button id="roadConfirmBuild" class="primary">Построить дорогу</button></div></dialog>
-  <dialog id="restart"><h2>Начать заново?</h2><p>Текущая партия и её сохранение будут заменены.</p><div class="controls"><button id="cancelReset">Продолжить эту партию</button><button id="confirmReset" class="primary">Начать заново</button></div></dialog>
+  <dialog id="win"><span class="eyebrow">ORDER COMPLETE</span><h2>The hub is working again.</h2><p id="winText"></p><button id="winClose" class="primary full">View result</button></dialog>
+  <dialog id="roadConfirm" aria-labelledby="roadConfirmTitle"><h2 id="roadConfirmTitle">Road to the hub</h2><p id="roadConfirmText"></p><div class="controls"><button id="roadConfirmCancel">Cancel</button><button id="roadConfirmBuild" class="primary">Build road</button></div></dialog>
+  <dialog id="restart"><h2>Restart?</h2><p>The current game and its save will be replaced.</p><div class="controls"><button id="cancelReset">Continue this game</button><button id="confirmReset" class="primary">Restart</button></div></dialog>
   <script src="engine.js"></script>
   <script src="map-scene.js"></script>
   <script src="game-3d/scene.js"></script>

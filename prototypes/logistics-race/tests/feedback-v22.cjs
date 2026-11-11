@@ -22,7 +22,7 @@ test('Mixed route accelerates its asphalt edge while retaining four-unit capacit
 });
 test('Asphalt exhaustion reports the cause and cannot charge or add another cell',()=>{
  const s=fresh();s.city.asphalt=2;assert(E.buildRoad(s,[3,9]));assert.equal(s.city.asphalt,0);const roads=[...s.roads];
- assert(!E.buildRoad(s,[4,9]));assert.match(s.notice,/Недостаточно асфальта/);assert.equal(s.city.asphalt,0);assert.deepEqual(s.roads,roads);
+ assert(!E.buildRoad(s,[4,9]));assert.match(s.notice,/Not enough asphalt/);assert.equal(s.city.asphalt,0);assert.deepEqual(s.roads,roads);
 });
 test('Previously paid route through a plot reloads unchanged and completes without replanning',()=>{
  const s=fresh(),route=[[3,8],[4,8],[5,8],[6,8],[7,8]];s.sites.copper.enabled=false;

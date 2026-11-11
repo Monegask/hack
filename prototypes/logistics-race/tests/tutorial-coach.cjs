@@ -42,10 +42,10 @@ test('Opening a help topic after skipping does not silently re-enable automatic 
  const h=harness({coreDone:true,skipped:true});h.c.start('menu');h.c.closeChapter();assert(h.c.p.skipped);h.c.start('fleet');h.s.paused=false;h.c.next();h.view.selected='oil2';assert(h.c.p.skipped);assert.equal(h.c.current(),null);
 });
 test('Revised introduction uses the approved order, three blocks and the real unchanged order quantities',()=>{
- const h=harness();let q=h.c.current();assert.equal(q.title,'Цель игры - снабдить хаб ресурсами');assert.match(q.text,/12 железа, 6 меди и 8 асфальта/);assert.equal(q.count,'1/3');h.c.next();q=h.c.current();assert.equal(q.title,'Стартовый набор');assert.equal(q.pose,'up');assert.match(q.text,/пока нет добычи, запас не бесконечен/);h.c.next();q=h.c.current();assert.equal(q.title,'Переработка');assert.equal(q.pose,'folded');assert.deepEqual(q.mapSites,['city','oil']);h.c.next();q=h.c.current();assert.equal(q.id,'resume');assert.equal(q.title,'Начни игру');assert.equal(q.pose,'up');assert(q.dimMap);assert(!q.manual);assert.deepEqual(h.s.goal,{iron:12,copper:6,asphalt:8});
+ const h=harness();let q=h.c.current();assert.equal(q.title,'Supply the hub to win');assert.match(q.text,/12 iron, 6 copper and 8 asphalt/);assert.equal(q.count,'1/3');h.c.next();q=h.c.current();assert.equal(q.title,'Starting resources');assert.equal(q.pose,'up');assert.match(q.text,/supplies are limited until you start production/);h.c.next();q=h.c.current();assert.equal(q.title,'Processing');assert.equal(q.pose,'folded');assert.deepEqual(q.mapSites,['city','oil']);h.c.next();q=h.c.current();assert.equal(q.id,'resume');assert.equal(q.title,'Start the game');assert.equal(q.pose,'up');assert(q.dimMap);assert(!q.manual);assert.deepEqual(h.s.goal,{iron:12,copper:6,asphalt:8});
 });
 test('Materials and truck text match the revised lesson while later assignment types retain their explanation',()=>{
- const s=E.create();s.paused=false;const v={selected:'iron',mode:'site',truck:1,pending:null};let q=C.buildStep(E,s,v,'iron');assert.equal(q.text,'Доставь материалы к руднику, чтобы построить его. Нужны 5 железа и 1 медь.');assert(!q.manual&&!q.dimMap);v.pending={type:'materials',target:'iron'};q=C.pendingStep(E,s,v);assert.equal(q.title,'Выбери грузовик');assert.match(q.text,/до 4 единиц/);assert.match(q.text,/до 4 единиц по пересечённой местности/);assert(!q.manual&&!q.dimMap);
+ const s=E.create();s.paused=false;const v={selected:'iron',mode:'site',truck:1,pending:null};let q=C.buildStep(E,s,v,'iron');assert.equal(q.text,'Deliver materials to the mine to build it. You need 5 iron and 1 copper.');assert(!q.manual&&!q.dimMap);v.pending={type:'materials',target:'iron'};q=C.pendingStep(E,s,v);assert.equal(q.title,'Choose a truck');assert.match(q.text,/You can carry up to 4/);assert.match(q.text,/off-road/);assert(!q.manual&&!q.dimMap);
 });
 test('Folded map pose sits above its target rather than beside it',()=>{
  for(const width of [390,1440]){const target={x:width/2-30,y:500,width:60,height:55},p=C.placement(target,{x:0,y:150,width:width<640?width:width-420,height:600},{width,height:900},'folded',240);assert.equal(p.pose,'folded');assert(p.character.y+p.character.height<target.y);}
@@ -54,14 +54,14 @@ test('Folded map pose sits above its target rather than beside it',()=>{
 
 test('Unlocking asphalt production automatically explains road construction and restores pause',()=>{
  const h=harness({coreDone:true});h.s.paused=false;h.s.sites.asphalt.active=true;
- assert.equal(h.c.current().id,'road-intro');assert(h.s.paused);assert.match(h.c.current().text,/с 4 до 8/);
+ assert.equal(h.c.current().id,'road-intro');assert(h.s.paused);assert.match(h.c.current().text,/from 4 to 8/);
  h.c.next();assert(!h.s.paused);assert.equal(h.c.current().id,'road-no-asphalt');
  h.s.city.asphalt=2;assert.equal(h.c.current().id,'road-open');h.view.drawing='road';assert.equal(h.c.current().id,'road-draw');
  h.c.closeChapter();assert.equal(h.c.current(),null);
 });
 test('Activating second well automatically introduces oil and pipe benefits, without spending resources',()=>{
  const h=harness({coreDone:true});h.s.paused=false;h.s.sites.oil2.active=true;const stock=JSON.stringify(h.s.city);
- assert.equal(h.c.current().id,'pipe-intro');assert.match(h.c.current().text,/увеличивает добычу/);assert(h.s.paused);assert.equal(JSON.stringify(h.s.city),stock);
+ assert.equal(h.c.current().id,'pipe-intro');assert.match(h.c.current().text,/supplies more oil/);assert(h.s.paused);assert.equal(JSON.stringify(h.s.city),stock);
  h.c.next();assert(!h.s.paused);assert.equal(h.c.current().id,'pipe-open');h.view.drawing='pipe';assert.equal(h.c.current().id,'pipe-draw');
 });
 test('Unlock lessons queue after the active chapter and stay suppressed when skipped',()=>{

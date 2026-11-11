@@ -10,8 +10,8 @@ const playerJournal=document.getElementById?.('journal')||null;
 let rivalJournal=null;
 if(operationsDialog&&playerJournal){
  const journalGrid=document.createElement('div');journalGrid.className='race-journal';
- const playerColumn=document.createElement('section');playerColumn.innerHTML='<h4>Вы</h4>';
- const rivalColumn=document.createElement('section');rivalColumn.innerHTML='<h4>Соперник</h4><div id="rivalJournal"></div>';
+ const playerColumn=document.createElement('section');playerColumn.innerHTML='<h4>You</h4>';
+ const rivalColumn=document.createElement('section');rivalColumn.innerHTML='<h4>Opponent</h4><div id="rivalJournal"></div>';
  playerJournal.before(journalGrid);journalGrid.append(playerColumn,rivalColumn);playerColumn.append(playerJournal);
  rivalJournal=document.getElementById('rivalJournal');
 }
@@ -19,7 +19,7 @@ if(operationsDialog&&playerJournal){
 let raceOverview=null,raceComparison=null,raceObject=null;
 const raceHeader=document.querySelector('.map-top');
 if(raceHeader?.append){
- raceOverview=document.createElement('section');raceOverview.id='raceOverview';raceOverview.className='race-overview';raceOverview.setAttribute('aria-label','Сравнение территорий и прогресса');
+ raceOverview=document.createElement('section');raceOverview.id='raceOverview';raceOverview.className='race-overview';raceOverview.setAttribute('aria-label','Territory and progress comparison');
  raceOverview.innerHTML='<div id="raceComparison" class="race-comparison"></div><div id="raceObject" class="race-object" hidden></div>';
  raceHeader.append(raceOverview);
  raceComparison=document.getElementById('raceComparison');raceObject=document.getElementById('raceObject');
@@ -34,9 +34,9 @@ function deliveryProgress(s){const total=Object.values(s.goal).reduce((n,v)=>n+v
 function raceOverviewPanel(){
  if(!raceComparison)return;
  const row=(s,name)=>{const progress=deliveryProgress(s);
-  return '<div class="race-contender"><strong>'+name+' <span>'+fmt(progress)+'%</span></strong><div class="race-meter" role="progressbar" aria-label="'+name+': доставлено заказа" aria-valuemin="0" aria-valuemax="100" aria-valuenow="'+progress.toFixed(1)+'"><span style="width:'+progress+'%"></span></div></div>';};
- const html=row(state,'Вы')+row(rival.state,'Соперник');if(raceComparison._raceHTML!==html){raceComparison.innerHTML=html;raceComparison._raceHTML=html;}
- if(raceObject){raceObject.hidden=!rivalSelection;if(rivalSelection){const s=rival.state,id=rivalSelection,site=s.sites[id];raceObject.textContent='Соперник · '+E.label(id)+' · '+(site?E.siteStatus(s,id):id==='center'?'Доставлено '+fmt(deliveryProgress(s))+'% заказа':id==='city'?'Общий склад и производство':'Добыча нефти')+(site?.active?' · На складе: '+fmt(site.stock):site?' · Материалы: '+Object.entries(E.costs[id]).map(([k,n])=>E.names[k]+' '+fmt(site.received[k])+'/'+n+(site.incoming[k]?' ('+fmt(site.incoming[k])+' в пути)':'')).join(', '):'')+' · Только просмотр';}}
+  return '<div class="race-contender"><strong>'+name+' <span>'+fmt(progress)+'%</span></strong><div class="race-meter" role="progressbar" aria-label="'+name+': order delivered" aria-valuemin="0" aria-valuemax="100" aria-valuenow="'+progress.toFixed(1)+'"><span style="width:'+progress+'%"></span></div></div>';};
+ const html=row(state,'You')+row(rival.state,'Opponent');if(raceComparison._raceHTML!==html){raceComparison.innerHTML=html;raceComparison._raceHTML=html;}
+ if(raceObject){raceObject.hidden=!rivalSelection;if(rivalSelection){const s=rival.state,id=rivalSelection,site=s.sites[id];raceObject.textContent='Opponent · '+E.label(id)+' · '+(site?E.siteStatus(s,id):id==='center'?'Delivered '+fmt(deliveryProgress(s))+'% of order':id==='city'?'Shared storage and production':'Oil extraction')+(site?.active?' · In storage: '+fmt(site.stock):site?' · Materials: '+Object.entries(E.costs[id]).map(([k,n])=>E.names[k]+' '+fmt(site.received[k])+'/'+n+(site.incoming[k]?' ('+fmt(site.incoming[k])+' in transit)':'')).join(', '):'')+' · View only';}}
 }
 const rivalStyle=document.createElement('style');
 rivalStyle.textContent=`
@@ -65,7 +65,7 @@ function raceReset(){
  if(typeof globalRaceWorldEngines!=='undefined'){for(const p of [E.positions.city,RivalE.positions.city])if(!state.roads.includes(p.join(',')))state.roads.push(p.join(','));}
  rival.state.roads=state.roads;
  const view=raceMap();if(view){view.onRivalSelect=id=>{if(Object.hasOwn(E.positions,id)){rivalSelection=id;raceOverviewPanel();}};view.setRivalState?.(rival.state,0,RivalE);}focusRaceTerritory('both');
- $('win').querySelector('h2').textContent='Хаб снова работает.';
+ $('win').querySelector('h2').textContent='The hub is working again.';
 }
 function racePanel(){
  if(racePlayer!==state)raceReset();
@@ -77,7 +77,7 @@ function racePanel(){
   const journalHTML=s.log.slice(0,12).map(e=>'<div class="logline"><time>'+time(e.t)+'</time><span>'+escape(e.text)+'</span></div>').join('');
   if(rivalJournal._raceHTML!==journalHTML){rivalJournal.innerHTML=journalHTML;rivalJournal._raceHTML=journalHTML;}
  }
- if(raceResult){$('pause').disabled=true;$('pause').textContent='Гонка завершена';}
+ if(raceResult){$('pause').disabled=true;$('pause').textContent='Race finished';}
 }
 render=function(){baseRender();racePanel();};
 E.tick=function(s,dt){
@@ -87,23 +87,23 @@ E.tick=function(s,dt){
  baseTick(s,dt);rival.state.paused=false;Bot.tick(rival,dt);
  // Both states complete the same 0.1-second step before checking the result.
  if(s.won||rival.state.won){
-  raceResult=s.won&&rival.state.won?'Ничья':s.won?'Вы победили!':'Бот победил';
+  raceResult=s.won&&rival.state.won?'Draw':s.won?'You win!':'Bot wins';
   s.paused=true;rival.state.paused=true;winShown=true;
   $('win').querySelector('h2').textContent=raceResult;
-  $('winText').textContent='Время гонки: '+time(s.time)+'. Ваш заказ: '+Object.values(s.delivered).join(' / ')+'. Заказ бота: '+Object.values(rival.state.delivered).join(' / ')+'.';
+  $('winText').textContent='Race time: '+time(s.time)+'. Your order: '+Object.values(s.delivered).join(' / ')+'. Bot order: '+Object.values(rival.state.delivered).join(' / ')+'.';
   $('win').showModal();render();
  }
 };
 // Keep the existing whole-map control available below the map.
-$('mapView').textContent='Обзор территорий';$('mapView').onclick=()=>focusRaceTerritory('both');
-$('restart').querySelector('p').textContent='Начнётся новая гонка с ботом. Одиночное сохранение останется доступным.';
+$('mapView').textContent='Territory overview';$('mapView').onclick=()=>focusRaceTerritory('both');
+$('restart').querySelector('p').textContent='A new race against the bot will begin. Your solo save remains available.';
 // Both engines and the scene own one immutable match layout. Reload the isolated
 // race to draw a fresh seed before either simulation or scene is constructed.
 if(typeof globalRaceWorldEngines!=='undefined'){
  $('confirmReset').onclick=()=>globalThis.location.reload();
- $('restart').querySelector('p').textContent='Начнётся новая гонка с новой раскладкой месторождений. Одиночное сохранение останется доступным.';
+ $('restart').querySelector('p').textContent='A new race with a new deposit layout will begin. Your solo save remains available.';
 }
-document.querySelector('.prototype-note').textContent='Гонка с ботом: одинаковые начальные ресурсы и экономика, две территории на общей местности и один общий хаб. Средняя сложность пока пробная; доля побед требует проверки с игроками.';
+document.querySelector('.prototype-note').textContent='Race the bot with equal starting resources and rules, two territories and one shared hub. Medium difficulty is experimental; win rates still need player testing.';
 racePanel();
 
 

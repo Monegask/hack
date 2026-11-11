@@ -3,7 +3,7 @@
 const E=typeof module!=='undefined'?require('./engine.js'):root.Logistics;
 const xy=p=>[54+p[0]*56,44+p[1]*54],key=p=>p.join(',');
 const models={oil:{at:[75,468],size:112},oil2:{at:[585,535],size:112},iron:{src:'assets/map-ore-mine.png',at:[100,340],size:112},copper:{src:'assets/map-ore-mine.png',at:[470,445],size:112},gravel:{src:'assets/map-gravel-quarry.png',at:[245,265],size:122},asphalt:{src:'assets/map-asphalt.png',at:[345,445],size:112}};
-const cityModels=[['НПЗ','assets/map-refinery.png'],['Металлургия','assets/map-metalworks.png'],['Сборка машин','assets/map-assembly.png']];
+const cityModels=[['Refinery','assets/map-refinery.png'],['Smelting','assets/map-metalworks.png'],['Truck assembly','assets/map-assembly.png']];
 const line=(a,b,style)=>`<path d="M${a}L${b}" fill="none" ${style}/>`;
 const image=(src,size,x=0)=>`<image class="map-model" href="${src}" x="${x-size/2}" y="${24-size}" width="${size}" height="${size}"/>`;
 function pump(id){return `<g class="pump-model" data-pump="${id}">
@@ -25,7 +25,7 @@ function site(s,id,selected){
  const [labelX,labelY]=id==='gravel'?[0,-125]:id==='copper'?[150,-10]:id==='asphalt'?[80,90]:id==='center'?[130,0]:[0,id==='city'?66:48];
  const hitLeft=Math.min(-size/2,labelX-72),hitTop=Math.min(active?24-size:-30,labelY-24),hitRight=Math.max(size/2,labelX+72),hitBottom=Math.max(25,labelY+19);
  let art=id==='city'?cityModels.map(([name,src],i)=>`${image(src,82,(i-1)*86)}<text class="map-small campus-label" x="${(i-1)*86}" y="37" text-anchor="middle">${name}</text>`).join(''):id==='center'?warehouse():!active?'<path d="M-28 4L0 -10L28 4L0 18Z" fill="#e4ddcc" stroke="#888273" stroke-dasharray="4 3"/><path d="M-15 1v-15h12V1M6 4v-10h12V4" fill="#f5ecdb" stroke="#a49a87"/><path d="M-25 12L-15 17M15 -5L25 0" stroke="#c46149" stroke-width="3"/>':id==='oil'||id==='oil2'?pump(id):image(m.src,size);
- const status=id==='city'?'ПРОМЫШЛЕННЫЙ КОМПЛЕКС':id==='center'?'12 Fe · 6 Cu · 8 асфальта':E.siteStatus(s,id);
+ const status=id==='city'?'INDUSTRIAL COMPLEX':id==='center'?'12 Fe · 6 Cu · 8 asphalt':E.siteStatus(s,id);
  return `<g class="node ${selected===id?'selected-node':''}" data-node="${id}" data-built="${active}" tabindex="0" role="button" aria-label="${E.label(id)}"><title>${E.label(id)} · ${status}</title><g transform="translate(${x},${y})"><rect class="node-hit" x="${hitLeft}" y="${hitTop}" width="${hitRight-hitLeft}" height="${hitBottom-hitTop}" rx="8"/><ellipse class="node-ring" cy="12" rx="${id==='city'?130:active?size*.45:32}" ry="17" stroke-dasharray="${active?'':'3 4'}"/>${art}<rect class="map-caption" x="${labelX-72}" y="${labelY-24}" width="144" height="43" rx="4" fill="#f5eedf" fill-opacity=".88" pointer-events="none"/><text class="map-label" text-anchor="middle" x="${labelX}" y="${labelY}">${E.label(id)}</text><text class="map-small site-status" text-anchor="middle" x="${labelX}" y="${labelY+14}">${status}</text><text class="map-stock" id="stock-${id}" text-anchor="middle" x="${labelX}" y="${labelY-15}"></text></g></g>`;
 }
 function terrain(s,{selected='iron',roadMode=false,pipeMode=false}={}){

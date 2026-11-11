@@ -38,8 +38,8 @@ test('Both shared-world controllers retain helmet-to-production icons and indepe
 test('Free shared-city road cells do not complete the road lesson or conceal the need to deliver gravel',()=>{
  const {player,rival}=World.create(),s=player.create();s.paused=false;s.sites.gravel.active=true;s.sites.asphalt.active=true;
  s.roads=[player.positions.city.join(','),rival.positions.city.join(',')];
- const h=harness(player,s);h.ui.dismissTutorial();assert.match(h.$('tutorial').innerHTML,/Нужен щебень для асфальта/);
- s.city.asphalt=2;h.ui.render();assert.match(h.$('tutorial').innerHTML,/Открыто строительство дорог/);
+ const h=harness(player,s);h.ui.dismissTutorial();assert.match(h.$('tutorial').innerHTML,/Asphalt needs gravel/);
+ s.city.asphalt=2;h.ui.render();assert.match(h.$('tutorial').innerHTML,/Road construction unlocked/);
  const at=player.positions.city,p=player.directions.map(([x,y])=>[at[0]+x,at[1]+y]).find(q=>player.canStep(at,q)&&!s.roads.includes(q.join(',')));
- assert(player.buildRoad(s,p));assert.equal(s.city.asphalt,0);h.ui.render();assert.match(h.$('tutorial').innerHTML,/Основы освоены/);
+ assert(player.buildRoad(s,p));assert.equal(s.city.asphalt,0);h.ui.render();assert.match(h.$('tutorial').innerHTML,/Basics complete/);
 });

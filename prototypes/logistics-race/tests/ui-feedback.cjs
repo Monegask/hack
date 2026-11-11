@@ -25,40 +25,40 @@ test('Construction UI unlocks builders once every material is received or alread
 });
 test('Transport exposes status and recall only; center has no automatic road action',()=>{
  const h=harness();const before=structuredClone(h.s);h.ui.chooseTruck(1);
- assert(!h.has('choose-work'));assert(!h.has('materials'));assert.match(h.$('details').innerHTML,/Новое задание выбирается в карточке предприятия/);
+ assert(!h.has('choose-work'));assert(!h.has('materials'));assert.match(h.$('details').innerHTML,/Assign a new job through a site card/);
  h.ui.chooseSite('center');assert(h.has('goal'));assert(!h.has('road-center'));assert.deepEqual(h.s,before);
 });
 test('Goal shipment values occupy a separate row and completed mines use a pickaxe',()=>{
- const h=harness();h.s.outgoing.iron=3.5;h.ui.render();assert.match(h.$('objective').innerHTML,/<small class="goal-transit">В пути: 3.5<\/small>/);
+ const h=harness();h.s.outgoing.iron=3.5;h.ui.render();assert.match(h.$('objective').innerHTML,/<small class="goal-transit">In transit: 3.5<\/small>/);
  const unbuilt=h.$('siteGallery').innerHTML;h.s.sites.iron.active=true;h.ui.render();assert.notEqual(unbuilt,h.$('siteGallery').innerHTML);assert.match(h.$('siteGallery').innerHTML,/m14 13-8.381 8.38/);
 });
 test('Interactive lesson follows a real delivery, construction and first ore return, then releases strategy',()=>{
- const h=harness(),s=h.s;assert.match(h.$('tutorial').innerHTML,/Начнём с одной доставки/);
- h.$('pause').click();assert.match(h.$('tutorial').innerHTML,/Доставьте материалы/);
- h.act('materials');assert.match(h.$('tutorial').innerHTML,/Выберите грузовик/);h.ui.chooseTruck(1);
+ const h=harness(),s=h.s;assert.match(h.$('tutorial').innerHTML,/Start with one delivery/);
+ h.$('pause').click();assert.match(h.$('tutorial').innerHTML,/Deliver materials/);
+ h.act('materials');assert.match(h.$('tutorial').innerHTML,/Choose a truck/);h.ui.chooseTruck(1);
  h.act('materials');h.ui.chooseTruck(2);h.runUntil(()=>s.trucks.every(t=>!t.job));
- assert.match(h.$('tutorial').innerHTML,/Теперь отправьте строителей/);
- h.act('crew');h.ui.chooseTruck(1);assert.match(h.$('tutorial').innerHTML,/Строители едут на объект/);h.runUntil(()=>!!s.sites.iron.construction);assert.match(h.$('tutorial').innerHTML,/Идёт строительство/);h.runUntil(()=>s.sites.iron.active);
- assert.match(h.$('tutorial').innerHTML,/Организуйте вывоз/);
- h.act('haul');h.ui.chooseTruck(2);h.runUntil(()=>/Первый цикл завершён/.test(h.$('tutorial').innerHTML));
- assert(s.city.ironOre>0||s.production.metal||s.city.iron>0);assert.match(h.$('tutorial').innerHTML,/выбирайте стратегию сами/);
+ assert.match(h.$('tutorial').innerHTML,/Now send builders/);
+ h.act('crew');h.ui.chooseTruck(1);assert.match(h.$('tutorial').innerHTML,/Builders heading to site/);h.runUntil(()=>!!s.sites.iron.construction);assert.match(h.$('tutorial').innerHTML,/Construction in progress/);h.runUntil(()=>s.sites.iron.active);
+ assert.match(h.$('tutorial').innerHTML,/Assign hauling/);
+ h.act('haul');h.ui.chooseTruck(2);h.runUntil(()=>/First cycle complete/.test(h.$('tutorial').innerHTML));
+ assert(s.city.ironOre>0||s.production.metal||s.city.iron>0);assert.match(h.$('tutorial').innerHTML,/Choose your strategy/);
  const save=JSON.stringify(s);h.ui.dismissTutorial();assert(h.$('tutorial').hidden);assert.equal(JSON.stringify(s),save,'Dismissal cannot alter game/save state');
  h.ui.startTutorial();assert(!h.$('tutorial').hidden);assert.equal(JSON.stringify(s),save,'Reopening cannot alter the game');
 });
 test('Tutorial reload remembers a watched ore return and asphalt introduces roads after the basic lesson is dismissed',()=>{
  const h=harness(),s=h.s;s.paused=false;s.sites.iron.active=true;s.sites.iron.stock=8;h.ui.render();
  h.act('haul');h.ui.chooseTruck(1);h.runUntil(()=>s.trucks[0].leg?.kind==='back');
- const restored=harness(structuredClone(s),h.storage);restored.runUntil(()=>/Первый цикл завершён/.test(restored.$('tutorial').innerHTML));
+ const restored=harness(structuredClone(s),h.storage);restored.runUntil(()=>/First cycle complete/.test(restored.$('tutorial').innerHTML));
  restored.ui.dismissTutorial();restored.s.sites.asphalt.active=true;restored.s.city.asphalt=2;restored.ui.render();
- assert(!restored.$('tutorial').hidden);assert.match(restored.$('tutorial').innerHTML,/Открыто строительство дорог/);
+ assert(!restored.$('tutorial').hidden);assert.match(restored.$('tutorial').innerHTML,/Road construction unlocked/);
  const before=JSON.stringify(restored.s);restored.ui.dismissTutorial();assert(restored.$('tutorial').hidden);assert.equal(JSON.stringify(restored.s),before);
 });
 
 
 test('Road hint respects an unfinished quarry instead of requesting unavailable haul',()=>{
  const h=harness();h.s.paused=false;h.ui.dismissTutorial();h.s.sites.asphalt.active=true;h.ui.render();
- assert.match(h.$('tutorial').innerHTML,/Сначала постройте карьер/);
- h.ui.chooseSite('gravel');h.act('materials');assert.match(h.$('tutorial').innerHTML,/Выберите грузовик/);
+ assert.match(h.$('tutorial').innerHTML,/Build the quarry first/);
+ h.ui.chooseSite('gravel');h.act('materials');assert.match(h.$('tutorial').innerHTML,/Choose a truck/);
 });
 
 
@@ -70,13 +70,13 @@ test('Early builders can dispatch while materials travel and wait at the site un
  assert.deepEqual(s.sites.iron.received,{iron:0,copper:0});
  s.trucks[0].leg.elapsed=-100;
  h.act('crew');h.ui.chooseTruck(3);
- assert.equal(s.builder,3);assert(!h.has('crew'));assert.match(h.$('details').innerHTML,/Строители в пути/);
- h.runUntil(()=>!!s.sites.iron.construction);assert(!s.sites.iron.active);assert.match(h.$('tutorial').innerHTML,/Строители ждут материалы/);
+ assert.equal(s.builder,3);assert(!h.has('crew'));assert.match(h.$('details').innerHTML,/Builders are on the way/);
+ h.runUntil(()=>!!s.sites.iron.construction);assert(!s.sites.iron.active);assert.match(h.$('tutorial').innerHTML,/Builders awaiting materials/);
  h.runUntil(()=>s.sites.iron.active);assert.equal(s.sites.iron.active,true);
 });
 test('An assigned haul is replaced by fleet management and reappears after its recall is requested',()=>{
  const h=harness(),s=h.s;s.paused=false;s.sites.iron.active=true;h.ui.render();assert(h.has('haul'));
- h.act('haul');h.ui.chooseTruck(1);assert(!h.has('haul'));assert(h.has('haul-transport'));assert.doesNotMatch(h.$('details').innerHTML,/Вывоз назначен|Машина 1 отправлена/);
+ h.act('haul');h.ui.chooseTruck(1);assert(!h.has('haul'));assert(h.has('haul-transport'));assert.doesNotMatch(h.$('details').innerHTML,/Hauling assigned|Truck 1 sent/);
  const before=structuredClone(s);h.act('haul');assert.equal(h.ui.getPending(),null);assert.deepEqual(s,before,'Hidden duplicate hauling cannot be dispatched by calling the controller');
  h.act('haul-transport');assert.equal(h.truck,1);assert(h.has('stop'));h.act('stop');h.ui.chooseSite('iron');assert(h.has('haul'),'A finishing haul does not reserve the site for another cycle');
 });
@@ -94,15 +94,15 @@ test('Drawing mode blocks gallery and transport selection without cancelling the
  h.s.paused=false;h.act('materials');const before=structuredClone(h.s);drawing=true;
  h.ui.chooseSite('copper');h.ui.chooseTruck(1);
  assert.equal(h.selected,'iron');assert.equal(h.ui.getPending().target,'iron');assert.equal(h.ui.getPending().truck,null);assert.deepEqual(h.s,before);
- assert.match(h.$('details').innerHTML,/Сначала завершите рисование/);
+ assert.match(h.$('details').innerHTML,/Finish drawing/);
  drawing=false;h.ui.chooseTruck(1);assert.equal(h.s.trucks[0].job.target,'iron');
 });
 
 
 test('Center explains incomplete connection and acknowledges a fully connected entrance',()=>{
- const h=harness();h.ui.chooseSite('center');assert.match(h.$('details').innerHTML,/Дорога не подключена к въезду · груз до 4/);
+ const h=harness();h.ui.chooseSite('center');assert.match(h.$('details').innerHTML,/Entrance not connected · capacity 4/);
  h.s.roads=E.path(h.s,E.positions.city,E.positions.center).slice(1).map(p=>p.join(','));h.ui.render();
- assert.match(h.$('details').innerHTML,/Дорога подключена к въезду · груз до 8/);
+ assert.match(h.$('details').innerHTML,/Entrance connected · capacity 8/);
 });
 
 
