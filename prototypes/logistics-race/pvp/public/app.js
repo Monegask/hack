@@ -2870,6 +2870,8 @@ async function init() {
     if (session) message("Wallet disconnected. Reconnect the same account before signing another transaction.");
   });
   await refresh();
+  $("connect").disabled = false;
+  $("wallet").disabled = false;
   const invite = new URLSearchParams(location.search).get("join");
   if (invite && session) {
     $("code").value = invite;

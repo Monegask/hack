@@ -69,7 +69,7 @@ async function init(){
  $('join').onsubmit=e=>{e.preventDefault();action(()=>preview($('code').value));};
  window.addEventListener('message',e=>{if(e.source===$('game').contentWindow&&e.origin===location.origin&&e.data?.type==='supply-line-pvp-home'){$('gameStage').hidden=true;$('game').removeAttribute('src');}});
  connector.on('wallet:signOut',()=>{if(session)message('Wallet disconnected. Reconnect the same account before signing another transaction.');});
- await refresh();const invite=new URLSearchParams(location.search).get('join');if(invite&&session){$('code').value=invite;await preview(invite);}setInterval(poll,1500);
+ await refresh();$('connect').disabled=false;$('wallet').disabled=false;const invite=new URLSearchParams(location.search).get('join');if(invite&&session){$('code').value=invite;await preview(invite);}setInterval(poll,1500);
 }
 init().catch(e=>message('Unable to load Testnet PvP: '+e.message));
 
