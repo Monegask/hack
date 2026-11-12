@@ -5,11 +5,12 @@ import {Account,JsonRpcProvider,KeyPair,baseEncode} from 'near-api-js';
 import {verifyMessage} from 'near-api-js/nep413';
 import {root} from './config.mjs';
 import {durableSend,PendingChain} from './durable.mjs';
+import {callRpc} from './rpc.mjs';
 const METHODS=['create_lobby','bind_opponent','update_stake','record_activity','start_match','submit_result','heartbeat'];
 export {PendingChain};
 export class Chain{
  constructor(cfg,store){this.cfg=cfg;this.store=store;this.provider=new JsonRpcProvider({url:cfg.rpc});this.tail=Promise.resolve();}
- async rpc(method,params){const response=await fetch(this.cfg.rpc,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({jsonrpc:'2.0',id:'supply-line',method,params}),signal:AbortSignal.timeout(15000)});if(!response.ok)throw Error('NEAR RPC unavailable');const body=await response.json();if(body.error){const e=Error('NEAR RPC rejected request');e.rpc=body.error;throw e;}return body.result;}
+ rpc(method,params){return callRpc(this.cfg.rpc,method,params);}
  async view(account,method,args={}){const r=await this.rpc('query',{request_type:'call_function',account_id:account,method_name:method,args_base64:Buffer.from(JSON.stringify(args)).toString('base64'),finality:'final'});return JSON.parse(Buffer.from(r.result).toString());}
  match(id){return this.view(this.cfg.escrow,'get_match',{match_id:String(id)});}
  async preflight({loadSigner=true}={}){
@@ -41,6 +42,11 @@ export class Chain{
   if(!METHODS.includes(method))throw Error('Server method not allowed');
   return durableSend({store:this.store,id,method,args,receiverId:this.cfg.escrow,accountId:this.cfg.server,account:this.account,rpc:this.rpc.bind(this)});
  }
- async balance(account){const [balance,storage,bounds]=await Promise.all([this.view(this.cfg.token,'ft_balance_of',{account_id:account}),this.view(this.cfg.token,'storage_balance_of',{account_id:account}),this.view(this.cfg.token,'storage_balance_bounds')]);return {balance,registered:!!storage,storageMinimum:bounds.min};}
+ async balance(account){
+  if(!this.bounds||this.bounds.until<Date.now()){
+   const cached={until:Date.now()+60000};cached.promise=this.view(this.cfg.token,'storage_balance_bounds').catch(error=>{if(this.bounds===cached)this.bounds=null;throw error;});this.bounds=cached;
+  }
+  const [balance,storage,bounds]=await Promise.all([this.view(this.cfg.token,'ft_balance_of',{account_id:account}),this.view(this.cfg.token,'storage_balance_of',{account_id:account}),this.bounds.promise]);return {balance,registered:!!storage,storageMinimum:bounds.min};
+ }
  async chainTime(){const r=await this.rpc('block',{finality:'final'});return BigInt(r.header.timestamp_nanosec);}
 }

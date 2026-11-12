@@ -2666,6 +2666,10 @@ var balances = null;
 var polling = false;
 var paying = false;
 var openedMatch = null;
+var reconnectMessage = null;
+var nextPollAt = 0;
+var pollFailures = 0;
+var lastIdleRefresh = 0;
 var connector = new import_near_connect.NearConnector({ network: "testnet", features: { signMessage: true, signAndSendTransaction: true, testnet: true } });
 async function api(url, body) {
   const r = await fetch("/api/" + url, { method: body === void 0 ? "GET" : "POST", headers: { "content-type": "application/json", ...session ? { "x-csrf-token": session.csrf } : {} }, ...body === void 0 ? {} : { body: JSON.stringify(body) } });
@@ -2810,16 +2814,29 @@ async function refresh() {
     renderMatch();
   }
 }
+function connectionFailure(e) {
+  reconnectMessage = "Connection interrupted. Reconnecting; do not repeat a payment. " + e.message;
+  message(reconnectMessage);
+}
 async function poll() {
-  if (polling || !session) return;
+  if (polling || !session || Date.now() < nextPollAt) return;
   polling = true;
   try {
     if (current) {
       current = await api("matches/" + current.code);
       renderMatch();
-    } else await refresh();
+    } else {
+      if (Date.now() - lastIdleRefresh < 15e3) return;
+      await refresh();
+      lastIdleRefresh = Date.now();
+    }
+    if (reconnectMessage && $("message").textContent === reconnectMessage) message();
+    reconnectMessage = null;
+    pollFailures = 0;
+    nextPollAt = 0;
   } catch (e) {
-    message("Connection interrupted. Reconnecting; do not repeat a payment. " + e.message);
+    connectionFailure(e);
+    nextPollAt = Date.now() + Math.min(15e3, 1500 * 2 ** Math.min(++pollFailures, 4));
   } finally {
     polling = false;
   }
@@ -2869,14 +2886,19 @@ async function init() {
   connector.on("wallet:signOut", () => {
     if (session) message("Wallet disconnected. Reconnect the same account before signing another transaction.");
   });
-  await refresh();
+  try {
+    await refresh();
+    lastIdleRefresh = Date.now();
+  } catch (e) {
+    connectionFailure(e);
+  }
   $("connect").disabled = false;
   $("wallet").disabled = false;
+  setInterval(poll, 1500);
   const invite = new URLSearchParams(location.search).get("join");
   if (invite && session) {
     $("code").value = invite;
     await preview(invite);
   }
-  setInterval(poll, 1500);
 }
 init().catch((e) => message("Unable to load Testnet PvP: " + e.message));

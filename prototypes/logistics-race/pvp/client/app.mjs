@@ -2,6 +2,7 @@ import {NearConnector} from '@hot-labs/near-connect';
 const $=id=>document.getElementById(id),esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const amount=n=>(Number(BigInt(n||'0'))/1e6).toLocaleString('en-US',{maximumFractionDigits:6});
 let session=null,cfg=null,current=null,balances=null,polling=false,paying=false,openedMatch=null;
+let reconnectMessage=null,nextPollAt=0,pollFailures=0,lastIdleRefresh=0;
 const connector=new NearConnector({network:'testnet',features:{signMessage:true,signAndSendTransaction:true,testnet:true}});
 async function api(url,body){const r=await fetch('/api/'+url,{method:body===undefined?'GET':'POST',headers:{'content-type':'application/json',...(session?{'x-csrf-token':session.csrf}:{})},...(body===undefined?{}:{body:JSON.stringify(body)})});const v=await r.json();if(!r.ok||(r.status===202&&!v.code))throw Error(v.error||'Request failed');return v;}
 function message(s=''){$('message').textContent=s;}
@@ -61,7 +62,8 @@ async function refresh(){
  for(const b of $('history').querySelectorAll('[data-resume]'))b.onclick=()=>action(async()=>{current=await api('matches/'+b.dataset.resume);sessionStorage.setItem('sl-pvp-match',current.code);renderMatch();});
  const code=current?.code||sessionStorage.getItem('sl-pvp-match');if(code){current=await api('matches/'+code);renderMatch();}
 }
-async function poll(){if(polling||!session)return;polling=true;try{if(current){current=await api('matches/'+current.code);renderMatch();}else await refresh();}catch(e){message('Connection interrupted. Reconnecting; do not repeat a payment. '+e.message);}finally{polling=false;}}
+function connectionFailure(e){reconnectMessage='Connection interrupted. Reconnecting; do not repeat a payment. '+e.message;message(reconnectMessage);}
+async function poll(){if(polling||!session||Date.now()<nextPollAt)return;polling=true;try{if(current){current=await api('matches/'+current.code);renderMatch();}else{if(Date.now()-lastIdleRefresh<15000)return;await refresh();lastIdleRefresh=Date.now();}if(reconnectMessage&&$('message').textContent===reconnectMessage)message();reconnectMessage=null;pollFailures=0;nextPollAt=0;}catch(e){connectionFailure(e);nextPollAt=Date.now()+Math.min(15000,1500*2**Math.min(++pollFailures,4));}finally{polling=false;}}
 async function init(){
  cfg=await api('config');updateTerms();try{session=await api('auth/session');}catch{}
  $('amount').oninput=updateTerms;$('connect').onclick=()=>action(connect);$('wallet').onclick=()=>action(async()=>{if(!session)return connect();await api('auth/logout',{});await connector.disconnect().catch(()=>{});session=null;current=null;sessionStorage.removeItem('sl-pvp-match');$('match').hidden=true;await refresh();});
@@ -69,7 +71,7 @@ async function init(){
  $('join').onsubmit=e=>{e.preventDefault();action(()=>preview($('code').value));};
  window.addEventListener('message',e=>{if(e.source===$('game').contentWindow&&e.origin===location.origin&&e.data?.type==='supply-line-pvp-home'){$('gameStage').hidden=true;$('game').removeAttribute('src');}});
  connector.on('wallet:signOut',()=>{if(session)message('Wallet disconnected. Reconnect the same account before signing another transaction.');});
- await refresh();$('connect').disabled=false;$('wallet').disabled=false;const invite=new URLSearchParams(location.search).get('join');if(invite&&session){$('code').value=invite;await preview(invite);}setInterval(poll,1500);
+ try{await refresh();lastIdleRefresh=Date.now();}catch(e){connectionFailure(e);}$('connect').disabled=false;$('wallet').disabled=false;setInterval(poll,1500);const invite=new URLSearchParams(location.search).get('join');if(invite&&session){$('code').value=invite;await preview(invite);}
 }
 init().catch(e=>message('Unable to load Testnet PvP: '+e.message));
 

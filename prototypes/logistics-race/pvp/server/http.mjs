@@ -55,8 +55,8 @@ export function createApp(cfg,store,chain,service){
    if(pathname==='/api/auth/session')return send({account,csrf:session.csrf});
    if(pathname==='/api/auth/logout'&&req.method==='POST'){store.remove('session',hash(raw));setCookie('sl_session','',0);return send({ok:true},200,{'Set-Cookie':cookies});}
    if(pathname==='/api/balance'){
-    const cached=balanceCache.get(account);if(cached&&now-cached.at<4000)return send(cached.value);
-    const value=await chain.balance(account);balanceCache.set(account,{at:now,value});return send(value);
+    const cached=balanceCache.get(account);if(cached&&now-cached.at<15000)return send(await cached.promise);
+    const entry={at:now};entry.promise=chain.balance(account).catch(error=>{if(balanceCache.get(account)===entry)balanceCache.delete(account);throw error;});balanceCache.set(account,entry);return send(await entry.promise);
    }
    if(pathname==='/api/register'&&req.method==='POST'){const balance=await chain.balance(account);return send({transaction:call(cfg.token,'storage_deposit',{account_id:account,registration_only:true},balance.storageMinimum)});}
    if(pathname==='/api/matches'&&req.method==='GET')return send(service.list(account));
@@ -93,7 +93,7 @@ export function createApp(cfg,store,chain,service){
     return send({transaction:tx});
    }
    return send({error:'Method not allowed'},405);
-  }catch(error){status=error.pending?202:400;send({error:error.pending?error.message:'Action unavailable: '+(error.rpc?'NEAR RPC is unavailable; try again.':error.message)},status);}
+  }catch(error){status=error.pending?202:error.rpc?503:400;send({error:error.pending?error.message:'Action unavailable: '+(error.rpc?'NEAR RPC is unavailable; try again.':error.message)},status);}
  });
  server.on('clientError',(_err,socket)=>socket.end('HTTP/1.1 400 Bad Request\r\n\r\n'));return server;
 }
