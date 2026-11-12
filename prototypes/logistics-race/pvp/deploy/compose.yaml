@@ -1,0 +1,49 @@
+services:
+  pvp:
+    build:
+      context: .
+      dockerfile: prototypes/logistics-race/pvp/deploy/Dockerfile
+    restart: unless-stopped
+    init: true
+    environment:
+      PUBLIC_ORIGIN: https://${DOMAIN:?Set DOMAIN}
+      SERVER_KEY_FILE: /run/secrets/server-runtime
+      ESCROW_ID: dev-20261105124711-29870979355191.testnet
+      TOKEN_ID: dev-20261105124714-71962479239708.testnet
+      SERVER_ACCOUNT: dev-20261105124701-22790623478956.testnet
+      NEAR_RPC_URL: ${NEAR_RPC_URL:-https://rpc.testnet.near.org}
+      TESTNET_PLAYERS: ${TESTNET_PLAYERS:-}
+      MAX_ACTIVE_MATCHES: 10
+    secrets:
+      - server-runtime
+    volumes:
+      - pvp-data:/data
+    read_only: true
+    tmpfs:
+      - /tmp
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    environment:
+      DOMAIN: ${DOMAIN:?Set DOMAIN}
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    volumes:
+      - ./prototypes/logistics-race/pvp/deploy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+      - caddy-config:/config
+    depends_on:
+      - pvp
+secrets:
+  server-runtime:
+    file: ${SERVER_KEY_FILE:?Set external SERVER_KEY_FILE path}
+volumes:
+  pvp-data:
+  caddy-data:
+  caddy-config:

@@ -1,0 +1,4 @@
+{$DOMAIN} {
+    reverse_proxy pvp:4190
+    encode zstd gzip
+}
