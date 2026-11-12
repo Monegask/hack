@@ -49,6 +49,15 @@ try{
   report.checks.push('Side '+i+': choose truck 2 only, truck card survives snapshots, recall through real UI');
   await page.screenshot({path:path.join(out,'controls-'+i+'.png')});
  }
+ // Accelerate only the isolated server fixture until recalled trucks return.
+ for(let n=0;n<2000&&m.states.some(s=>s.trucks[1].job);n++){m.seen=[f.now(),f.now()];f.step(100);}
+ for(let i=0;i<2;i++){
+  const page=pages[i];await page.waitForFunction(()=>!state.trucks[1].job);
+  await page.locator('[data-site="copper"]').click();await page.locator('#details [data-action="materials"]').click();
+  await page.locator('#fleet [data-truck="2"]').click();await page.waitForFunction(()=>state.trucks[1].job?.target==='copper');
+  assert.equal(m.states[i].trucks[0].job,null);assert.equal(m.sequences[i],3);
+  report.checks.push('Side '+i+': recalled truck returns, then accepts a different job through UI');
+ }
  assert.deepEqual(errors,[]);report.errors=errors;report.passed=true;console.log(JSON.stringify(report));
 }catch(e){report.error=e.message;report.errors=errors;throw e;}
 finally{fs.writeFileSync(path.join(out,process.argv.includes('--baseline')?'baseline.json':'qa.json'),JSON.stringify(report,null,2));clearInterval(timer);for(const c of contexts)await c.close();await browser.close();await new Promise(r=>app.close(r));f.store.close();}
