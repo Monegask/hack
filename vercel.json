@@ -6,6 +6,7 @@
   "outputDirectory": "public",
   "redirects": [
     { "source": "/pvp", "destination": "https://pvp-testnet-testnet.up.railway.app/pvp/", "permanent": false },
+    { "source": "/pvp/", "destination": "https://pvp-testnet-testnet.up.railway.app/pvp/", "permanent": false },
     { "source": "/pvp/:path*", "destination": "https://pvp-testnet-testnet.up.railway.app/pvp/:path*", "permanent": false }
   ],
   "headers": [
