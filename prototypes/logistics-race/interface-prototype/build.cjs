@@ -12,7 +12,7 @@ for(const href of ['../dist/card-ui.css','../game-3d/dark-theme.css','prototype.
 for(const file of ['menu-icons.js','prototype.js'])html=html.replace(`<script src="${file}"></script>`,()=>script(fs.readFileSync(path.join(root,file),'utf8')));
 if(gameHtml){
  html=html.replace('<title>Supply Line · Interface prototype</title>','<title>Supply Line · Play</title>').replace('<body class="three-game prototype">','<body class="three-game prototype" data-game-available="true" data-release="en-menu-v2">');
- html=html.replace("connect-src 'none'","connect-src data: blob:; frame-src 'self' blob:; worker-src blob:").replace("img-src 'self' data:","img-src 'self' data: blob:");
+ html=html.replace("connect-src 'none'","connect-src 'self' data: blob:; frame-src 'self' blob:; worker-src blob:").replace("img-src 'self' data:","img-src 'self' data: blob:");
  html=html.replace('<strong>INTERACTIVE DEMO</strong><span>Fictional accounts, balances & transactions. No real funds.</span><span class="version">UI review · v1</span>','<strong>ONLINE · DEMO</strong><span>Online wallets and payments are simulated. Tutorial and bot race are playable.</span><span class="version">Supply Line</span>');
  html=html.replace('UI prototype only · NEAR / USDC and fees are illustrative','Tutorial & bot race · Playable. Online · Demo only.');
  if(pvpUrl){
