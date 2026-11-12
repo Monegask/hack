@@ -2,6 +2,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const {execFileSync} = require('node:child_process');
 const root = path.resolve(__dirname, '..');
+process.env.SUPPLY_LINE_PVP_URL = '/pvp/';
 for (const script of [
   'prototypes/logistics-race/game-3d/build.mjs',
   'prototypes/logistics-race/build-offline.cjs',

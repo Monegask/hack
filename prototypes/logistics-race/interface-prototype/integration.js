@@ -1,5 +1,14 @@
-/* Uses the existing EN game. Online remains a separate local demonstration. */
+/* Embeds the EN game and routes the public Testnet release to its server. */
 (()=>{'use strict';
+ if(document.body.dataset.testnetPvp==='true'){
+  document.addEventListener('click',event=>{
+   const action=event.target.closest('[data-action]')?.dataset.action;
+   if(['online','matches','wallet','create','join','prefund'].includes(action)){
+    event.preventDefault();event.stopImmediatePropagation();location.assign('/pvp/');
+   }
+  },true);
+  window.SupplyLineUI.home();
+ }
  const gameHtml=JSON.parse(document.getElementById('playableGame').textContent);
  let stage=null,frame=null;
  function closeGame({home=true}={}){
