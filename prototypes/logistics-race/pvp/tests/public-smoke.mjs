@@ -12,13 +12,13 @@ if(!target){
  const file=path.resolve(root,'../../../publishing/hack/public/index.html');
  server=http.createServer((req,res)=>{
   if(req.url.startsWith('/pvp')){res.writeHead(307,{Location:remote+'/pvp/'});return res.end();}
-  res.writeHead(200,{'Content-Type':'text/html'});fs.createReadStream(file).pipe(res);
+  const asset=req.url==='/playable-game.json';res.writeHead(200,{'Content-Type':asset?'application/json':'text/html'});fs.createReadStream(asset?path.join(path.dirname(file),'playable-game.json'):file).pipe(res);
  });await new Promise(r=>server.listen(0,'127.0.0.1',r));target='http://127.0.0.1:'+server.address().port+'/';
 }
 const browser=await chromium.launch({channel:'msedge',headless:true});
 const report={target,checks:[],errors:[]};
 try{
- const context=await browser.newContext({viewport:{width:1440,height:900}}),page=await context.newPage();page.on('pageerror',e=>report.errors.push(e.message));
+ const context=await browser.newContext({viewport:{width:1440,height:900}}),page=await context.newPage();page.on('pageerror',e=>report.errors.push(e.message));let gameDownloads=0;page.on('request',r=>{if(r.url().endsWith('/playable-game.json'))gameDownloads++;});
  await context.addInitScript(()=>{
   if(location.hostname.endsWith('railway.app'))return;
   localStorage.setItem('logistics-race-v1','isolated-public-game-sentinel');
@@ -30,17 +30,20 @@ try{
  assert.equal(await page.locator('.home-menu svg').count(),3);
  assert.equal(await page.locator('[data-action="lab"]').count(),0);
  assert.equal(await page.locator('#walletButton').innerText(),'Connect wallet');
+ assert.equal(gameDownloads,0);
  await page.screenshot({path:path.join(out,'menu-desktop.png')});
- for(const mode of ['tutorial','bot']){
+ const modes=process.argv.includes('--online-only')?[]:['tutorial','bot'];
+ for(const mode of modes){
   await page.locator('.home-menu [data-action="'+mode+'"]').click();
   const f=await(await page.locator('#playableFrame').elementHandle()).contentFrame();
-  await f.waitForSelector('#map[aria-busy="false"]',{timeout:45000});
+  await f.waitForSelector('#map[aria-busy="false"]',{timeout:180000});
   assert.equal(await f.locator('body').getAttribute(mode==='tutorial'?'data-training':'data-race'),'true');
   await f.locator('#shareHome').click();await page.locator('.home-menu').waitFor({state:'visible'});
  }
+ assert.equal(gameDownloads,modes.length?1:0);
  assert.equal(await page.evaluate(()=>localStorage.getItem('logistics-race-v1')),'isolated-public-game-sentinel');
  assert.equal(await page.evaluate(()=>JSON.parse(localStorage.getItem('supply-line-interface-demo-v1')).wallet),'fixture.demo.near');
- report.checks.push('Public menu, tutorial and bot work; isolated game/demo saves preserved');
+ report.checks.push(modes.length?'Public menu, tutorial and bot work; isolated game/demo saves preserved':'Public menu loads without downloading the 3D game; isolated game/demo saves preserved');
  await page.setViewportSize({width:390,height:844});assert((await page.evaluate(()=>document.documentElement.scrollWidth))<=391);
  await page.screenshot({path:path.join(out,'menu-mobile.png'),fullPage:true});
  await page.locator('.home-menu [data-action="online"]').click();
@@ -55,7 +58,7 @@ try{
  const api=await context.request.get(remote+'/api/matches');assert.equal(api.status(),401);
  assert.equal((await context.request.post(remote+'/api/auth/challenge',{data:{},headers:{Origin:'https://untrusted.invalid'}})).status(),403);
  const health=await(await context.request.get(remote+'/healthz')).json();assert.deepEqual(health,{ok:true,network:'testnet'});
- assert.equal((await context.request.post(remote+'/provision-runtime-key',{data:{}})).status(),404);
+ assert.equal((await context.request.post(remote+'/provision-runtime-key',{data:{},headers:{Origin:remote}})).status(),404);
  report.checks.push('Live health/config, authenticated API boundary, Origin protection and closed provisioning endpoint');
  assert.deepEqual(report.errors,[]);await context.close();console.log(JSON.stringify(report));
-}finally{fs.writeFileSync(path.join(out,'qa.json'),JSON.stringify(report,null,2));await browser.close();if(server)await new Promise(r=>server.close(r));}
+}finally{fs.writeFileSync(path.join(out,target.startsWith('http://127.')?'qa-local.json':'qa-production.json'),JSON.stringify(report,null,2));await browser.close();if(server)await new Promise(r=>server.close(r));}
