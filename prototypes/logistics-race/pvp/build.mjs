@@ -18,5 +18,5 @@ if(!html.includes(oldWorld))throw Error('World bootstrap changed; refusing an un
 const performBinding='refresh:()=>render(),perform,confirmRoad:';
 if(!html.includes(performBinding))throw Error('Card action binding changed; review the PvP command adapter');
 html=html.replace(performBinding,'refresh:()=>render(),perform:(...args)=>perform(...args),confirmRoad:');
-html=html.replace('</head>',script('window.__supplyLinePvp=__PVP_CONFIG__;')+'</head>').replace('</body>',script(fs.readFileSync(path.join(root,'client/game-adapter.js'),'utf8'))+'</body>');
+html=html.replace('</head>',script('window.__supplyLinePvp=__PVP_CONFIG__;')+'</head>').replace('</body>',script(fs.readFileSync(path.join(root,'client/presentation.cjs'),'utf8'))+script(fs.readFileSync(path.join(root,'client/game-adapter.js'),'utf8'))+'</body>');
 fs.writeFileSync(path.join(out,'game.html'),html);console.log('Built Testnet PvP client and authoritative-game view ('+Buffer.byteLength(html)+' bytes).');

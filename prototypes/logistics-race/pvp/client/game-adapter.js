@@ -2,6 +2,9 @@
 'use strict';
 const pvpConfig=window.__supplyLinePvp;
 let pvpSnapshot=null,pvpSequence=0,pvpQueue=Promise.resolve(),pvpPollBusy=false,pvpFailed=false,pvpFocused=false;
+const pvpLocalMethods=Object.fromEntries(['tick','start','stopTruck','buyTruck','roadToCenter','buildRoad','buildPipeCell'].map(name=>[name,E[name]]));
+const pvpTicks=pvpConfig.side===0?[pvpLocalMethods.tick,globalRaceWorldEngines.rival.tick]:[globalRaceWorldEngines.rival.tick,pvpLocalMethods.tick];
+const pvpVisual=SupplyLinePvpPresentation.create(pvpTicks);
 const pvpEngineMethods=['start','stopTruck','buyTruck','roadToCenter','buildRoad','buildPipeCell'];
 function pvpPost(command){
  const id=crypto.randomUUID();pvpQueue=pvpQueue.then(async()=>{
@@ -16,10 +19,18 @@ function pvpPost(command){
  }).catch(e=>{toast(e.message);});return true;
 }
 for(const name of pvpEngineMethods)E[name]=(_s,...args)=>{
+ // Card eligibility runs the engine on a throwaway copy. It must stay local
+ // and must never enqueue real commands for every inspected truck.
+ if(_s!==state)return pvpLocalMethods[name](_s,...args);
  const command=name==='start'?{type:'start',truck:args[0],kind:args[1],target:args[2]}:name==='stopTruck'?{type:'stopTruck',truck:args[0]}:name==='buildRoad'?{type:'road',cell:args[0]}:name==='buildPipeCell'?{type:'pipe',cell:args[0]}:{type:name};
  return pvpPost(command);
 };
 E.tick=()=>{};save=()=>{};coach=null;winShown=true;
+cardUI?.dismissTutorial();
+if(map3d){
+ const draw=map3d.frame.bind(map3d);
+ map3d.frame=function(){const visual=pvpVisual.sample(performance.now());if(visual){this.state=visual.states[pvpConfig.side];this.options.extra=visual.extra;if(this.rival)this.rival.state=visual.states[1-pvpConfig.side];}draw();};
+}
 const pvpBasePerform=perform;
 perform=function(fn){
  const beforeSites=Object.fromEntries(Object.entries(state.sites).map(([id,s])=>[id,s.enabled])),beforeEnabled={...state.enabled};
@@ -39,12 +50,17 @@ document.querySelector('.prototype-note').textContent='TESTNET PvP · The server
 async function pvpPoll(){
  if(pvpPollBusy)return;pvpPollBusy=true;
  try{
-  const response=await fetch('/api/matches/'+pvpConfig.code);const value=await response.json();if(!response.ok)throw Error(value.error);
-  pvpSnapshot=value;if(value.states){state=value.states[pvpConfig.side];pvpSequence=Math.max(pvpSequence,value.lastSequence);winShown=true;acc=0;
+  const response=await fetch('/api/matches/'+pvpConfig.code,{signal:AbortSignal.timeout(5000)});const value=await response.json();if(!response.ok)throw Error(value.error);
+  if(pvpSnapshot&&value.revision<pvpSnapshot.revision)return;
+  pvpSnapshot=value;if(value.states){
+   pvpVisual.receive(value,performance.now());
+   // Preserve the root identity: card UI treats a new root as a new game.
+   const next=value.states[pvpConfig.side];for(const key of Object.keys(state))if(!(key in next))delete state[key];Object.assign(state,next);
+   pvpSequence=Math.max(pvpSequence,value.lastSequence);winShown=true;acc=0;
    // The build swaps engine roles for player two, so the opposite engine is always .rival.
    map3d?.setRivalState(value.states[1-pvpConfig.side],0,globalRaceWorldEngines.rival);if(!pvpFocused){map3d?.focusTerritory('both');pvpFocused=true;}render();
   }
   pvpStatus.textContent=value.recovering?'Waiting for both players to reconnect':value.phase==='playing'?'TESTNET · Connected':'TESTNET · '+value.phase;
  }catch{pvpStatus.textContent='Connection lost · reconnecting';}finally{pvpPollBusy=false;}
 }
-render();pvpPoll();setInterval(pvpPoll,750);
+render();pvpPoll();setInterval(pvpPoll,250);
