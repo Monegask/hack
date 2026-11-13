@@ -1,0 +1,20 @@
+[package]
+name = "near-pvp-escrow"
+version = "0.1.0"
+edition = "2024"
+publish = false
+license = "MIT"
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[features]
+# NEVER enable this in a production artifact. Allows the Sandbox mock FT only.
+sandbox = []
+
+[dependencies]
+near-sdk = { workspace = true, features = ["legacy"] }
+borsh.workspace = true
+
+[dev-dependencies]
+near-sdk = { workspace = true, features = ["legacy", "unit-testing"] }

@@ -1,0 +1,9 @@
+{
+  "network": "testnet",
+  "escrow": "dev-20261105124711-29870979355191.testnet",
+  "token": "dev-20261105124714-71962479239708.testnet",
+  "token_kind": "project-owned test-only NEP-141 mock, not Circle USDC",
+  "admin": "dev-20261105124658-14449107722704.testnet",
+  "server": "dev-20261105124701-22790623478956.testnet",
+  "rpc_url": "https://rpc.testnet.near.org"
+}
