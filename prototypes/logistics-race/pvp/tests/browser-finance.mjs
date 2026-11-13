@@ -22,6 +22,7 @@ const server=http.createServer(async(req,res)=>{
  const send=value=>res.end(JSON.stringify(value));
  if(url.pathname==='/api/config')return send(cfg());
  if(url.pathname==='/api/auth/session')return send({account:account(),csrf:'fixture'});
+ if(url.pathname==='/api/lobbies')return send({items:[],total:0,hasMore:false});
  if(url.pathname==='/api/balance')return send({balance:'20000000',registered:true,nearAvailable:'1000000000000000000000000',hasGas:true});
  if(url.pathname==='/api/matches'){matchReads++;return send([{code,phase:'funding',stake:'5000000'}]);}
  if(url.pathname==='/api/matches/'+code)return send(snapshot());

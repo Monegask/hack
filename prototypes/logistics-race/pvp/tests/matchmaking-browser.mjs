@@ -18,7 +18,7 @@ try{
  await observer.locator('#publicList').filter({hasText:'No open public lobbies'}).waitFor();assert.equal(f.game.matches.values().next().value.players[1],'guest.testnet');
  // A private lobby is never discovered, but the invitation still works.
  await observer.locator('#create button').click();await observer.locator('#copyInvite').waitFor();const code=[...f.game.matches.values()].find(m=>m.players[0]==='observer.testnet').code;
- await host.locator('#refreshLobbies').click();assert.equal(await host.locator('#publicList [data-lobby]').count(),0);
+ await host.locator('#refreshLobbies').click();await host.locator('#publicList').filter({hasText:'No open public lobbies'}).waitFor();assert.equal(await host.locator('#publicList [data-lobby]').count(),0);
  await host.locator('#code').fill(code);await host.locator('#join button').click();await host.locator('#acceptInvite').waitFor();
  await observer.setViewportSize({width:390,height:844});assert.equal(await observer.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
  await observer.screenshot({path:process.env.MATCHMAKING_SCREENSHOT||'matchmaking-mobile.png',fullPage:true});assert.deepEqual(errors,[]);

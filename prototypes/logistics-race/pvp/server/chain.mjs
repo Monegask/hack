@@ -10,7 +10,7 @@ const METHODS=['create_lobby','bind_opponent','update_stake','record_activity','
 export {PendingChain};
 export class Chain{
  constructor(cfg,store){this.cfg=cfg;this.store=store;this.provider=new JsonRpcProvider({url:cfg.rpc});this.tail=Promise.resolve();}
- rpc(method,params){return callRpc(this.cfg.rpc,method,params);}
+ rpc(method,params){if(method==='send_tx')this.store.assertLease();return callRpc(this.cfg.rpc,method,params);}
  async view(account,method,args={}){const r=await this.rpc('query',{request_type:'call_function',account_id:account,method_name:method,args_base64:Buffer.from(JSON.stringify(args)).toString('base64'),finality:'final'});return JSON.parse(Buffer.from(r.result).toString());}
  match(id){requirePayments(this.cfg);
   this.matchReads??=new Map();id=String(id);if(this.matchReads.has(id))return this.matchReads.get(id);
@@ -70,5 +70,9 @@ export class Chain{
   this.chainConfig={};
   return {network:'mainnet',escrow:this.cfg.escrow,token:this.cfg.token,symbol:token.symbol,signerChecked:false,paymentsEnabled:false,escrowApi:'unavailable'};
  }
- async chainTime(){const r=await this.rpc('block',{finality:'final'});return BigInt(r.header.timestamp_nanosec);}
+ async chainTime(){
+  if(!this.blockTime||Date.now()-this.blockTime.at>=1000){
+   const entry={at:Infinity};entry.promise=this.rpc('block',{finality:'final'}).then(r=>{entry.at=Date.now();return BigInt(r.header.timestamp_nanosec);}).catch(e=>{if(this.blockTime===entry)this.blockTime=null;throw e;});this.blockTime=entry;
+  }return this.blockTime.promise;
+ }
 }

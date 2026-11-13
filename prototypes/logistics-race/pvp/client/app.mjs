@@ -45,7 +45,7 @@ async function refreshLobbies(){
   $('previousLobbies').disabled=lobbyOffset===0;$('nextLobbies').disabled=!page.hasMore;$('lobbyPage').textContent=`${page.total} open · Page ${Math.floor(lobbyOffset/10)+1}`;lastLobbyRefresh=Date.now();
   for(const b of $('publicList').querySelectorAll('[data-lobby]'))b.onclick=()=>action(async()=>{
    b.disabled=true;
-   try{current=await api('lobbies/'+b.dataset.lobby+'/join',{});sessionStorage.setItem('sl-pvp-match',current.code);renderMatch();}
+   try{current=await api('lobbies/'+b.dataset.lobby+'/join',{});sessionStorage.setItem(matchKey(),current.code);renderMatch();}
    finally{await refreshLobbies();}
   });
  }catch(e){if(request===lobbyRequest){$('publicList').textContent='Unable to refresh public lobbies. Retry to check availability.';$('nextLobbies').disabled=true;$('previousLobbies').disabled=true;}throw e;}
@@ -112,6 +112,7 @@ async function init(){
  $('connect').textContent='Connect '+cfg.network+' wallet';
  document.querySelector('footer').textContent=cfg.network==='testnet'?'Testnet prototype · Test tokens only.':'Mainnet preparation · No deposits, registrations or payouts are enabled in this release.';
  updateTerms();try{session=await api('auth/session');}catch{}
+ $('lobbySort').onchange=()=>{lobbyOffset=0;action(refreshLobbies);};
  $('refreshLobbies').onclick=()=>action(refreshLobbies);
  $('previousLobbies').onclick=()=>{lobbyOffset=Math.max(0,lobbyOffset-10);action(refreshLobbies);};
  $('nextLobbies').onclick=()=>{lobbyOffset+=10;action(refreshLobbies);};

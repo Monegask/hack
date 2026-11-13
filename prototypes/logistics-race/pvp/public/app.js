@@ -24,9 +24,9 @@ var __toESM = (mod, isNodeMode, target) => (target = mod != null ? __create(__ge
   mod
 ));
 
-// ../../prototypes/logistics-race/pvp/node_modules/@hot-labs/near-connect/build/helpers/storage.js
+// node_modules/@hot-labs/near-connect/build/helpers/storage.js
 var require_storage = __commonJS({
-  "../../prototypes/logistics-race/pvp/node_modules/@hot-labs/near-connect/build/helpers/storage.js"(exports) {
+  "node_modules/@hot-labs/near-connect/build/helpers/storage.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.LocalStorage = void 0;
@@ -51,9 +51,9 @@ var require_storage = __commonJS({
   }
 });
 
-// ../../prototypes/logistics-race/pvp/node_modules/@hot-labs/near-connect/build/helpers/base58.js
+// node_modules/@hot-labs/near-connect/build/helpers/base58.js
 var require_base58 = __commonJS({
-  "../../prototypes/logistics-race/pvp/node_modules/@hot-labs/near-connect/build/helpers/base58.js"(exports) {
+  "node_modules/@hot-labs/near-connect/build/helpers/base58.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.encodeBase58 = encodeBase58;
@@ -94,9 +94,9 @@ var require_base58 = __commonJS({
   }
 });
 
-// ../../prototypes/logistics-race/pvp/node_modules/@hot-labs/near-connect/build/actions/index.js
+// node_modules/@hot-labs/near-connect/build/actions/index.js
 var require_actions = __commonJS({
-  "../../prototypes/logistics-race/pvp/node_modules/@hot-labs/near-connect/build/actions/index.js"(exports) {
+  "node_modules/@hot-labs/near-connect/build/actions/index.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.nearActionsToConnectorActions = void 0;
@@ -214,9 +214,9 @@ var require_actions = __commonJS({
   }
 });
 
-// ../../prototypes/logistics-race/pvp/node_modules/@hot-labs/near-connect/build/actions/gas-keys.js
+// node_modules/@hot-labs/near-connect/build/actions/gas-keys.js
 var require_gas_keys = __commonJS({
-  "../../prototypes/logistics-race/pvp/node_modules/@hot-labs/near-connect/build/actions/gas-keys.js"(exports) {
+  "node_modules/@hot-labs/near-connect/build/actions/gas-keys.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.isGasKeyAction = void 0;
@@ -234,9 +234,9 @@ var require_gas_keys = __commonJS({
   }
 });
 
-// ../../prototypes/logistics-race/pvp/node_modules/@hot-labs/near-connect/build/helpers/uuid.js
+// node_modules/@hot-labs/near-connect/build/helpers/uuid.js
 var require_uuid = __commonJS({
-  "../../prototypes/logistics-race/pvp/node_modules/@hot-labs/near-connect/build/helpers/uuid.js"(exports) {
+  "node_modules/@hot-labs/near-connect/build/helpers/uuid.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.uuid4 = void 0;
@@ -253,9 +253,9 @@ var require_uuid = __commonJS({
   }
 });
 
-// ../../prototypes/logistics-race/pvp/node_modules/@hot-labs/near-connect/build/ParentFrameWallet.js
+// node_modules/@hot-labs/near-connect/build/ParentFrameWallet.js
 var require_ParentFrameWallet = __commonJS({
-  "../../prototypes/logistics-race/pvp/node_modules/@hot-labs/near-connect/build/ParentFrameWallet.js"(exports) {
+  "node_modules/@hot-labs/near-connect/build/ParentFrameWallet.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.ParentFrameWallet = void 0;
@@ -348,9 +348,9 @@ var require_ParentFrameWallet = __commonJS({
   }
 });
 
-// ../../prototypes/logistics-race/pvp/node_modules/@hot-labs/near-connect/build/helpers/url.js
+// node_modules/@hot-labs/near-connect/build/helpers/url.js
 var require_url = __commonJS({
-  "../../prototypes/logistics-race/pvp/node_modules/@hot-labs/near-connect/build/helpers/url.js"(exports) {
+  "node_modules/@hot-labs/near-connect/build/helpers/url.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.parseUrl = void 0;
@@ -365,9 +365,9 @@ var require_url = __commonJS({
   }
 });
 
-// ../../prototypes/logistics-race/pvp/node_modules/@hot-labs/near-connect/build/helpers/clipboard.js
+// node_modules/@hot-labs/near-connect/build/helpers/clipboard.js
 var require_clipboard = __commonJS({
-  "../../prototypes/logistics-race/pvp/node_modules/@hot-labs/near-connect/build/helpers/clipboard.js"(exports) {
+  "node_modules/@hot-labs/near-connect/build/helpers/clipboard.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.copyText = void 0;
@@ -395,9 +395,9 @@ var require_clipboard = __commonJS({
   }
 });
 
-// ../../prototypes/logistics-race/pvp/node_modules/@hot-labs/near-connect/build/helpers/telegram.js
+// node_modules/@hot-labs/near-connect/build/helpers/telegram.js
 var require_telegram = __commonJS({
-  "../../prototypes/logistics-race/pvp/node_modules/@hot-labs/near-connect/build/helpers/telegram.js"(exports) {
+  "node_modules/@hot-labs/near-connect/build/helpers/telegram.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.openExternalLink = exports.openTelegramLink = exports.isTelegramMiniApp = void 0;
@@ -450,9 +450,9 @@ var require_telegram = __commonJS({
   }
 });
 
-// ../../prototypes/logistics-race/pvp/node_modules/@hot-labs/near-connect/build/helpers/events.js
+// node_modules/@hot-labs/near-connect/build/helpers/events.js
 var require_events = __commonJS({
-  "../../prototypes/logistics-race/pvp/node_modules/@hot-labs/near-connect/build/helpers/events.js"(exports) {
+  "node_modules/@hot-labs/near-connect/build/helpers/events.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.EventEmitter = void 0;
@@ -518,9 +518,9 @@ var require_events = __commonJS({
   }
 });
 
-// ../../prototypes/logistics-race/pvp/node_modules/@hot-labs/near-connect/build/helpers/html.js
+// node_modules/@hot-labs/near-connect/build/helpers/html.js
 var require_html = __commonJS({
-  "../../prototypes/logistics-race/pvp/node_modules/@hot-labs/near-connect/build/helpers/html.js"(exports) {
+  "node_modules/@hot-labs/near-connect/build/helpers/html.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.escapeHtml = escapeHtml;
@@ -548,9 +548,9 @@ var require_html = __commonJS({
   }
 });
 
-// ../../prototypes/logistics-race/pvp/node_modules/@hot-labs/near-connect/build/popups/styles.js
+// node_modules/@hot-labs/near-connect/build/popups/styles.js
 var require_styles = __commonJS({
-  "../../prototypes/logistics-race/pvp/node_modules/@hot-labs/near-connect/build/popups/styles.js"(exports) {
+  "node_modules/@hot-labs/near-connect/build/popups/styles.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.css = void 0;
@@ -819,9 +819,9 @@ ${id} .connect-item p {
   }
 });
 
-// ../../prototypes/logistics-race/pvp/node_modules/@hot-labs/near-connect/build/popups/Popup.js
+// node_modules/@hot-labs/near-connect/build/popups/Popup.js
 var require_Popup = __commonJS({
-  "../../prototypes/logistics-race/pvp/node_modules/@hot-labs/near-connect/build/popups/Popup.js"(exports) {
+  "node_modules/@hot-labs/near-connect/build/popups/Popup.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.Popup = void 0;
@@ -926,9 +926,9 @@ var require_Popup = __commonJS({
   }
 });
 
-// ../../prototypes/logistics-race/pvp/node_modules/@hot-labs/near-connect/build/popups/IframeWalletPopup.js
+// node_modules/@hot-labs/near-connect/build/popups/IframeWalletPopup.js
 var require_IframeWalletPopup = __commonJS({
-  "../../prototypes/logistics-race/pvp/node_modules/@hot-labs/near-connect/build/popups/IframeWalletPopup.js"(exports) {
+  "node_modules/@hot-labs/near-connect/build/popups/IframeWalletPopup.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.IframeWalletPopup = void 0;
@@ -976,9 +976,9 @@ var require_IframeWalletPopup = __commonJS({
   }
 });
 
-// ../../prototypes/logistics-race/pvp/node_modules/@hot-labs/near-connect/build/nearConnectStatic.js
+// node_modules/@hot-labs/near-connect/build/nearConnectStatic.js
 var require_nearConnectStatic = __commonJS({
-  "../../prototypes/logistics-race/pvp/node_modules/@hot-labs/near-connect/build/nearConnectStatic.js"(exports) {
+  "node_modules/@hot-labs/near-connect/build/nearConnectStatic.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.NEAR_CONNECT_VERSION = void 0;
@@ -986,9 +986,9 @@ var require_nearConnectStatic = __commonJS({
   }
 });
 
-// ../../prototypes/logistics-race/pvp/node_modules/@hot-labs/near-connect/build/SandboxedWallet/code.js
+// node_modules/@hot-labs/near-connect/build/SandboxedWallet/code.js
 var require_code = __commonJS({
-  "../../prototypes/logistics-race/pvp/node_modules/@hot-labs/near-connect/build/SandboxedWallet/code.js"(exports) {
+  "node_modules/@hot-labs/near-connect/build/SandboxedWallet/code.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var nearConnectStatic_1 = require_nearConnectStatic();
@@ -1334,9 +1334,9 @@ var require_code = __commonJS({
   }
 });
 
-// ../../prototypes/logistics-race/pvp/node_modules/@hot-labs/near-connect/build/SandboxedWallet/iframe.js
+// node_modules/@hot-labs/near-connect/build/SandboxedWallet/iframe.js
 var require_iframe = __commonJS({
-  "../../prototypes/logistics-race/pvp/node_modules/@hot-labs/near-connect/build/SandboxedWallet/iframe.js"(exports) {
+  "node_modules/@hot-labs/near-connect/build/SandboxedWallet/iframe.js"(exports) {
     "use strict";
     var __importDefault = exports && exports.__importDefault || function(mod) {
       return mod && mod.__esModule ? mod : { "default": mod };
@@ -1427,9 +1427,9 @@ var require_iframe = __commonJS({
   }
 });
 
-// ../../prototypes/logistics-race/pvp/node_modules/@hot-labs/near-connect/build/SandboxedWallet/executor.js
+// node_modules/@hot-labs/near-connect/build/SandboxedWallet/executor.js
 var require_executor = __commonJS({
-  "../../prototypes/logistics-race/pvp/node_modules/@hot-labs/near-connect/build/SandboxedWallet/executor.js"(exports) {
+  "node_modules/@hot-labs/near-connect/build/SandboxedWallet/executor.js"(exports) {
     "use strict";
     var __importDefault = exports && exports.__importDefault || function(mod) {
       return mod && mod.__esModule ? mod : { "default": mod };
@@ -1777,9 +1777,9 @@ var require_executor = __commonJS({
   }
 });
 
-// ../../prototypes/logistics-race/pvp/node_modules/@hot-labs/near-connect/build/SandboxedWallet/index.js
+// node_modules/@hot-labs/near-connect/build/SandboxedWallet/index.js
 var require_SandboxedWallet = __commonJS({
-  "../../prototypes/logistics-race/pvp/node_modules/@hot-labs/near-connect/build/SandboxedWallet/index.js"(exports) {
+  "node_modules/@hot-labs/near-connect/build/SandboxedWallet/index.js"(exports) {
     "use strict";
     var __importDefault = exports && exports.__importDefault || function(mod) {
       return mod && mod.__esModule ? mod : { "default": mod };
@@ -1857,9 +1857,9 @@ var require_SandboxedWallet = __commonJS({
   }
 });
 
-// ../../prototypes/logistics-race/pvp/node_modules/@hot-labs/near-connect/build/InjectedWallet.js
+// node_modules/@hot-labs/near-connect/build/InjectedWallet.js
 var require_InjectedWallet = __commonJS({
-  "../../prototypes/logistics-race/pvp/node_modules/@hot-labs/near-connect/build/InjectedWallet.js"(exports) {
+  "node_modules/@hot-labs/near-connect/build/InjectedWallet.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.InjectedWallet = void 0;
@@ -1939,9 +1939,9 @@ var require_InjectedWallet = __commonJS({
   }
 });
 
-// ../../prototypes/logistics-race/pvp/node_modules/@hot-labs/near-connect/build/popups/NearWalletsPopup.js
+// node_modules/@hot-labs/near-connect/build/popups/NearWalletsPopup.js
 var require_NearWalletsPopup = __commonJS({
-  "../../prototypes/logistics-race/pvp/node_modules/@hot-labs/near-connect/build/popups/NearWalletsPopup.js"(exports) {
+  "node_modules/@hot-labs/near-connect/build/popups/NearWalletsPopup.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.NearWalletsPopup = void 0;
@@ -2102,9 +2102,9 @@ var require_NearWalletsPopup = __commonJS({
   }
 });
 
-// ../../prototypes/logistics-race/pvp/node_modules/@hot-labs/near-connect/build/helpers/indexdb.js
+// node_modules/@hot-labs/near-connect/build/helpers/indexdb.js
 var require_indexdb = __commonJS({
-  "../../prototypes/logistics-race/pvp/node_modules/@hot-labs/near-connect/build/helpers/indexdb.js"(exports) {
+  "node_modules/@hot-labs/near-connect/build/helpers/indexdb.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var IndexedDB = class {
@@ -2273,9 +2273,9 @@ var require_indexdb = __commonJS({
   }
 });
 
-// ../../prototypes/logistics-race/pvp/node_modules/@hot-labs/near-connect/build/NearConnector.js
+// node_modules/@hot-labs/near-connect/build/NearConnector.js
 var require_NearConnector = __commonJS({
-  "../../prototypes/logistics-race/pvp/node_modules/@hot-labs/near-connect/build/NearConnector.js"(exports) {
+  "node_modules/@hot-labs/near-connect/build/NearConnector.js"(exports) {
     "use strict";
     var __importDefault = exports && exports.__importDefault || function(mod) {
       return mod && mod.__esModule ? mod : { "default": mod };
@@ -2614,9 +2614,9 @@ var require_NearConnector = __commonJS({
   }
 });
 
-// ../../prototypes/logistics-race/pvp/node_modules/@hot-labs/near-connect/build/index.js
+// node_modules/@hot-labs/near-connect/build/index.js
 var require_build = __commonJS({
-  "../../prototypes/logistics-race/pvp/node_modules/@hot-labs/near-connect/build/index.js"(exports) {
+  "node_modules/@hot-labs/near-connect/build/index.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.assertGasKeyActionsSupported = exports.isGasKeyAction = exports.nearActionsToConnectorActions = exports.NearConnector = exports.InjectedWallet = exports.SandboxWallet = exports.ParentFrameWallet = exports.LocalStorage = void 0;
@@ -2654,11 +2654,36 @@ var require_build = __commonJS({
   }
 });
 
-// prototypes/logistics-race/pvp/client/app.mjs
+// client/app.mjs
 var import_near_connect = __toESM(require_build(), 1);
+
+// client/finance.mjs
+function formatUnits(value, decimals = 6) {
+  const n = BigInt(value || "0");
+  if (n < 0n) throw Error("Negative amount");
+  const scale = 10n ** BigInt(decimals), fraction = String(n % scale).padStart(decimals, "0").replace(/0+$/, "");
+  return (n / scale).toLocaleString("en-US") + (fraction ? "." + fraction : "");
+}
+function pendingKey(scope, account) {
+  return "sl-pvp-payment:" + scope + ":" + account;
+}
+function paymentObserved(pending2, current2, balances2) {
+  if (!pending2) return false;
+  if (pending2.kind === "register") return !!balances2?.registered;
+  if (current2?.code !== pending2.code || !current2.chain) return false;
+  const c = current2.chain;
+  if (pending2.kind === "deposit") return !!c.deposited[current2.side];
+  if (pending2.kind === "claim") return c.payouts?.some((p, index) => index === pending2.payoutIndex && p.receiver === pending2.account && ["InFlight", "Paid"].includes(p.state) && p.amount !== "0");
+  if (pending2.kind === "mutual") return c.cancel_requester === pending2.account || c.state === "Cancelled";
+  if (pending2.kind === "cancel" || pending2.kind === "emergency") return c.state === "Cancelled";
+  if (pending2.kind === "forfeit") return ["SettlementPending", "Completed"].includes(c.state);
+  return false;
+}
+
+// client/app.mjs
 var $ = (id) => document.getElementById(id);
 var esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
-var amount = (n) => (Number(BigInt(n || "0")) / 1e6).toLocaleString("en-US", { maximumFractionDigits: 6 });
+var amount = formatUnits;
 var session = null;
 var cfg = null;
 var current = null;
@@ -2670,9 +2695,53 @@ var reconnectMessage = null;
 var nextPollAt = 0;
 var pollFailures = 0;
 var lastIdleRefresh = 0;
-var connector = new import_near_connect.NearConnector({ network: "testnet", features: { signMessage: true, signAndSendTransaction: true, testnet: true } });
+var connector;
+var tokenLabel = () => `${cfg.network === "testnet" ? "test " : ""}${cfg.symbol}`;
+var matchKey = () => `sl-pvp-match:${cfg.scope}`;
+function pending() {
+  return session && JSON.parse(localStorage.getItem(pendingKey(cfg.scope, session.account)) || "null");
+}
+async function reconcilePayment() {
+  const p = pending();
+  if (!p) return;
+  if (p.kind === "register") balances = await api("balance");
+  let resolved = paymentObserved(p, current, balances);
+  if (!resolved && p.hash) {
+    const status = await api("payment-status", { hash: p.hash });
+    resolved = status.final && status.failed;
+  }
+  if (resolved) {
+    localStorage.removeItem(pendingKey(cfg.scope, session.account));
+    if (current) renderMatch();
+  } else message("Payment status is unknown or pending. Do not pay again. Check the wallet and final escrow state.");
+}
+async function sendWallet(kind, transaction) {
+  const run = async () => {
+    if (pending()) throw Error("A payment is unresolved. Check the wallet and escrow before retrying.");
+    if (!cfg.paymentsEnabled) throw Error("Mainnet payments are disabled pending escrow API, audit and competition approval");
+    const w = await wallet(), key = pendingKey(cfg.scope, session.account);
+    const record = { kind, code: current?.code, account: session.account, at: Date.now(), payoutIndex: kind === "claim" ? transaction.actions[0].params.args.index : null };
+    localStorage.setItem(key, JSON.stringify(record));
+    let result;
+    try {
+      result = await w.signAndSendTransaction({ ...transaction, network: cfg.network, signerId: session.account });
+    } catch (error) {
+      record.hash = error?.transactionHash || null;
+      localStorage.setItem(key, JSON.stringify(record));
+      throw error;
+    }
+    record.hash = result?.transaction?.hash || result?.transactionHash || null;
+    localStorage.setItem(key, JSON.stringify(record));
+  };
+  if (!navigator.locks) throw Error("This browser cannot safely coordinate payments across tabs. Use a current browser.");
+  return navigator.locks.request("sl-pvp-wallet:" + cfg.scope, { ifAvailable: true }, (lock) => {
+    if (!lock) throw Error("Another tab is signing a transaction");
+    return run();
+  });
+}
 async function api(url, body) {
-  const r = await fetch("/api/" + url, { method: body === void 0 ? "GET" : "POST", headers: { "content-type": "application/json", ...session ? { "x-csrf-token": session.csrf } : {} }, ...body === void 0 ? {} : { body: JSON.stringify(body) } });
+  const r = await fetch("/api/" + url, { signal: AbortSignal.timeout(2e4), method: body === void 0 ? "GET" : "POST", headers: { "content-type": "application/json", ...session ? { "x-csrf-token": session.csrf } : {} }, ...body === void 0 ? {} : { body: JSON.stringify(body) } });
+  if (cfg && r.headers.get("X-Supply-Line-Scope") !== cfg.scope) throw Error("Server network or deployment changed. Reload before continuing.");
   const v = await r.json();
   if (!r.ok || r.status === 202 && !v.code) throw Error(v.error || "Request failed");
   return v;
@@ -2696,12 +2765,13 @@ async function wallet() {
 async function connect() {
   const w = await connector.connect();
   const challenge = await api("auth/challenge", {});
-  const signed = await w.signMessage({ message: challenge.message, recipient: challenge.recipient, nonce: Uint8Array.from(atob(challenge.nonce), (c) => c.charCodeAt(0)), network: "testnet" });
+  if (challenge.scope !== cfg.scope) throw Error("Authentication network changed; reload");
+  const signed = await w.signMessage({ message: challenge.message, recipient: challenge.recipient, nonce: Uint8Array.from(atob(challenge.nonce), (c) => c.charCodeAt(0)), network: cfg.network });
   if (!signed) throw Error("Signature cancelled. Connect again.");
   session = await api("auth/verify", { challengeId: challenge.id, signed });
   await refresh();
   const invite = new URLSearchParams(location.search).get("join");
-  if (invite) {
+  if (invite && cfg.paymentsEnabled) {
     $("code").value = invite;
     await preview(invite);
   }
@@ -2710,7 +2780,7 @@ var lobbyOffset = 0;
 var lobbyRequest = 0;
 var lastLobbyRefresh = 0;
 async function refreshLobbies() {
-  if (!session) return;
+  if (!session || !cfg.paymentsEnabled) return;
   const request = ++lobbyRequest, [sort, order] = $("lobbySort").value.split(":");
   try {
     const page = await api(`lobbies?limit=10&offset=${lobbyOffset}&sort=${sort}&order=${order}`);
@@ -2719,7 +2789,7 @@ async function refreshLobbies() {
       lobbyOffset = 0;
       return refreshLobbies();
     }
-    $("publicList").innerHTML = page.items.length ? page.items.map((m) => `<div class="match-row"><div class="lobby-details"><strong>${amount(m.stake)} test ${esc(cfg.symbol)}</strong><span>${esc(m.creator)} \xB7 Open</span><time datetime="${new Date(m.created).toISOString()}">${esc(new Date(m.created).toLocaleString("en-US"))}</time></div><button data-lobby="${esc(m.id)}" ${m.creator === session.account ? "disabled" : ""}>${m.creator === session.account ? "Your lobby" : "Join"}</button></div>`).join("") : "No open public lobbies. Create one to find an opponent.";
+    $("publicList").innerHTML = page.items.length ? page.items.map((m) => `<div class="match-row"><div class="lobby-details"><strong>${amount(m.stake)} ${esc(tokenLabel())}</strong><span>${esc(m.creator)} \xB7 Open</span><time datetime="${new Date(m.created).toISOString()}">${esc(new Date(m.created).toLocaleString("en-US"))}</time></div><button data-lobby="${esc(m.id)}" ${m.creator === session.account ? "disabled" : ""}>${m.creator === session.account ? "Your lobby" : "Join"}</button></div>`).join("") : "No open public lobbies. Create one to find an opponent.";
     $("previousLobbies").disabled = lobbyOffset === 0;
     $("nextLobbies").disabled = !page.hasMore;
     $("lobbyPage").textContent = `${page.total} open \xB7 Page ${Math.floor(lobbyOffset / 10) + 1}`;
@@ -2728,7 +2798,7 @@ async function refreshLobbies() {
       b.disabled = true;
       try {
         current = await api("lobbies/" + b.dataset.lobby + "/join", {});
-        sessionStorage.setItem("sl-pvp-match", current.code);
+        sessionStorage.setItem(matchKey(), current.code);
         renderMatch();
       } finally {
         await refreshLobbies();
@@ -2745,7 +2815,7 @@ async function refreshLobbies() {
 }
 function ledger(stake, feeBps) {
   const bank = BigInt(stake) * 2n, fee = bank * BigInt(feeBps) / 10000n;
-  return `<div class="ledger"><span>Stake per player</span><b>${amount(stake)} test ${esc(cfg.symbol)}</b><span>Prize pool</span><b>${amount(bank)}</b><span>Game fee \xB7 ${feeBps / 100}%</span><b>${amount(fee)}</b><strong>Winner receives</strong><strong>${amount(bank - fee)} test ${esc(cfg.symbol)}</strong></div>`;
+  return `<div class="ledger"><span>Stake per player</span><b>${amount(stake)} ${esc(tokenLabel())}</b><span>Prize pool</span><b>${amount(bank)}</b><span>Game fee \xB7 ${feeBps / 100}%</span><b>${amount(fee)}</b><strong>Winner receives</strong><strong>${amount(bank - fee)} ${esc(tokenLabel())}</strong></div>`;
 }
 function parseAmount(text) {
   if (!/^[1-9]\d{0,2}(\.\d{1,6})?$/.test(text)) return null;
@@ -2753,6 +2823,10 @@ function parseAmount(text) {
   return String(BigInt(a) * 1000000n + BigInt(b.padEnd(6, "0")));
 }
 function updateTerms() {
+  if (!cfg.paymentsEnabled) {
+    $("terms").textContent = "Mainnet escrow terms unavailable. Payments are disabled.";
+    return;
+  }
   const value = parseAmount($("amount").value);
   $("terms").innerHTML = value ? ledger(value, cfg.feeBps) : "<p>Enter 1\u2013100 test tokens.</p>";
 }
@@ -2766,7 +2840,7 @@ async function preview(text) {
   $("invitation").innerHTML = `<h3>${esc(m.creator)}</h3>${ledger(m.stake, m.feeBps)}<p>${m.available ? "Ready to join" : "Lobby is unavailable"}</p>${m.available ? '<button id="acceptInvite" class="primary">Join this match</button>' : ""}`;
   if (m.available) $("acceptInvite").onclick = () => action(async () => {
     current = await api("matches/" + code + "/join", {});
-    sessionStorage.setItem("sl-pvp-match", code);
+    sessionStorage.setItem(matchKey(), code);
     renderMatch();
   });
 }
@@ -2775,9 +2849,9 @@ function renderMatch() {
   if (!current) return;
   $("match").hidden = false;
   const m = current, c = m.chain, side = m.side, other = m.players[1 - side], bank = ledger(m.stake, c?.fee_bps ?? cfg.feeBps);
-  const button = (id, label) => `<button data-payment="${id}" ${paying ? "disabled" : ""}>${label}</button>`;
+  const button = (id, label) => `<button data-payment="${id}" ${paying || pending() ? "disabled" : ""}>${label}</button>`;
   let controls = "";
-  if (c?.state === "AwaitingDeposits" && !c.deposited[side]) controls += button("deposit", "Deposit " + amount(c.stake) + " test " + esc(cfg.symbol));
+  if (c?.state === "AwaitingDeposits" && !c.deposited[side]) controls += button("deposit", "Deposit " + amount(c.stake) + " " + esc(tokenLabel()));
   if (c && ["LobbyOpen", "AwaitingDeposits", "ReadyToStart"].includes(c.state)) controls += button("cancel", "Cancel & refund stakes");
   if (c?.state === "InProgress") {
     controls += '<button id="openGame" class="primary">' + (m.phase === "playing" ? "Open match" : "View stopped match") + "</button>";
@@ -2786,9 +2860,9 @@ function renderMatch() {
     if (BigInt(c.last_heartbeat_ns || "0") + 1800000000000n <= BigInt(Date.now()) * 1000000n) controls += button("emergency", "Request emergency refund");
   }
   if (c?.payouts?.some((p) => p.receiver === session.account && p.state === "Ready" && p.amount !== "0")) controls += button("claim", "Claim ready payout / refund");
-  let payouts = c?.payouts?.filter((p) => p.amount !== "0").map((p) => `<p>${esc(p.receiver)} \xB7 ${amount(p.amount)} test ${esc(cfg.symbol)} \xB7 <b>${esc(p.state)}</b></p>`).join("") || "";
+  let payouts = c?.payouts?.filter((p) => p.amount !== "0").map((p) => `<p>${p.receiver === c.fee_receiver ? "Fee" : c.state === "Cancelled" ? "Refund" : "Payout"} \xB7 ${esc(p.receiver)} \xB7 ${amount(p.amount)} ${esc(tokenLabel())} \xB7 <b>${esc(p.state)}</b></p>`).join("") || "";
   const link = location.origin + "/pvp/?join=" + m.code;
-  $("match").innerHTML = `<h2>Match ${esc(m.code)}</h2><div class="status">${esc(phaseText[m.phase] || m.phase)}${m.recovering ? "<br>Restoring the game. Both players need to reconnect." : ""}</div><p>You: ${esc(session.account)}<br>Opponent: ${esc(other || "Waiting\u2026")}</p>${!other ? `<a class="invite" href="${esc(link)}">${esc(link)}</a><button id="copyInvite">Copy invitation</button>` : ""}${bank}${c ? `<p>Deposits: you ${c.deposited[side] ? "\u2713 accepted" : "not accepted"} \xB7 opponent ${c.deposited[1 - side] ? "\u2713 accepted" : "not accepted"}</p><p class="muted">Escrow match #${esc(c.id)} \xB7 ${esc(c.state)}</p>` : ""}${m.result ? `<p><b>${m.result.winner ? m.result.winner === session.account ? "You won" : "Opponent won" : "Full refund"} \xB7 ${esc(m.result.reason)}</b></p>` : ""}${m.error ? `<div class="status">${esc(m.error)}</div>` : ""}<div class="actions">${controls}</div>${payouts}<p class="small muted">Disconnect grace: 120 seconds. Both disconnected or simultaneous finish: full refund via mutual cancellation, or emergency refund after 30 minutes without a match heartbeat. Network fees are separate.</p>`;
+  $("match").innerHTML = `<h2>Match ${esc(m.code)}</h2><div class="status">${esc(phaseText[m.phase] || m.phase)}${m.recovering ? "<br>Restoring the game. Both players need to reconnect." : ""}</div><p>You: ${esc(session.account)}<br>Opponent: ${esc(other || "Waiting\u2026")}</p>${!other ? `<a class="invite" href="${esc(link)}">${esc(link)}</a><button id="copyInvite">Copy invitation</button>` : ""}${bank}${c ? `<p>Deposits: you ${c.deposited[side] ? amount(c.stake) + " accepted" : "0 accepted"} \xB7 opponent ${c.deposited[1 - side] ? amount(c.stake) + " accepted" : "0 accepted"} ${esc(tokenLabel())}. Total accepted: ${amount(BigInt(c.stake) * BigInt(c.deposited.filter(Boolean).length))}</p><p class="muted">Escrow match #${esc(c.id)} \xB7 ${esc(c.state)}</p>` : ""}${m.result ? `<p><b>${m.result.winner ? m.result.winner === session.account ? "You won" : "Opponent won" : "Full refund"} \xB7 ${esc(m.result.reason)}</b></p>` : ""}${m.error ? `<div class="status">${esc(m.error)}</div>` : ""}<div class="actions">${controls}</div>${payouts}<p class="small muted">Disconnect grace: 120 seconds. Both disconnected or simultaneous finish: full refund via mutual cancellation, or emergency refund after 30 minutes without a match heartbeat. Network fees are separate.</p>`;
   $("copyInvite")?.addEventListener("click", () => action(async () => {
     await navigator.clipboard.writeText(link);
     message("Invitation copied.");
@@ -2809,16 +2883,17 @@ function openGame() {
 }
 async function payment(kind) {
   if (paying) return;
+  if (pending()) throw Error("Previous payment is unresolved. Do not repeat it.");
   if (kind === "forfeit" && !confirm("Forfeit this match? Your opponent receives the prize.")) return;
-  if (kind === "deposit" && !confirm(`Deposit ${amount(current.stake)} TEST ${cfg.symbol}? Game fee: ${current.chain.fee_bps / 100}% of the bank.`)) return;
+  if (kind === "deposit" && !confirm(`Deposit ${amount(current.stake)} ${tokenLabel()}? Game fee: ${current.chain.fee_bps / 100}% of the bank.`)) return;
   paying = true;
   renderMatch();
   try {
     const c = current.chain, terms = c ? { stake: c.stake, revision: c.revision, feeBps: c.fee_bps, opponent: current.players[1 - current.side] } : null;
     const request = await api("matches/" + current.code + "/transaction", { kind, terms });
-    const w = await wallet();
-    message("Review the transaction in your Testnet wallet.");
-    await w.signAndSendTransaction({ ...request.transaction, network: "testnet", signerId: session.account });
+    message("Review the transaction in your " + cfg.network + " wallet.");
+    if (request.network !== cfg.network) throw Error("Transaction network mismatch");
+    await sendWallet(kind, request.transaction);
     message("Transaction sent. Waiting for the escrow to confirm its actual state.");
   } finally {
     paying = false;
@@ -2829,7 +2904,7 @@ async function refresh() {
   $("welcome").hidden = !!session;
   $("lobbies").hidden = !session;
   $("account").hidden = !session;
-  $("wallet").textContent = session ? "Sign out" : "Connect Testnet wallet";
+  $("wallet").textContent = session ? "Sign out" : "Connect " + cfg.network + " wallet";
   if (!session) {
     lobbyRequest++;
     $("match").hidden = true;
@@ -2837,39 +2912,51 @@ async function refresh() {
     $("game").removeAttribute("src");
     return;
   }
-  await refreshLobbies();
+  if (cfg.paymentsEnabled) await refreshLobbies();
   balances = await api("balance");
-  $("account").innerHTML = `<strong>${esc(session.account)}</strong><span>${amount(balances.balance)} test ${esc(cfg.symbol)}</span>${!balances.registered ? '<button id="register">Register test token</button>' : ""}<span class="muted">New accounts need operator-issued test tokens.</span>`;
+  $("account").innerHTML = `<strong>${esc(session.account)}</strong><span>${amount(balances.balance)} ${esc(tokenLabel())}</span>${!balances.registered && cfg.paymentsEnabled ? '<button id="register">Register token account</button>' : ""}<span class="muted">Spendable NEAR: ${formatUnits(balances.nearAvailable, 24)} \xB7 ${balances.hasGas ? "gas reserve available" : "insufficient gas reserve"}</span>`;
   $("register")?.addEventListener("click", () => action(async () => {
     const tx = await api("register", {});
-    await (await wallet()).signAndSendTransaction({ ...tx.transaction, network: "testnet", signerId: session.account });
+    if (tx.alreadyRegistered) return refresh();
+    if (tx.network !== cfg.network) throw Error("Transaction network mismatch");
+    await sendWallet("register", tx.transaction);
     message("Token registration sent.");
   }));
+  if (!cfg.paymentsEnabled) {
+    $("lobbies").hidden = true;
+    return;
+  }
   const history = await api("matches");
-  $("history").innerHTML = history.length ? history.map((m) => `<div class="match-row"><span>${esc(m.code)} \xB7 ${esc(m.phase)} \xB7 ${amount(m.stake)} test ${esc(cfg.symbol)}</span><button data-resume="${m.code}">Open</button></div>`).join("") : "No matches yet.";
+  $("history").innerHTML = history.length ? history.map((m) => `<div class="match-row"><span>${esc(m.code)} \xB7 ${esc(m.phase)} \xB7 ${amount(m.stake)} ${esc(tokenLabel())}</span><button data-resume="${m.code}">Open</button></div>`).join("") : "No matches yet.";
   for (const b of $("history").querySelectorAll("[data-resume]")) b.onclick = () => action(async () => {
     current = await api("matches/" + b.dataset.resume + "?view=metadata");
-    sessionStorage.setItem("sl-pvp-match", current.code);
+    sessionStorage.setItem(matchKey(), current.code);
     renderMatch();
   });
-  const code = current?.code || sessionStorage.getItem("sl-pvp-match");
+  const code = current?.code || sessionStorage.getItem(matchKey()) || pending()?.code;
   if (code) {
     current = await api("matches/" + code + "?view=metadata");
     renderMatch();
   }
+  await reconcilePayment();
 }
 function connectionFailure(e) {
   reconnectMessage = "Connection interrupted. Reconnecting; do not repeat a payment. " + e.message;
   message(reconnectMessage);
 }
 async function poll() {
+  if (session && cfg.paymentsEnabled && Date.now() - lastLobbyRefresh > 8e3) {
+    lastLobbyRefresh = Date.now();
+    refreshLobbies().catch(() => {
+    });
+  }
   if (polling || !session || Date.now() < nextPollAt) return;
   polling = true;
   try {
-    if (Date.now() - lastLobbyRefresh >= 5e3) await refreshLobbies();
     if (current) {
       current = await api("matches/" + current.code + "?view=metadata");
       renderMatch();
+      await reconcilePayment();
     } else {
       if (Date.now() - lastIdleRefresh < 15e3) return;
       await refresh();
@@ -2888,6 +2975,12 @@ async function poll() {
 }
 async function init() {
   cfg = await api("config");
+  if (!["testnet", "mainnet"].includes(cfg.network)) throw Error("Unsupported network");
+  connector = new import_near_connect.NearConnector({ network: cfg.network, features: { signMessage: true, signAndSendTransaction: true, ...cfg.network === "testnet" ? { testnet: true } : {} } });
+  document.title = "Supply Line \xB7 " + cfg.network + " PvP";
+  document.querySelector(".banner").textContent = cfg.network === "testnet" ? "NEAR TESTNET \xB7 Test tokens only. No real money." : "NEAR MAINNET \xB7 Native Circle USDC \xB7 Payments disabled pending escrow API, independent audit and competition approval.";
+  $("connect").textContent = "Connect " + cfg.network + " wallet";
+  document.querySelector("footer").textContent = cfg.network === "testnet" ? "Testnet prototype \xB7 Test tokens only." : "Mainnet preparation \xB7 No deposits, registrations or payouts are enabled in this release.";
   updateTerms();
   try {
     session = await api("auth/session");
@@ -2915,7 +3008,7 @@ async function init() {
     });
     session = null;
     current = null;
-    sessionStorage.removeItem("sl-pvp-match");
+    sessionStorage.removeItem(matchKey());
     $("match").hidden = true;
     await refresh();
   });
@@ -2923,16 +3016,16 @@ async function init() {
     e.preventDefault();
     action(async () => {
       const terms = { amount: $("amount").value, visibility: $("visibility").value };
-      let pending;
+      let pending2;
       try {
-        pending = JSON.parse(sessionStorage.getItem("sl-pvp-create"));
+        pending2 = JSON.parse(sessionStorage.getItem("sl-pvp-create:" + cfg.scope));
       } catch {
       }
-      if (!pending || pending.amount !== terms.amount || pending.visibility !== terms.visibility) pending = { ...terms, id: crypto.randomUUID() };
-      sessionStorage.setItem("sl-pvp-create", JSON.stringify(pending));
-      current = await api("matches", pending);
-      sessionStorage.removeItem("sl-pvp-create");
-      sessionStorage.setItem("sl-pvp-match", current.code);
+      if (!pending2 || pending2.amount !== terms.amount || pending2.visibility !== terms.visibility) pending2 = { ...terms, id: crypto.randomUUID() };
+      sessionStorage.setItem("sl-pvp-create:" + cfg.scope, JSON.stringify(pending2));
+      current = await api("matches", pending2);
+      sessionStorage.removeItem("sl-pvp-create:" + cfg.scope);
+      sessionStorage.setItem(matchKey(), current.code);
       renderMatch();
       await refresh();
     });
@@ -2960,9 +3053,9 @@ async function init() {
   $("wallet").disabled = false;
   setInterval(poll, 1500);
   const invite = new URLSearchParams(location.search).get("join");
-  if (invite && session) {
+  if (invite && session && cfg.paymentsEnabled) {
     $("code").value = invite;
     await preview(invite);
   }
 }
-init().catch((e) => message("Unable to load Testnet PvP: " + e.message));
+init().catch((e) => message("Unable to load PvP: " + e.message));

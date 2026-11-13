@@ -8,8 +8,9 @@ export class GameService{
   for(const m of store.all('match')){if(m.states)relink(m.states);m.seen=[0,0];if(m.phase==='playing')m.recovering=true;this.matches.set(m.code,m);}
  }
  save(m){this.store.put('match',m.code,m);if(['finished','cancelled','refund','settling'].includes(m.phase)){this.worlds.delete(m.code);this.checkpointRevisions.delete(m.code);}}
- holdsSlot(m){return !['finished','cancelled'].includes(m.phase)&&!['SettlementPending','Completed','Cancelled'].includes(m.chain?.state);}
- active(account){return [...this.matches.values()].find(m=>this.holdsSlot(m)&&m.players.includes(account));}
+ expiredUnpaid(m){const c=m.chain;return !!c&&['LobbyOpen','AwaitingDeposits'].includes(c.state)&&c.deposited?.every(v=>v===false)&&BigInt(c.deadline_ns)>0n&&BigInt(c.deadline_ns)<=BigInt(Math.floor(this.now()))*1000000n;}
+ holdsSlot(m){if(this.expiredUnpaid(m))return false;return !['finished','cancelled'].includes(m.phase)&&!['SettlementPending','Completed','Cancelled'].includes(m.chain?.state);}
+ active(account){return [...this.matches.values()].find(m=>(this.holdsSlot(m)||this.expiredUnpaid(m))&&m.players.includes(account));}
  async create(account,amount,requestId,visibility='private'){
   if(!['public','private'].includes(visibility))throw Error('Invalid lobby visibility');
   if(!/^[a-zA-Z0-9-]{8,80}$/.test(requestId||''))throw Error('Missing create request ID');
@@ -44,8 +45,13 @@ export class GameService{
   const integer=(v,max)=>typeof v==='string'&&/^(0|[1-9]\d*)$/.test(v)&&Number.isSafeInteger(Number(v))&&Number(v)<=max;
   if(!integer(limit,50)||Number(limit)<1||!integer(offset,1000000)||!integer(minStake,100000000)||!integer(maxStake,100000000)||BigInt(minStake)>BigInt(maxStake)||!['created','stake'].includes(sort)||!['asc','desc'].includes(order))throw Error('Invalid lobby query');
   // Coalesce simultaneous discovery reads. Discovery never submits transactions or mutates match phases.
-  this.discoveryRead??=Promise.all([...this.matches.values()].filter(m=>m.visibility==='public'&&this.available(m)).map(async m=>[m.code,await this.chain.match(m.chainId).catch(()=>null)])).then(entries=>new Map(entries)).finally(()=>{this.discoveryRead=null;});
-  const live=await this.discoveryRead;
+  const candidates=[...this.matches.values()].filter(m=>m.visibility==='public'&&this.available(m)),key=candidates.map(m=>m.code+':'+m.chainId).join(',');
+  if(!this.discoveryRead||this.discoveryRead.key!==key||this.now()-this.discoveryRead.at>=2000){
+   const entry={key,at:Infinity},entries=[];let cursor=0;
+   const worker=async()=>{while(cursor<candidates.length){const m=candidates[cursor++];entries.push([m.code,await this.chain.match(m.chainId).catch(()=>null)]);}};
+   entry.promise=Promise.all(Array.from({length:Math.min(4,candidates.length)},worker)).then(()=>{entry.at=this.now();if(entries.some(([,c])=>!c)&&this.discoveryRead===entry)this.discoveryRead=null;return new Map(entries);});this.discoveryRead=entry;
+  }
+  const live=await this.discoveryRead.promise;
   const rows=[...this.matches.values()].filter(m=>m.visibility==='public'&&this.available(m)&&this.chainOpen(m,live.get(m.code))&&BigInt(m.stake)>=BigInt(minStake)&&BigInt(m.stake)<=BigInt(maxStake));
   rows.sort((a,b)=>((sort==='stake'?Number(BigInt(a.stake)-BigInt(b.stake)):a.created-b.created)||a.code.localeCompare(b.code))*(order==='asc'?1:-1));
   const start=Number(offset),size=Number(limit);

@@ -25,5 +25,5 @@ export class FakeChain{
  async balance(){return {balance:'20000000',registered:true,storageMinimum:'1250000000000000000000',nearAvailable:'1000000000000000000000000',gasReserve:'10000000000000000000000',hasGas:true};}
  deposit(id){const m=this.matches.get(id);m.deposited=[true,true];m.state='ReadyToStart';m.ready_at_ns=String(BigInt(this.now())*1000000n);}
 }
-export function fixture(){let clock=1800000000000;const now=()=>clock,store=new Store('',{memory:true}),chain=new FakeChain(now),cfg={...chain.cfg,origin:'http://localhost:4190',network:'testnet',maxActive:10,players:[]},game=new GameService(cfg,store,chain,now);return {now,store,chain,cfg,game,step(ms){clock+=ms;game.advance();}};}
+export function fixture(){let clock=1800000000000;const now=()=>clock,store=new Store('',{memory:true}),chain=new FakeChain(now),cfg={...chain.cfg,origin:'http://localhost:4190',network:'testnet',scope:JSON.stringify(['testnet',chain.cfg.escrow,chain.cfg.token]),maxActive:10,players:[]},game=new GameService(cfg,store,chain,now);return {now,store,chain,cfg,game,step(ms){clock+=ms;game.advance();}};}
 export async function playing(f){const created=await f.game.create('alice.testnet','5','create-request-001');await f.game.join(created.code,'bob.testnet');const m=f.game.matches.get(created.code);f.chain.deposit(m.chainId);f.step(3100);await f.game.reconcile(m);return m;}
