@@ -2,6 +2,9 @@
 set -euo pipefail
 cd "$(dirname "$0")/.."
 mkdir -p artifacts/candidate
+# Canonical dependency paths: panic locations must not depend on the build host.
+export RUSTFLAGS="--remap-path-prefix=${CARGO_HOME:-$HOME/.cargo}=/cargo"
+printf '%s\n' "$RUSTFLAGS" > artifacts/candidate/rustflags.txt
 # Production: no mock-token bypass. Two fresh target directories prove equality.
 for build in a b; do
   CARGO_TARGET_DIR="target/repro-$build" cargo build -p near-pvp-escrow --locked --release --target wasm32-unknown-unknown --no-default-features

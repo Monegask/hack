@@ -19,7 +19,8 @@ for entry in registry['files']:
         assert any(hashlib.sha256(v).hexdigest()==entry['expected_sha256'] for v in variants), name
 print('Original production-source import hashes verified')
 PY
-CARGO_TARGET_DIR="$PWD/target/repro-a" cargo build --manifest-path target/original-source/Cargo.toml -p near-pvp-escrow --locked --release --target wasm32-unknown-unknown
+# Match the preserved Mac dependency paths embedded in panic locations.
+RUSTFLAGS="--remap-path-prefix=${CARGO_HOME:-$HOME/.cargo}=/private/tmp/near-escrow-tools/cargo" CARGO_TARGET_DIR="$PWD/target/repro-a" cargo build --manifest-path target/original-source/Cargo.toml -p near-pvp-escrow --locked --release --target wasm32-unknown-unknown
 cp target/repro-a/wasm32-unknown-unknown/release/near_pvp_escrow.wasm artifacts/candidate/rebuilt-v1-Testnet.wasm
 python3 - <<'PY'
 import hashlib,json,pathlib

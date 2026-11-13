@@ -2,7 +2,7 @@ name: Mainnet escrow candidate
 on:
   pull_request:
     branches: [testnet-pvp-server]
-    paths: ['contracts/**', '.github/workflows/mainnet-escrow.yml']
+    paths: ['contracts/**', '!contracts/**/*.md', '!contracts/**/docs/**', '.github/workflows/mainnet-escrow.yml']
 permissions:
   contents: read
 jobs:
