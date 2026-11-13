@@ -107,9 +107,11 @@ export class GameService{
   let steps=0;while(this.acc>=.1&&steps++<5){this.acc-=.1;for(const m of this.matches.values()){
    if(m.phase!=='playing'||!m.states)continue;
    const connected=m.seen.map(t=>now-t<120000);
-   if(m.recovering){if(connected.every(Boolean)){m.recovering=false;this.save(m);}else continue;}
+   if(m.recovering){if(connected.every(Boolean)){m.recovering=false;m.resumeAt=now;this.save(m);}else continue;}
    if(!connected[0]&&!connected[1]){m.phase='refund';m.result={reason:'both-disconnected',winner:null};m.states.forEach(s=>s.paused=true);this.save(m);continue;}
    if(!connected[0]||!connected[1]){this.finish(m,connected[0]?0:1,'disconnect');continue;}
+   // Never replay pre-recovery/start backlog into this match. Other matches keep their clock.
+   if(m.resumeAt!==undefined&&now-this.acc*1000<m.resumeAt+100-.001)continue;
    const e=this.getEngines(m);for(let i=0;i<2;i++){m.states[i].paused=false;e[i].tick(m.states[i],.1);}
    if(m.states[0].won||m.states[1].won){
     if(m.states.every(s=>s.won)){m.phase='refund';m.result={reason:'simultaneous-finish',winner:null};m.states.forEach(s=>s.paused=true);this.save(m);}
@@ -154,7 +156,7 @@ export class GameService{
      await this.chain.execute(m.code+':prestart-heartbeat','heartbeat',{match_ids:[]});
      // Persist the initial snapshot before submitting start, so a crash can never start a fresh replacement game.
      m.states??=newGame(m.seed,this.getEngines(m));await this.prepareWorld(m);this.save(m);if(await this.chain.chainTime()>=BigInt(chain.deadline_ns))return;await this.chain.execute(m.code+':start','start_match',{match_id:m.chainId});
-     m.chain=await this.chain.match(m.chainId);if(m.chain.state!=='InProgress')return;m.phase='playing';m.states.forEach(s=>s.paused=false);m.seen=[this.now(),this.now()];this.save(m);
+     m.chain=await this.chain.match(m.chainId);if(m.chain.state!=='InProgress')return;m.phase='playing';m.resumeAt=this.now();m.states.forEach(s=>s.paused=false);m.seen=[this.now(),this.now()];this.save(m);
     }
    }else if(chain.state==='InProgress'){
     const now=await this.chain.chainTime();

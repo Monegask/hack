@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {createHash} from 'node:crypto';
-import {fixture} from './fixture.mjs';
+import {fixture,playing} from './fixture.mjs';
 import {createApp} from '../server/http.mjs';
 import {GameService} from '../server/service.mjs';
 import {Account,KeyPair} from 'near-api-js';
@@ -102,4 +102,16 @@ test('release A04: multiple sessions for one wallet share a budget, other wallet
  const request=token=>fetch(origin+'/api/auth/session',{headers:{cookie:'sl_session='+token}});
  for(let i=0;i<45;i++)assert.equal((await request('first')).status,200);
  assert.equal((await request('second')).status,429);assert.equal((await request('third')).status,200);
+});
+
+test('release P4-01: recovery drops only pre-resume match time while other matches retain backlog',async t=>{
+ const f=fixture();t.after(()=>f.store.close());const m=await playing(f);f.game.checkpoint();
+ const game=new GameService(f.cfg,f.store,f.chain,f.now),recovered=game.matches.get(m.code);
+ const ongoing=structuredClone(recovered);ongoing.code='abcdef654321';ongoing.recovering=false;ongoing.players=['other.testnet','fourth.testnet'];game.matches.set(ongoing.code,ongoing);
+ const initial=recovered.states[0].time;f.step(30000);
+ for(const match of [recovered,ongoing])for(const player of match.players)game.snapshot(match.code,player,{touch:true});
+ for(let i=0;i<61;i++)game.advance();
+ assert.equal(recovered.recovering,false);assert.equal(recovered.states[0].time,initial);
+ assert.ok(ongoing.states[0].time-initial>29);
+ f.step(200);game.advance();assert.ok(recovered.states[0].time>initial);assert.ok(recovered.states[0].time-initial<=.21);
 });

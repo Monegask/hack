@@ -5,7 +5,7 @@
 ## Completed on the integrated tree
 
 - 169/169 game regression tests after a full local rebuild: solo economics, tutorial, bot and 3D presentation.
-- Combined backend suite: 53/53, including six new release integration tests. Tests cover two distinct NEP-413 wallets over real local HTTP, discovery with fractional monotonic clock, bounded catalogue reads, Mainnet public-route gates, cross-network sessions and expired-unpaid capacity.
+- Combined backend suite: 64/64, including eight release integration tests and v2 adapter/recovery tests. Tests cover two distinct NEP-413 wallets over real local HTTP, discovery with fractional monotonic clock, bounded catalogue reads, Mainnet public-route gates, cross-network sessions and expired-unpaid capacity.
 - Actual local Edge: public/private creation, discovery without link, sorting, joining, occupied removal, private invite, mobile overflow; isolated contexts with fixture chain.
 - Actual local Edge financial UI: ambiguous broadcast, reload, second tab, reconnect, final state observation, wallet/deployment change, Mainnet read-only UI. Fixture transactions are not on-chain transfers.
 - Actual local Edge rebuilt offline portal: real tutorial and bot launch in fresh profiles, no page errors.
@@ -38,3 +38,9 @@ node prototypes/logistics-race/pvp/load/run.mjs --matches=50 --seconds=300 --rec
 ```
 
 Browser scripts are under `prototypes/logistics-race/pvp/tests/` and use Edge isolated profiles. Live/production smoke scripts were not invoked.
+
+## CI on earlier immutable integration slices
+
+- `4149986`: [contract CI](https://github.com/Monegask/hack/actions/runs/43492940143) passed 38 Rust tests, 9 actual Sandbox receipt scenarios, 3 client tests, lint/format and two identical production builds. WASM SHA-256 `a6ebecd0b7f78dad11167b63cffd2fe9c646f307f73ac95dbc62c683ca0d9e91`. This is a fresh integration PR run; later backend changes require their own checks.
+- `724b13f`: [Linux Node 24 integration CI](https://github.com/Monegask/hack/actions/runs/43493989503) passed full builds, game/backend regressions and exact 50-match replay.
+- Follow-up source through PR #3 `e8cac6b` is now merged; its backend/Rust Sandbox workflow builds the contract from this same integrated checkout, rather than a separate PR checkout. Success is not claimed until the workflow finishes.

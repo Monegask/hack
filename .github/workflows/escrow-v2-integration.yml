@@ -14,10 +14,6 @@ jobs:
     timeout-minutes: 45
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/checkout@v4
-        with:
-          ref: 6b6cd1c2f71dead588bbd41e400da9403bc599f8
-          path: contract-candidate
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
@@ -31,17 +27,17 @@ jobs:
           path: |
             ~/.cargo/registry
             ~/.cargo/git
-            contract-candidate/contracts/near-pvp-escrow/target
-            contract-candidate/contracts/near-pvp-escrow/tests/sandbox/target
-          key: escrow-v2-rust-${{ runner.os }}-6b6cd1c-v1
-      - name: Compile pinned Rust v2 logic for local Sandbox only
-        working-directory: contract-candidate/contracts/near-pvp-escrow
+            contracts/near-pvp-escrow/target
+            contracts/near-pvp-escrow/tests/sandbox/target
+          key: escrow-v2-release-${{ runner.os }}-${{ hashFiles('contracts/near-pvp-escrow/**/Cargo.lock') }}
+      - name: Compile integrated Rust v2 logic for local Sandbox only
+        working-directory: contracts/near-pvp-escrow
         run: |
           rustup show
           cargo build --workspace --locked --release --target wasm32-unknown-unknown --features near-pvp-escrow/sandbox
           cp "$GITHUB_WORKSPACE/prototypes/logistics-race/pvp/tests/sandbox/launcher.rs" tests/sandbox/src/bin/frontend_integration.rs
       - name: Real backend/frontend requests and Rust receipts in Sandbox
-        working-directory: contract-candidate/contracts/near-pvp-escrow
+        working-directory: contracts/near-pvp-escrow
         env:
           FRONTEND_SANDBOX_TEST: ${{ github.workspace }}/prototypes/logistics-race/pvp/tests/sandbox/integration.mjs
           SANDBOX_REPORT: ${{ runner.temp }}/escrow-v2-integration.json

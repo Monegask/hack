@@ -11,10 +11,12 @@ Dedicated worktree: `publishing/release-mainnet-v1`; branch: `release/mainnet-v1
 |---|---|---|
 | #1 | `6b6cd1c2f71dead588bbd41e400da9403bc599f8` | Independently built Rust escrow v2 candidate |
 | #2 | `079c2cb9013da1cd08c9dde992904e778c79807a` | Public/private discovery and atomic seat reservation |
-| #3 | `fa7a91e051cab067b3122990fa76b2aab4b20ec2` | Network isolation and wallet payment journal; follow-up adapter pending |
+| #3 | `fa7a91e051cab067b3122990fa76b2aab4b20ec2` | Network isolation and wallet payment journal; follow-up adapter integrated separately |
 | #4 | `0a9db397f2cd4ede8ba51d7296823c2eb3aef186` | Durable command batching, route cache and load tools |
 
 Merged in this order. Semantic conflict resolutions preserve network/CSRF/session checks, public visibility and private invitations, scoped browser storage, metadata polling, grouped durable commands, monotonic simulation time, RPC read coalescing and lease checks immediately before signed broadcast. Generated files are rebuilt from source. Vercel auto-deployment is disabled for this integration branch in `vercel.json`.
+
+Follow-up PR #3 source through `e8cac6b` is integrated: versioned v2 ABI validation, final-receipt recovery, persistent server payment intents and freeze/deadline-aware worker. Actual backend/Rust Sandbox CI is pending; no readiness is inferred from source integration.
 
 ## Additional integration fixes
 
@@ -22,6 +24,7 @@ Merged in this order. Semantic conflict resolutions preserve network/CSRF/sessio
 - Discovery converts fractional monotonic milliseconds to integer nanoseconds safely; it coalesces reads for two seconds, with at most four concurrent RPC reads across catalogue changes; failed reads also retain a short negative cache. Join always checks live chain state and reserves the seat durably.
 - Authenticated rate limits apply per account across sessions; other wallets behind the same NAT retain independent budgets. Real ingress/IP/Sybil policy remains a release gate.
 - Expired **unpaid** prestart lobbies release local global capacity. Their original host remains reserved until explicit on-chain cancellation. Funded obligations are retained. This is partial A03 mitigation, not an on-chain cleanup keeper or Sybil solution.
+- Recovery freezes each match at its own resume time; pre-recovery global backlog continues for other live matches without advancing the restored match.
 - Browser match/create/payment state remains deployment-scoped; lobby sorting and automatic refresh remain available with a selected match.
 - Test fixtures now provide the same deployment identity as production configuration. Browser tests await completed catalogue refresh rather than testing a stale DOM.
 
