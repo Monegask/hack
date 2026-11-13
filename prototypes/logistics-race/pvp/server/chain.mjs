@@ -45,7 +45,9 @@ export class Chain{
   requirePayments(this.cfg);
   if(!METHODS.includes(method))throw Error('Server method not allowed');
   await this.assertNetwork();
-  if(this.adapter){this.adapter.serverCall(method,args);const c=await this.control();if(c.server_frozen)throw Error('Server frozen');if(['create_lobby','bind_opponent','update_stake','start_match'].includes(method)&&c.paused)throw Error('Escrow paused');if(method==='create_lobby')await this.requireRegistered([this.cfg.escrow,c.admin]);}
+  // A prior signed operation must be reconciled even after pause/freeze; never create replacement bytes.
+  if(this.adapter&&this.store.get('outbox',id)){this.adapter.serverCall(method,args);return durableSend({store:this.store,id,method,args,receiverId:this.cfg.escrow,accountId:this.cfg.server,account:this.account,rpc:this.rpc.bind(this)});}
+  if(this.adapter){this.adapter.serverCall(method,args);const c=await this.control();if(c.server_frozen)throw Error('Server frozen');if(['create_lobby','bind_opponent','update_stake','start_match'].includes(method)&&c.paused)throw Error('Escrow paused');if(method==='create_lobby')await this.requireRegistered([this.cfg.escrow,c.admin],this.controlBlock.hash);}
   return durableSend({store:this.store,id,method,args,receiverId:this.cfg.escrow,accountId:this.cfg.server,account:this.account,rpc:this.rpc.bind(this)});
  }
  async balance(account){
@@ -63,14 +65,14 @@ export class Chain{
   const block=await this.rpc('block',{finality:'final'});
   const [c,code]=await Promise.all([this.view(this.cfg.escrow,'get_config',{},block.header.hash),this.rpc('query',{request_type:'view_account',account_id:this.cfg.escrow,block_id:block.header.hash})]);
   if(code.code_hash!==this.cfg.escrowCodeHash)throw Error('Escrow code hash mismatch');
-  this.chainConfig=this.adapter.config(c);return this.chainConfig;
+  this.controlBlock=block.header;this.chainConfig=this.adapter.config(c);return this.chainConfig;
  }
- async requireRegistered(accounts){for(const id of new Set(accounts))if(!await this.view(this.cfg.token,'storage_balance_of',{account_id:id}))throw Error('FT recipient not registered: '+id);}
+ async requireRegistered(accounts,blockId=null){for(const id of new Set(accounts))if(!await this.view(this.cfg.token,'storage_balance_of',{account_id:id},blockId))throw Error('FT recipient not registered: '+id);}
  async v2Preflight(){
   await this.assertNetwork();const c=await this.control();
-  const token=await this.view(this.cfg.token,'ft_metadata');
+  const token=await this.view(this.cfg.token,'ft_metadata',{},this.controlBlock.hash);
   if(token.decimals!==6||(this.cfg.network==='mainnet'&&token.symbol!=='USDC'))throw Error('USDC metadata mismatch');
-  await this.requireRegistered([this.cfg.escrow,c.admin]);
+  await this.requireRegistered([this.cfg.escrow,c.admin],this.controlBlock.hash);
   return {network:this.cfg.network,escrow:this.cfg.escrow,token:this.cfg.token,symbol:token.symbol,feeBps:c.fee_bps,pendingFee:c.pending_fee,paused:c.paused,serverFrozen:c.server_frozen,signerChecked:false,paymentsEnabled:false,escrowApi:'escrow-v2'};
  }
  async checkRuntimeKey(publicKey){const access=await this.rpc('query',{request_type:'view_access_key',account_id:this.cfg.server,public_key:publicKey,finality:'final'});validateRuntimeAccess(access,this.cfg);return true;}

@@ -7,7 +7,7 @@ permissions:
   contents: read
 concurrency:
   group: escrow-v2-integration-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: false
 jobs:
   sandbox:
     runs-on: ubuntu-24.04

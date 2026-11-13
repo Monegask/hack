@@ -28,7 +28,7 @@ export class GameService{
  member(code,account){const m=this.memberOrLobby(code),i=m.players.indexOf(account);if(i<0)throw Error('Not a participant');return {m,i};}
  snapshot(code,account,{touch=false}={}){
   const {m,i}=this.member(code,account);if(touch)m.seen[i]=this.now();
-  return {code:m.code,players:m.players,side:i,stake:m.stake,seed:m.seed,phase:m.phase,chainId:m.chainId,chain:m.chain,states:m.states,revision:m.revision,result:m.result,error:m.error,recovering:!!m.recovering,serverNow:this.now(),lastSequence:m.sequences?.[i]||0};
+  return {code:m.code,players:m.players,side:i,stake:m.stake,seed:m.seed,phase:m.phase,chainId:m.chainId,chain:m.chain,states:m.states,revision:m.revision,result:m.result,error:m.error,recovering:!!m.recovering,serverNow:Math.floor(this.now()),control:this.chain.adapter?this.chain.chainConfig:undefined,lastSequence:m.sequences?.[i]||0};
  }
  list(account){return [...this.matches.values()].filter(m=>m.players.includes(account)).map(m=>({code:m.code,phase:m.phase,chainId:m.chainId,players:m.players,stake:m.stake,created:m.created})).sort((a,b)=>b.created-a.created);}
  preview(code){const m=this.memberOrLobby(code);return {code,creator:m.players[0],stake:m.stake,phase:m.phase,available:m.phase==='lobby'&&!m.players[1],feeBps:m.chain?.fee_bps??this.chain.chainConfig?.fee_bps};}

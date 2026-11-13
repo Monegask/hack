@@ -6,7 +6,7 @@ export function config(env=process.env){
  if(!['testnet','mainnet'].includes(network))throw Error('NEAR_NETWORK must be testnet or mainnet');
  const mainnet=network==='mainnet';
  if(mainnet)for(const key of ['PUBLIC_ORIGIN','NEAR_RPC_URL','ESCROW_ID','SERVER_ACCOUNT','TOKEN_ID','ESCROW_CODE_HASH','DATA_DIR'])if(!env[key])throw Error('Mainnet requires explicit '+key);
- if(mainnet&&env.SERVER_KEY_FILE)throw Error('Mainnet signer loading is disabled pending escrow API, independent audit and competition approval');
+ if(mainnet&&env.SERVER_KEY_FILE)throw Error('Mainnet signer loading is disabled independent verification, audit and competition approval');
  const origin=new URL(env.PUBLIC_ORIGIN||'http://localhost:4190');
  if(origin.origin!==origin.href.replace(/\/$/,''))throw Error('PUBLIC_ORIGIN must be an origin without a path');
  if(origin.protocol!=='https:'&&!['localhost','127.0.0.1','[::1]'].includes(origin.hostname))throw Error('Public access requires HTTPS');
@@ -40,4 +40,4 @@ export function bindStore(cfg,store){
  if(!prior&&cfg.network==='mainnet'&&['match','session','outbox','challenge'].some(k=>store.all(k).length))throw Error('Mainnet requires an empty or correctly scoped DATA_DIR');
  store.put('deployment','scope',{scope:cfg.scope});
 }
-export function requirePayments(cfg){if(cfg.network==='mainnet')throw Error('Mainnet payments disabled: escrow API, independent audit and competition approval are required');}
+export function requirePayments(cfg){if(cfg.network==='mainnet')throw Error('Mainnet payments disabled: independent verification, audit and competition approval are required');}

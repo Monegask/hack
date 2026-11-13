@@ -1,5 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import path from 'node:path';
+import os from 'node:os';
 import {createHash} from 'node:crypto';
 import {Account,KeyPair} from 'near-api-js';
 import {signMessage} from 'near-api-js/nep413';
@@ -9,7 +11,7 @@ import {Store} from '../server/store.mjs';
 import {createApp} from '../server/http.mjs';
 import {fixture} from './fixture.mjs';
 import {formatUnits,paymentObserved,pendingKey} from '../client/finance.mjs';
-const main={NEAR_NETWORK:'mainnet',PUBLIC_ORIGIN:'https://supply.example',NEAR_RPC_URL:'https://rpc.mainnet.near.org',TOKEN_ID:CIRCLE_USDC,ESCROW_ID:'escrow-reviewed.near',SERVER_ACCOUNT:'runtime.near',ESCROW_CODE_HASH:'1'.repeat(32),DATA_DIR:'C:/NEAR-data/isolated-mainnet'};
+const main={NEAR_NETWORK:'mainnet',PUBLIC_ORIGIN:'https://supply.example',NEAR_RPC_URL:'https://rpc.mainnet.near.org',TOKEN_ID:CIRCLE_USDC,ESCROW_ID:'escrow-reviewed.near',SERVER_ACCOUNT:'runtime.near',ESCROW_CODE_HASH:'1'.repeat(32),DATA_DIR:path.join(os.tmpdir(),'supply-line-isolated-mainnet')};
 const hash=s=>createHash('sha256').update(s).digest('hex');
 
 test('configuration preserves Testnet defaults and requires every explicit Mainnet deployment value',()=>{

@@ -8,13 +8,23 @@ let connector;
 const tokenLabel=()=>`${cfg.network==='testnet'?'test ':''}${cfg.symbol}`;
 const matchKey=()=>`sl-pvp-match:${cfg.scope}`;
 function pending(){return session&&JSON.parse(localStorage.getItem(pendingKey(cfg.scope,session.account))||'null');}
-async function reconcilePayment(){const p=pending();if(!p)return;if(p.kind==='register')balances=await api('balance');let resolved=paymentObserved(p,current,balances);if(!resolved&&p.hash){const status=await api('payment-status',{hash:p.hash});resolved=status.final&&status.failed;}if(resolved){localStorage.removeItem(pendingKey(cfg.scope,session.account));if(current)renderMatch();}else message('Payment status is unknown or pending. Do not pay again. Check the wallet and final escrow state.');}
-async function sendWallet(kind,transaction){
+async function reconcilePayment(){const p=pending();if(!p)return;
+ if(cfg.escrowApi==='escrow-v2'){
+  if(!p.intentId){message('Legacy payment journal needs manual review. Do not repeat the payment.');return;}
+  const status=await api('payment-status',{id:p.intentId,hash:p.hash});
+  if(status.resolved){localStorage.removeItem(pendingKey(cfg.scope,session.account));message('Payment checked: '+status.state+'. Payout/refund states are shown separately.');if(current)renderMatch();}
+  else message('Payment '+status.state+'. Do not repeat it. Provide the original transaction hash if the wallet did not return one.');return;
+ }
+ if(p.kind==='register')balances=await api('balance');let resolved=paymentObserved(p,current,balances);if(!resolved&&p.hash){const status=await api('payment-status',{hash:p.hash});resolved=status.final&&status.failed;}if(resolved){localStorage.removeItem(pendingKey(cfg.scope,session.account));if(current)renderMatch();}else message('Payment status is unknown or pending. Do not pay again. Check the wallet and final escrow state.');
+}
+async function recoverPayment(){const p=pending();if(!p?.intentId)throw Error('The payment needs manual review');const hash=prompt('Paste the original transaction hash from your wallet. Never send another payment to test it.');if(!hash)return;const status=await api('payment-status',{id:p.intentId,hash:hash.trim()});p.hash=hash.trim();localStorage.setItem(pendingKey(cfg.scope,session.account),JSON.stringify(p));message('Payment checked: '+status.state);await refresh();}
+
+async function sendWallet(kind,transaction,intentId=null){
  const run=async()=>{
   if(pending())throw Error('A payment is unresolved. Check the wallet and escrow before retrying.');
   if(!cfg.paymentsEnabled)throw Error('Mainnet payments are disabled pending escrow API, audit and competition approval');
   const w=await wallet(),key=pendingKey(cfg.scope,session.account);
-  const record={kind,code:current?.code,account:session.account,at:Date.now(),payoutIndex:kind==='claim'?transaction.actions[0].params.args.index:null};
+  const record={intentId,kind,code:current?.code,account:session.account,at:Date.now(),payoutIndex:kind==='claim'?transaction.actions[0].params.args.index:null};
   localStorage.setItem(key,JSON.stringify(record));
   // Any exception may follow a broadcast. Keep the journal until chain evidence resolves it.
   let result;try{result=await w.signAndSendTransaction({...transaction,network:cfg.network,signerId:session.account});}catch(error){record.hash=error?.transactionHash||null;localStorage.setItem(key,JSON.stringify(record));throw error;}
@@ -50,7 +60,7 @@ function renderMatch(){
   controls+='<button id="openGame" class="primary">'+(m.phase==='playing'?'Open match':'View stopped match')+'</button>';
   controls+=button('mutual',c.cancel_requester&&c.cancel_requester!==session.account?'Agree to full refund':'Request mutual cancellation');
   if(m.phase==='playing')controls+=button('forfeit','Forfeit · opponent wins');
-  if(BigInt(c.last_heartbeat_ns||'0')+1800000000000n<=BigInt(Date.now())*1000000n)controls+=button('emergency','Request emergency refund');
+  if(cfg.serverFrozen||m.control?.server_frozen||(c.game_deadline_ns&&BigInt(c.game_deadline_ns)<=BigInt(Date.now())*1000000n)||BigInt(c.last_heartbeat_ns||'0')+1800000000000n<=BigInt(Date.now())*1000000n)controls+=button('emergency','Request emergency refund');
  }
  if(c?.payouts?.some(p=>p.receiver===session.account&&p.state==='Ready'&&p.amount!=='0'))controls+=button('claim','Claim ready payout / refund');
  let payouts=c?.payouts?.filter(p=>p.amount!=='0').map(p=>`<p>${p.receiver===c.fee_receiver?'Fee':c.state==='Cancelled'?'Refund':'Payout'} · ${esc(p.receiver)} · ${amount(p.amount)} ${esc(tokenLabel())} · <b>${esc(p.state)}</b></p>`).join('')||'';
@@ -70,15 +80,17 @@ async function payment(kind){
  if(kind==='deposit'&&!confirm(`Deposit ${amount(current.stake)} ${tokenLabel()}? Game fee: ${(current.chain.fee_bps/100)}% of the bank.`))return;
  paying=true;renderMatch();try{
   const c=current.chain,terms=c?{stake:c.stake,revision:c.revision,feeBps:c.fee_bps,opponent:current.players[1-current.side]}:null;
-  const request=await api('matches/'+current.code+'/transaction',{kind,terms});message('Review the transaction in your '+cfg.network+' wallet.');
-  if(request.network!==cfg.network)throw Error('Transaction network mismatch');await sendWallet(kind,request.transaction);message('Transaction sent. Waiting for the escrow to confirm its actual state.');
+  const request=await api('matches/'+current.code+'/transaction',{kind,terms,id:crypto.randomUUID()});message('Review the transaction in your '+cfg.network+' wallet.');
+  if(request.network!==cfg.network)throw Error('Transaction network mismatch');await sendWallet(kind,request.transaction,request.intentId);message('Transaction sent. Waiting for the escrow to confirm its actual state.');
  }finally{paying=false;await refresh();}
 }
 async function refresh(){
  $('welcome').hidden=!!session;$('lobbies').hidden=!session;$('account').hidden=!session;$('wallet').textContent=session?'Sign out':'Connect '+cfg.network+' wallet';
  if(!session)return;
- balances=await api('balance');$('account').innerHTML=`<strong>${esc(session.account)}</strong><span>${amount(balances.balance)} ${esc(tokenLabel())}</span>${!balances.registered&&cfg.paymentsEnabled?'<button id="register">Register token account</button>':''}<span class="muted">Spendable NEAR: ${formatUnits(balances.nearAvailable,24)} · ${balances.hasGas?'gas reserve available':'insufficient gas reserve'}</span>`;
- $('register')?.addEventListener('click',()=>action(async()=>{const tx=await api('register',{});if(tx.alreadyRegistered)return refresh();if(tx.network!==cfg.network)throw Error('Transaction network mismatch');await sendWallet('register',tx.transaction);message('Token registration sent.');}));
+ if(cfg.escrowApi==='escrow-v2'&&!pending()){const items=await api('payments');if(items.length)localStorage.setItem(pendingKey(cfg.scope,session.account),JSON.stringify(items[0]));}
+ balances=await api('balance');$('account').innerHTML=`<strong>${esc(session.account)}</strong><span>${amount(balances.balance)} ${esc(tokenLabel())}</span>${!balances.registered&&cfg.paymentsEnabled?'<button id="register">Register token account</button>':''}<span class="muted">Spendable NEAR: ${formatUnits(balances.nearAvailable,24)} · ${balances.hasGas?'gas reserve available':'insufficient gas reserve'}</span>${cfg.pendingFee?`<span>Scheduled fee: ${cfg.pendingFee.fee_bps/100}% from ${esc(new Date(Number(BigInt(cfg.pendingFee.activate_at_ns)/1000000n)).toISOString())}. Existing lobbies keep their original fee.</span>`:''}${cfg.serverFrozen?'<span>Server frozen. In-progress matches are eligible for full emergency refunds.</span>':''}${pending()?.intentId?'<button id="recoverPayment">Check original transaction hash</button>':''}`;
+ $('recoverPayment')?.addEventListener('click',()=>action(recoverPayment));
+ $('register')?.addEventListener('click',()=>action(async()=>{const tx=await api('register',{id:crypto.randomUUID()});if(tx.alreadyRegistered)return refresh();if(tx.network!==cfg.network)throw Error('Transaction network mismatch');await sendWallet('register',tx.transaction,tx.intentId);message('Token registration sent.');}));
  if(!cfg.paymentsEnabled){$('lobbies').hidden=true;return;}
  const history=await api('matches');$('history').innerHTML=history.length?history.map(m=>`<div class="match-row"><span>${esc(m.code)} · ${esc(m.phase)} · ${amount(m.stake)} ${esc(tokenLabel())}</span><button data-resume="${m.code}">Open</button></div>`).join(''):'No matches yet.';
  for(const b of $('history').querySelectorAll('[data-resume]'))b.onclick=()=>action(async()=>{current=await api('matches/'+b.dataset.resume);sessionStorage.setItem(matchKey(),current.code);renderMatch();});
@@ -90,7 +102,7 @@ async function init(){
  cfg=await api('config');if(!['testnet','mainnet'].includes(cfg.network))throw Error('Unsupported network');
  connector=new NearConnector({network:cfg.network,features:{signMessage:true,signAndSendTransaction:true,...(cfg.network==='testnet'?{testnet:true}:{})}});
  document.title='Supply Line · '+cfg.network+' PvP';
- document.querySelector('.banner').textContent=cfg.network==='testnet'?'NEAR TESTNET · Test tokens only. No real money.':'NEAR MAINNET · Native Circle USDC · Payments disabled pending escrow API, independent audit and competition approval.';
+ document.querySelector('.banner').textContent=cfg.network==='testnet'?'NEAR TESTNET · Test tokens only. No real money.':'NEAR MAINNET · Native Circle USDC · Payments disabled pending independent verification, audit and competition approval.';
  $('connect').textContent='Connect '+cfg.network+' wallet';
  document.querySelector('footer').textContent=cfg.network==='testnet'?'Testnet prototype · Test tokens only.':'Mainnet preparation · No deposits, registrations or payouts are enabled in this release.';
  updateTerms();try{session=await api('auth/session');}catch{}
