@@ -8,19 +8,24 @@ export class GameService{
  save(m){this.store.put('match',m.code,m);}
  holdsSlot(m){return !['finished','cancelled'].includes(m.phase)&&!['SettlementPending','Completed','Cancelled'].includes(m.chain?.state);}
  active(account){return [...this.matches.values()].find(m=>this.holdsSlot(m)&&m.players.includes(account));}
- async create(account,amount,requestId){
+ async create(account,amount,requestId,visibility='private'){
+  if(!['public','private'].includes(visibility))throw Error('Invalid lobby visibility');
   if(!/^[a-zA-Z0-9-]{8,80}$/.test(requestId||''))throw Error('Missing create request ID');
-  const prior=[...this.matches.values()].find(m=>m.requestId===requestId&&m.players[0]===account);if(prior){if(prior.amount!==undefined&&prior.amount!==amount)throw Error('Create request reused with different terms');return this.snapshot(prior.code,account);}
+  const prior=[...this.matches.values()].find(m=>m.requestId===requestId&&m.players[0]===account);if(prior){if((prior.amount!==undefined&&prior.amount!==amount)||(prior.visibility||'private')!==visibility)throw Error('Create request reused with different terms');return this.snapshot(prior.code,account);}
   if(this.active(account))throw Error('Finish your current match first');
   if([...this.matches.values()].filter(m=>this.holdsSlot(m)).length>=this.cfg.maxActive)throw Error('Test server is full');
   if(!/^(?:[1-9]\d{0,2})(?:\.\d{1,6})?$/.test(amount||''))throw Error('Test stake must be 1–100 tokens');
   const [whole,fraction='']=amount.split('.'),stake=BigInt(whole)*1000000n+BigInt(fraction.padEnd(6,'0'));if(stake>100000000n)throw Error('Maximum test stake is 100 tokens');
   const m={code:randomBytes(6).toString('hex'),requestId,players:[account,null],stake:String(stake),seed:randomBytes(4).readUInt32LE(),phase:'creating',chainId:null,chain:null,states:null,result:null,created:this.now(),seen:[this.now(),0],revision:0,error:null};
-  m.amount=amount;this.matches.set(m.code,m);this.save(m);try{await this.reconcile(m);}catch{}return this.snapshot(m.code,account);
+  m.amount=amount;m.visibility=visibility;this.matches.set(m.code,m);this.save(m);try{await this.reconcile(m);}catch{}return this.snapshot(m.code,account);
  }
- async join(code,account){
-  const m=this.memberOrLobby(code);if(m.players.includes(account))return this.snapshot(code,account);
-  if(m.phase!=='lobby'||m.players[1]||Number(BigInt(m.chain?.deadline_ns||'0')/1000000n)<=this.now())throw Error('Lobby is closed or full');if(this.active(account))throw Error('Finish your current match first');
+ async join(code,account,{publicOnly=false}={}){
+  const m=this.memberOrLobby(code);if(publicOnly&&m.visibility!=='public')throw Error('Public lobby not found');if(m.players.includes(account))return this.snapshot(code,account);
+  if(!this.available(m))throw Error('Lobby is closed or full');
+  // Read actual escrow state, then recheck the seat after the await. Never accept browser availability.
+  const chain=await this.chain.match(m.chainId);
+  if(!this.available(m)||!this.chainOpen(m,chain))throw Error('Lobby is closed or full');
+  if(this.active(account))throw Error('Finish your current match first');
   // Reserve and persist before awaiting the chain: two HTTP joins cannot take the same seat.
   m.players[1]=account;m.phase='binding';m.seen[1]=this.now();this.save(m);try{await this.reconcile(m);}catch(e){if(!m.players.includes(account))throw e;}return this.snapshot(code,account);
  }
@@ -28,10 +33,23 @@ export class GameService{
  member(code,account){const m=this.memberOrLobby(code),i=m.players.indexOf(account);if(i<0)throw Error('Not a participant');return {m,i};}
  snapshot(code,account,{touch=false}={}){
   const {m,i}=this.member(code,account);if(touch)m.seen[i]=this.now();
-  return {code:m.code,players:m.players,side:i,stake:m.stake,seed:m.seed,phase:m.phase,chainId:m.chainId,chain:m.chain,states:m.states,revision:m.revision,result:m.result,error:m.error,recovering:!!m.recovering,serverNow:this.now(),lastSequence:m.sequences?.[i]||0};
+  return {code:m.code,visibility:m.visibility||'private',players:m.players,side:i,stake:m.stake,seed:m.seed,phase:m.phase,chainId:m.chainId,chain:m.chain,states:m.states,revision:m.revision,result:m.result,error:m.error,recovering:!!m.recovering,serverNow:this.now(),lastSequence:m.sequences?.[i]||0};
  }
  list(account){return [...this.matches.values()].filter(m=>m.players.includes(account)).map(m=>({code:m.code,phase:m.phase,chainId:m.chainId,players:m.players,stake:m.stake,created:m.created})).sort((a,b)=>b.created-a.created);}
- preview(code){const m=this.memberOrLobby(code);return {code,creator:m.players[0],stake:m.stake,phase:m.phase,available:m.phase==='lobby'&&!m.players[1],feeBps:m.chain?.fee_bps??this.chain.chainConfig?.fee_bps};}
+ chainOpen(m,c){return !!c&&c.state==='LobbyOpen'&&!c.opponent&&c.creator===m.players[0]&&c.stake===m.stake&&BigInt(c.deadline_ns||'0')>BigInt(this.now())*1000000n;}
+ available(m){return m.phase==='lobby'&&!m.players[1]&&!m.error&&this.chainOpen(m,m.chain);}
+ async lobbies({limit='20',offset='0',sort='created',order='desc',minStake='0',maxStake='100000000'}={}){
+  const integer=(v,max)=>typeof v==='string'&&/^(0|[1-9]\d*)$/.test(v)&&Number.isSafeInteger(Number(v))&&Number(v)<=max;
+  if(!integer(limit,50)||Number(limit)<1||!integer(offset,1000000)||!integer(minStake,100000000)||!integer(maxStake,100000000)||BigInt(minStake)>BigInt(maxStake)||!['created','stake'].includes(sort)||!['asc','desc'].includes(order))throw Error('Invalid lobby query');
+  // Coalesce simultaneous discovery reads. Discovery never submits transactions or mutates match phases.
+  this.discoveryRead??=Promise.all([...this.matches.values()].filter(m=>m.visibility==='public'&&this.available(m)).map(async m=>[m.code,await this.chain.match(m.chainId).catch(()=>null)])).then(entries=>new Map(entries)).finally(()=>{this.discoveryRead=null;});
+  const live=await this.discoveryRead;
+  const rows=[...this.matches.values()].filter(m=>m.visibility==='public'&&this.available(m)&&this.chainOpen(m,live.get(m.code))&&BigInt(m.stake)>=BigInt(minStake)&&BigInt(m.stake)<=BigInt(maxStake));
+  rows.sort((a,b)=>((sort==='stake'?Number(BigInt(a.stake)-BigInt(b.stake)):a.created-b.created)||a.code.localeCompare(b.code))*(order==='asc'?1:-1));
+  const start=Number(offset),size=Number(limit);
+  return {items:rows.slice(start,start+size).map(m=>({id:m.code,creator:m.players[0],stake:m.stake,created:m.created,state:'open'})),total:rows.length,offset:start,limit:size,hasMore:start+size<rows.length,serverNow:this.now()};
+ }
+ preview(code){const m=this.memberOrLobby(code);return {code,creator:m.players[0],stake:m.stake,phase:m.phase,available:this.available(m),feeBps:m.chain?.fee_bps??this.chain.chainConfig?.fee_bps};}
  command(code,account,{id,sequence,command}){
   const {m,i}=this.member(code,account);if(!/^[a-zA-Z0-9-]{8,80}$/.test(id||''))throw Error('Invalid command ID');
   const old=this.store.command(code,account,id);if(old){if(JSON.stringify(old.command)!==JSON.stringify(command))throw Error('Command ID reused');return old.response;}

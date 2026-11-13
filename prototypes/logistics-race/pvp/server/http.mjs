@@ -59,8 +59,15 @@ export function createApp(cfg,store,chain,service){
     const entry={at:now};entry.promise=chain.balance(account).catch(error=>{if(balanceCache.get(account)===entry)balanceCache.delete(account);throw error;});balanceCache.set(account,entry);return send(await entry.promise);
    }
    if(pathname==='/api/register'&&req.method==='POST'){const balance=await chain.balance(account);return send({transaction:call(cfg.token,'storage_deposit',{account_id:account,registration_only:true},balance.storageMinimum)});}
+   if(pathname==='/api/lobbies'&&req.method==='GET'){
+    const allowed=['limit','offset','sort','order','minStake','maxStake'];
+    if([...url.searchParams.keys()].some(k=>!allowed.includes(k)||url.searchParams.getAll(k).length!==1))throw Error('Invalid lobby query');
+    return send(await service.lobbies(Object.fromEntries(url.searchParams)));
+   }
+   const publicJoin=pathname.match(/^\/api\/lobbies\/([a-f0-9]{12})\/join$/);
+   if(publicJoin&&req.method==='POST')return send(await service.join(publicJoin[1],account,{publicOnly:true}));
    if(pathname==='/api/matches'&&req.method==='GET')return send(service.list(account));
-   if(pathname==='/api/matches'&&req.method==='POST')return send(await service.create(account,body.amount,body.id));
+   if(pathname==='/api/matches'&&req.method==='POST')return send(await service.create(account,body.amount,body.id,body.visibility));
    const route=pathname.match(/^\/api\/matches\/([a-f0-9]{12})(?:\/(join|command|transaction|preview))?$/);
    if(!route)return send({error:'Not found'},404);
    const [,code,action]=route;
