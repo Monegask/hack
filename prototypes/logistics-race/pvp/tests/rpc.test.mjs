@@ -17,7 +17,7 @@ test('RPC deterministic errors are not retried and transport failures carry an a
 });
 test('token storage bounds are shared but balances remain live for each wallet',async()=>{
  const chain=new Chain({rpc:'https://unused.test',token:'token.testnet',gasReserve:'10'},null);let bounds=0,balances=0;
- chain.rpc=async(method)=>method==='status'?{chain_id:'testnet'}:method==='query'?{amount:'1000',storage_usage:2}:{storage_amount_per_byte:'10'};
+ chain.rpc=async(method)=>method==='status'?{chain_id:'testnet'}:method==='query'?{amount:'1000',storage_usage:2}:{runtime_config:{storage_amount_per_byte:'10'}};
  chain.view=async(_account,method,args)=>{if(method==='storage_balance_bounds'){bounds++;return {min:'125'};}if(method==='storage_balance_of')return {total:'125'};balances++;return args.account_id==='a.testnet'?'20':'15';};
  const [a,b]=await Promise.all([chain.balance('a.testnet'),chain.balance('b.testnet')]);assert.equal(bounds,1);assert.equal(balances,2);assert.equal(a.balance,'20');assert.equal(b.balance,'15');
 });
@@ -30,3 +30,5 @@ test('concurrent balance requests share RPC work; failed entries return 503 and 
  const errors=await Promise.all([get(),get()]);assert(errors.every(r=>r.status===503));assert.equal(calls,1);
  fail=false;const successes=await Promise.all([get(),get(),get()]);assert(successes.every(r=>r.status===200));assert.equal(calls,2);assert.equal((await successes[0].json()).balance,'20');
 });
+
+test('balance refuses a malformed protocol config rather than inventing a storage cost',async()=>{const chain=new Chain({rpc:'https://unused.test',token:'token.testnet',gasReserve:'10'},null);chain.rpc=async method=>method==='status'?{chain_id:'testnet'}:method==='query'?{amount:'1000',storage_usage:2}:{storage_amount_per_byte:'10'};chain.view=async(_id,method)=>method==='ft_balance_of'?'20':method==='storage_balance_bounds'?{min:'125'}:{total:'125'};await assert.rejects(chain.balance('a.testnet'),/storage cost/);});

@@ -56,7 +56,8 @@ export class Chain{
    const cached={until:Date.now()+60000};cached.promise=this.view(this.cfg.token,'storage_balance_bounds').catch(error=>{if(this.bounds===cached)this.bounds=null;throw error;});this.bounds=cached;
   }
   const [balance,storage,bounds,native,protocol]=await Promise.all([this.view(this.cfg.token,'ft_balance_of',{account_id:account}),this.view(this.cfg.token,'storage_balance_of',{account_id:account}),this.bounds.promise,this.rpc('query',{request_type:'view_account',account_id:account,finality:'final'}),this.rpc('EXPERIMENTAL_protocol_config',{finality:'final'})]);
-  const locked=BigInt(native.storage_usage)*BigInt(protocol.storage_amount_per_byte),available=BigInt(native.amount)>locked?BigInt(native.amount)-locked:0n;
+  const storagePrice=protocol.runtime_config?.storage_amount_per_byte;if(typeof storagePrice!=='string'||!/^\d+$/.test(storagePrice)||!Number.isSafeInteger(native.storage_usage))throw Error('Invalid RPC storage cost/account schema');
+  const locked=BigInt(native.storage_usage)*BigInt(storagePrice),available=BigInt(native.amount)>locked?BigInt(native.amount)-locked:0n;
   return {balance,registered:!!storage,storageMinimum:bounds.min,nearAvailable:String(available),gasReserve:this.cfg.gasReserve,hasGas:available>=BigInt(this.cfg.gasReserve)};
  }
  async assertNetwork(){const status=await this.rpc('status',[]);if(status.chain_id!==(this.cfg.network||'testnet'))throw Error('RPC chain_id does not match selected network');}

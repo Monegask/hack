@@ -1,10 +1,10 @@
 // Conservative reconciliation of the original wallet transaction and final receipt tree.
 // No timeout, aggregate token balance or client assertion can clear an unknown payment.
 import {uint} from './adapters/escrow-v2.mjs';
-export function prepareIntent(store,cfg,{id,account,code,kind,match,transaction}){
+export function prepareIntent(store,cfg,{id,account,code,kind,match,transaction,terms=null}){
  if(!/^[a-zA-Z0-9-]{8,80}$/.test(id||''))throw Error('Payment request ID required');
  const key=JSON.stringify([cfg.scope,account,id]),prior=store.get('payment',key);
- const value={id,key,scope:cfg.scope,account,code,kind,matchId:match?.id??null,transaction,before:match?.payouts??null};
+ const value={id,key,scope:cfg.scope,account,code,kind,matchId:match?.id??null,terms,transaction,before:match?.payouts??null};
  if(prior){if(JSON.stringify({...prior,hash:undefined,result:undefined})!==JSON.stringify(value))throw Error('Payment ID reused with different terms');return prior;}
  if(store.all('payment').some(p=>p.scope===cfg.scope&&p.account===account&&!p.result?.resolved))throw Error('Previous payment is unresolved; reconcile it first');
  store.put('payment',key,value);return value;
@@ -61,3 +61,5 @@ export async function reconcileIntent(chain,store,intent,hash){
  }
  intent.result=result;store.put('payment',intent.key,intent);return result;
 }
+
+export function replayIntent(store,cfg,{id,account,code,kind,terms=null}){if(!id)return null;const prior=store.get('payment',JSON.stringify([cfg.scope,account,id]));if(!prior)return null;if(prior.code!==code||prior.kind!==kind||JSON.stringify(prior.terms??null)!==JSON.stringify(terms))throw Error('Payment ID reused with different terms');return prior.result?.resolved?{network:cfg.network,intentId:id,alreadyResolved:true,result:prior.result}:{network:cfg.network,intentId:id,replay:true,transaction:prior.transaction};}
