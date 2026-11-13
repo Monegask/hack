@@ -52,7 +52,13 @@ impl Contract {
     #[init]
     pub fn new(admin: AccountId, server: AccountId, token: AccountId) -> Self {
         #[cfg(not(any(test, feature = "sandbox")))]
-        require!(token.as_str() == CIRCLE_USDC, "Circle native USDC only");
+        {
+            require!(token.as_str() == CIRCLE_USDC, "Circle native USDC only");
+            require!(
+                env::predecessor_account_id() == env::current_account_id(),
+                "Self initialization only"
+            );
+        }
         require!(
             admin != server
                 && admin != env::current_account_id()

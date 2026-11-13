@@ -1,3 +1,5 @@
+> Historical v1 import. Not current v2 instructions or fresh validation. See [candidate specification](docs/candidate/SPEC.md) and candidate migration/security documents. Do not run historical deployment commands for this candidate.
+
 # Модель безопасности и ограничения
 
 Контракт предназначен для Testnet-проверки. Этот документ описывает реализованные ограничения, а не гарантирует безопасность реальных средств.

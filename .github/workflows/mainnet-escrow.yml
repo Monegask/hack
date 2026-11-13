@@ -21,15 +21,16 @@ jobs:
           node-version: '24'
       - name: Format
         run: |
-          cargo fmt --all
-          cargo fmt --manifest-path tests/sandbox/Cargo.toml
-          git diff -- contract tests/sandbox
+          cargo fmt --all --check
+          cargo fmt --manifest-path tests/sandbox/Cargo.toml --check
       - name: Unit tests and lints
         run: |
           cargo clippy --workspace --all-targets --locked -- -D warnings
           cargo test -p near-pvp-escrow --lib --locked
       - name: Build production twice and Sandbox artifact
-        run: bash scripts/build-candidate.sh
+        run: |
+          bash scripts/verify-origin.sh
+          bash scripts/build-candidate.sh
       - name: Sandbox receipts
         run: |
           cargo clippy --manifest-path tests/sandbox/Cargo.toml --all-targets --locked -- -D warnings

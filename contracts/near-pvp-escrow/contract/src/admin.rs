@@ -9,21 +9,35 @@ impl Contract {
     }
     pub fn unpause(&mut self) {
         self.assert_admin();
-        require!(!self.cfg.server_frozen, "Replace frozen server after draining");
+        require!(
+            !self.cfg.server_frozen,
+            "Replace frozen server after draining"
+        );
         self.cfg.paused = false;
         emit("unpaused", json!({}));
     }
     pub fn set_fee(&mut self, fee_bps: u16) {
         self.assert_admin();
         require!(fee_bps <= MAX_FEE_BPS, "Fee exceeds safety cap");
-        let at = env::block_timestamp().checked_add(FEE_DELAY_NS).expect("Time overflow");
-        self.cfg.pending_fee = Some(PendingFee { fee_bps, activate_at_ns: U64(at) });
-        emit("fee_scheduled", json!({"fee_bps": fee_bps, "activate_at_ns": U64(at)}));
+        let at = env::block_timestamp()
+            .checked_add(FEE_DELAY_NS)
+            .expect("Time overflow");
+        self.cfg.pending_fee = Some(PendingFee {
+            fee_bps,
+            activate_at_ns: U64(at),
+        });
+        emit(
+            "fee_scheduled",
+            json!({"fee_bps": fee_bps, "activate_at_ns": U64(at)}),
+        );
     }
 
     pub fn apply_fee(&mut self) {
         let pending = self.cfg.pending_fee.clone().expect("No pending fee");
-        require!(env::block_timestamp() >= pending.activate_at_ns.0, "Fee timelock");
+        require!(
+            env::block_timestamp() >= pending.activate_at_ns.0,
+            "Fee timelock"
+        );
         self.cfg.fee_bps = pending.fee_bps;
         self.cfg.pending_fee = None;
         emit("fee_changed", json!({"fee_bps": self.cfg.fee_bps}));

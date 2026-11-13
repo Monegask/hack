@@ -1,3 +1,5 @@
+> Historical v1 import. Not current v2 instructions or fresh validation. See [candidate specification](../candidate/SPEC.md) and candidate migration/security documents. Do not run historical deployment commands for this candidate.
+
 # Фактическая проверка
 
 Дата отчёта: 2026-11-05 15:58 MSK.

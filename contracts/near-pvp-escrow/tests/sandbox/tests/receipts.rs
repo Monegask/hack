@@ -150,17 +150,26 @@ impl Fixture {
 
     async fn age(&self, id: &str, field: &str) -> Result<()> {
         let m = self.state(id).await?;
-        let old = m[field].as_str().context("timestamp")?.parse::<u64>()?.to_le_bytes();
+        let old = m[field]
+            .as_str()
+            .context("timestamp")?
+            .parse::<u64>()?
+            .to_le_bytes();
         let now = self.worker.view_block().await?.timestamp();
         let aged = (now - 1_000_000_000).to_le_bytes();
         let key = [b"m".as_slice(), &id.parse::<u64>()?.to_le_bytes()].concat();
         let values = self.worker.view_state(self.escrow.id()).await?;
         let mut value = values.get(&key).context("match entry")?.clone();
-        let positions: Vec<usize> = value.windows(8).enumerate()
-            .filter_map(|(i, b)| (b == old).then_some(i)).collect();
+        let positions: Vec<usize> = value
+            .windows(8)
+            .enumerate()
+            .filter_map(|(i, b)| (b == old).then_some(i))
+            .collect();
         assert_eq!(positions.len(), 1, "unique fixture timestamp");
-        value[positions[0]..positions[0]+8].copy_from_slice(&aged);
-        self.worker.patch_state(self.escrow.id(), &key, &value).await?;
+        value[positions[0]..positions[0] + 8].copy_from_slice(&aged);
+        self.worker
+            .patch_state(self.escrow.id(), &key, &value)
+            .await?;
         Ok(())
     }
 }
@@ -169,11 +178,24 @@ impl Fixture {
 async fn production_initializer_pins_circle_and_starts_paused() -> Result<()> {
     let f = Fixture::new().await?;
     let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
-    let prod = f.worker.dev_deploy(&std::fs::read(root.join("artifacts/candidate/mainnet-escrow.wasm"))?).await?;
-    let bad = prod.call("new").args_json(json!({"admin": f.admin.id(), "server": f.server.id(), "token": f.ft.id()})).transact().await?;
+    let prod = f
+        .worker
+        .dev_deploy(&std::fs::read(
+            root.join("artifacts/candidate/mainnet-escrow.wasm"),
+        )?)
+        .await?;
+    let bad = prod
+        .call("new")
+        .args_json(json!({"admin": f.admin.id(), "server": f.server.id(), "token": f.ft.id()}))
+        .transact()
+        .await?;
     assert!(bad.is_failure());
     let token = "17208628f84f5d6ad33f0da3bbbeb27ffcb398eac501a31bd6ad2011e36133a1";
-    prod.call("new").args_json(json!({"admin": f.admin.id(), "server": f.server.id(), "token": token})).transact().await?.into_result()?;
+    prod.call("new")
+        .args_json(json!({"admin": f.admin.id(), "server": f.server.id(), "token": token}))
+        .transact()
+        .await?
+        .into_result()?;
     let cfg: Value = prod.view("get_config").await?.json()?;
     assert_eq!(cfg["token"], token);
     assert_eq!(cfg["paused"], true);
@@ -186,18 +208,40 @@ async fn cancelled_zero_one_two_deposits_refund_exactly_once() -> Result<()> {
     for count in 0..=2 {
         let f = Fixture::new().await?;
         let id = f.lobby().await?;
-        if count >= 1 { f.deposit(&id, &f.alice, "10000000").await?; }
-        if count == 2 { f.deposit(&id, &f.bob, "10000000").await?; }
-        f.alice.call(f.escrow.id(), "cancel_unstarted_match").args_json(json!({"match_id": id}))
-            .deposit(NearToken::from_yoctonear(1)).max_gas().transact().await?.into_result()?;
+        if count >= 1 {
+            f.deposit(&id, &f.alice, "10000000").await?;
+        }
+        if count == 2 {
+            f.deposit(&id, &f.bob, "10000000").await?;
+        }
+        f.alice
+            .call(f.escrow.id(), "cancel_unstarted_match")
+            .args_json(json!({"match_id": id}))
+            .deposit(NearToken::from_yoctonear(1))
+            .max_gas()
+            .transact()
+            .await?
+            .into_result()?;
         assert_eq!(f.balance(f.alice.id()).await?, 20_000_000);
         assert_eq!(f.balance(f.bob.id()).await?, 20_000_000);
         assert_eq!(f.balance(f.admin.id()).await?, 0);
-        let repeat = f.bob.call(f.escrow.id(), "cancel_unstarted_match").args_json(json!({"match_id": id}))
-            .deposit(NearToken::from_yoctonear(1)).max_gas().transact().await?;
+        let repeat = f
+            .bob
+            .call(f.escrow.id(), "cancel_unstarted_match")
+            .args_json(json!({"match_id": id}))
+            .deposit(NearToken::from_yoctonear(1))
+            .max_gas()
+            .transact()
+            .await?;
         assert!(repeat.is_failure());
-        let paid = f.alice.call(f.escrow.id(), "claim_payout").args_json(json!({"match_id": id, "index": 0}))
-            .deposit(NearToken::from_yoctonear(1)).max_gas().transact().await?;
+        let paid = f
+            .alice
+            .call(f.escrow.id(), "claim_payout")
+            .args_json(json!({"match_id": id, "index": 0}))
+            .deposit(NearToken::from_yoctonear(1))
+            .max_gas()
+            .transact()
+            .await?;
         assert!(!paid.json::<bool>()?);
         assert_eq!(f.deposit(&id, &f.alice, "10000000").await?, "0");
         assert_eq!(f.balance(f.alice.id()).await?, 20_000_000);
@@ -211,24 +255,53 @@ async fn insufficient_balance_wrong_token_and_frozen_stake() -> Result<()> {
     let f = Fixture::new().await?;
     let id = f.lobby().await?;
     assert!(f.deposit(&id, &f.alice, "30000000").await.is_err());
-    assert_eq!(f.state(&id).await?["deposited"], json!([false,false]));
-    let start = f.server.call(f.escrow.id(), "start_match").args_json(json!({"match_id": id})).transact().await?;
+    assert_eq!(f.state(&id).await?["deposited"], json!([false, false]));
+    let start = f
+        .server
+        .call(f.escrow.id(), "start_match")
+        .args_json(json!({"match_id": id}))
+        .transact()
+        .await?;
     assert!(start.is_failure());
     let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
-    let fake = f.worker.dev_deploy(&std::fs::read(root.join("target/wasm32-unknown-unknown/release/test_usdc.wasm"))?).await?;
-    fake.call("new").args_json(json!({"owner": f.admin.id()})).transact().await?.into_result()?;
+    let fake = f
+        .worker
+        .dev_deploy(&std::fs::read(
+            root.join("target/wasm32-unknown-unknown/release/test_usdc.wasm"),
+        )?)
+        .await?;
+    fake.call("new")
+        .args_json(json!({"owner": f.admin.id()}))
+        .transact()
+        .await?
+        .into_result()?;
     for account in [f.alice.id(), f.escrow.id()] {
-        f.admin.call(fake.id(), "storage_deposit").args_json(json!({"account_id": account}))
-            .deposit(NearToken::from_millinear(10)).transact().await?.into_result()?;
+        f.admin
+            .call(fake.id(), "storage_deposit")
+            .args_json(json!({"account_id": account}))
+            .deposit(NearToken::from_millinear(10))
+            .transact()
+            .await?
+            .into_result()?;
     }
-    f.admin.call(fake.id(), "mint").args_json(json!({"account_id": f.alice.id(), "amount": "10000000"})).transact().await?.into_result()?;
+    f.admin
+        .call(fake.id(), "mint")
+        .args_json(json!({"account_id": f.alice.id(), "amount": "10000000"}))
+        .transact()
+        .await?
+        .into_result()?;
     let wrong: String = f.alice.call(fake.id(), "ft_transfer_call").args_json(json!({"receiver_id": f.escrow.id(), "amount": "10000000",
         "msg": json!({"match_id": id, "revision":"0", "stake":"10000000", "fee_bps":300}).to_string()}))
         .deposit(NearToken::from_yoctonear(1)).max_gas().transact().await?.json()?;
     assert_eq!(wrong, "0");
     assert_eq!(f.ledger().await?["accepted"], "0");
     f.deposit(&id, &f.alice, "10000000").await?;
-    let raise = f.server.call(f.escrow.id(), "update_stake").args_json(json!({"match_id":id,"stake":"11000000"})).transact().await?;
+    let raise = f
+        .server
+        .call(f.escrow.id(), "update_stake")
+        .args_json(json!({"match_id":id,"stake":"11000000"}))
+        .transact()
+        .await?;
     assert!(raise.is_failure());
     assert_eq!(f.state(&id).await?["stake"], "10000000");
     Ok(())
@@ -241,32 +314,184 @@ async fn deadlines_pause_and_server_compromise_circuit_breaker() -> Result<()> {
     f.deposit(&id, &f.alice, "10000000").await?;
     f.age(&id, "deadline_ns").await?;
     assert_eq!(f.deposit(&id, &f.bob, "10000000").await?, "0");
-    f.bob.call(f.escrow.id(), "cancel_expired_lobby").args_json(json!({"match_id":id})).max_gas().transact().await?.into_result()?;
+    f.bob
+        .call(f.escrow.id(), "cancel_expired_lobby")
+        .args_json(json!({"match_id":id}))
+        .max_gas()
+        .transact()
+        .await?
+        .into_result()?;
     assert_eq!(f.balance(f.alice.id()).await?, 20_000_000);
     let id = f.lobby().await?;
-    f.admin.call(f.escrow.id(), "pause").transact().await?.into_result()?;
+    f.admin
+        .call(f.escrow.id(), "pause")
+        .transact()
+        .await?
+        .into_result()?;
     assert_eq!(f.deposit(&id, &f.alice, "10000000").await?, "0");
-    f.admin.call(f.escrow.id(), "unpause").transact().await?.into_result()?;
+    f.admin
+        .call(f.escrow.id(), "unpause")
+        .transact()
+        .await?
+        .into_result()?;
     f.deposit(&id, &f.alice, "10000000").await?;
     f.deposit(&id, &f.bob, "10000000").await?;
     f.start(&id).await?;
     f.age(&id, "game_deadline_ns").await?;
-    f.server.call(f.escrow.id(), "heartbeat").args_json(json!({"match_ids":[id]})).transact().await?.into_result()?;
+    f.server
+        .call(f.escrow.id(), "heartbeat")
+        .args_json(json!({"match_ids":[id]}))
+        .transact()
+        .await?
+        .into_result()?;
     assert!(f.result(&id, &f.bob).await.is_err());
-    f.alice.call(f.escrow.id(), "request_emergency_refund").args_json(json!({"match_id":id}))
-        .deposit(NearToken::from_yoctonear(1)).max_gas().transact().await?.into_result()?;
+    f.alice
+        .call(f.escrow.id(), "request_emergency_refund")
+        .args_json(json!({"match_id":id}))
+        .deposit(NearToken::from_yoctonear(1))
+        .max_gas()
+        .transact()
+        .await?
+        .into_result()?;
     let id = f.lobby().await?;
     f.deposit(&id, &f.alice, "10000000").await?;
     f.deposit(&id, &f.bob, "10000000").await?;
     f.start(&id).await?;
-    f.admin.call(f.escrow.id(), "freeze_server").transact().await?.into_result()?;
+    f.admin
+        .call(f.escrow.id(), "freeze_server")
+        .transact()
+        .await?
+        .into_result()?;
     assert!(f.result(&id, &f.bob).await.is_err());
-    let hb = f.server.call(f.escrow.id(), "heartbeat").args_json(json!({"match_ids":[id]})).transact().await?;
+    let hb = f
+        .server
+        .call(f.escrow.id(), "heartbeat")
+        .args_json(json!({"match_ids":[id]}))
+        .transact()
+        .await?;
     assert!(hb.is_failure());
-    f.bob.call(f.escrow.id(), "request_emergency_refund").args_json(json!({"match_id":id}))
-        .deposit(NearToken::from_yoctonear(1)).max_gas().transact().await?.into_result()?;
+    f.bob
+        .call(f.escrow.id(), "request_emergency_refund")
+        .args_json(json!({"match_id":id}))
+        .deposit(NearToken::from_yoctonear(1))
+        .max_gas()
+        .transact()
+        .await?
+        .into_result()?;
     assert_eq!(f.balance(f.alice.id()).await?, 20_000_000);
     assert_eq!(f.balance(f.bob.id()).await?, 20_000_000);
+    assert_eq!(f.ledger().await?["owed"], "0");
+    Ok(())
+}
+
+#[tokio::test]
+async fn issuer_pause_and_insufficient_escrow_ft_restore_ready_obligations() -> Result<()> {
+    for insolvency in [false, true] {
+        let f = Fixture::new().await?;
+        let id = f.lobby().await?;
+        f.deposit(&id, &f.alice, "10000000").await?;
+        f.deposit(&id, &f.bob, "10000000").await?;
+        f.start(&id).await?;
+        if insolvency {
+            f.admin
+                .call(f.ft.id(), "burn_for_test")
+                .args_json(json!({"account_id":f.escrow.id(), "amount":"20000000"}))
+                .transact()
+                .await?
+                .into_result()?;
+        } else {
+            f.admin
+                .call(f.ft.id(), "set_paused")
+                .args_json(json!({"paused":true}))
+                .transact()
+                .await?
+                .into_result()?;
+        }
+        f.result(&id, &f.alice).await?;
+        let m = f.state(&id).await?;
+        assert_eq!(m["payouts"][0]["state"], "Ready");
+        assert_eq!(m["payouts"][1]["state"], "Ready");
+        assert_eq!(f.ledger().await?["paid"], "0");
+        assert_eq!(f.ledger().await?["owed"], "20000000");
+        if insolvency {
+            f.admin
+                .call(f.ft.id(), "mint")
+                .args_json(json!({"account_id":f.escrow.id(), "amount":"20000000"}))
+                .transact()
+                .await?
+                .into_result()?;
+        } else {
+            f.admin
+                .call(f.ft.id(), "set_paused")
+                .args_json(json!({"paused":false}))
+                .transact()
+                .await?
+                .into_result()?;
+        }
+        for (index, who) in [(0, &f.alice), (1, &f.admin)] {
+            who.call(f.escrow.id(), "claim_payout")
+                .args_json(json!({"match_id":id,"index":index}))
+                .deposit(NearToken::from_yoctonear(1))
+                .max_gas()
+                .transact()
+                .await?
+                .into_result()?;
+        }
+        assert_eq!(f.state(&id).await?["state"], "Completed");
+        assert_eq!(f.balance(f.alice.id()).await?, 29_400_000);
+        assert_eq!(f.balance(f.admin.id()).await?, 600_000);
+        assert_eq!(f.ledger().await?["owed"], "0");
+        // A self callback without a dependency result fails before touching accounting.
+        let bad = f
+            .escrow
+            .call("on_payout")
+            .args_json(json!({"match_id":id,"index":0,"attempt":"2"}))
+            .transact()
+            .await?;
+        assert!(bad.is_failure());
+        assert_eq!(f.ledger().await?["paid"], "20000000");
+    }
+    Ok(())
+}
+
+#[tokio::test]
+async fn blocklisted_refund_is_retryable_without_platform_fee() -> Result<()> {
+    let f = Fixture::new().await?;
+    let id = f.lobby().await?;
+    f.deposit(&id, &f.alice, "10000000").await?;
+    f.deposit(&id, &f.bob, "10000000").await?;
+    f.admin
+        .call(f.ft.id(), "set_blocked")
+        .args_json(json!({"account_id":f.alice.id(),"blocked":true}))
+        .transact()
+        .await?
+        .into_result()?;
+    f.admin
+        .call(f.escrow.id(), "cancel_match_admin")
+        .args_json(json!({"match_id":id}))
+        .max_gas()
+        .transact()
+        .await?
+        .into_result()?;
+    assert_eq!(f.balance(f.bob.id()).await?, 20_000_000);
+    assert_eq!(f.balance(f.admin.id()).await?, 0);
+    assert_eq!(f.state(&id).await?["payouts"][0]["state"], "Ready");
+    assert_eq!(f.ledger().await?["owed"], "10000000");
+    f.admin
+        .call(f.ft.id(), "set_blocked")
+        .args_json(json!({"account_id":f.alice.id(),"blocked":false}))
+        .transact()
+        .await?
+        .into_result()?;
+    f.alice
+        .call(f.escrow.id(), "claim_payout")
+        .args_json(json!({"match_id":id,"index":0}))
+        .deposit(NearToken::from_yoctonear(1))
+        .max_gas()
+        .transact()
+        .await?
+        .into_result()?;
+    assert_eq!(f.balance(f.alice.id()).await?, 20_000_000);
     assert_eq!(f.ledger().await?["owed"], "0");
     Ok(())
 }

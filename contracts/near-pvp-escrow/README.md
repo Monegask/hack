@@ -1,47 +1,31 @@
-# NEAR PvP Escrow
+# Supply Line native Circle USDC escrow — audit candidate
 
-Rust-контракт для двух равных ставок в USDC: NEP-141 депозиты, серверное подтверждение старта/результата, комиссия, отмены, forfeit и самостоятельный аварийный возврат. Игровая логика и NEAR Intents находятся вне escrow.
+Version 2 source candidate in `feat/mainnet-escrow`, based on `testnet-pvp-server`. **No deployment, real funds or private keys.** Existing Testnet WASM and backend are unchanged. Rust sources were found locally and all 53 original import hashes verified; see [provenance](docs/candidate/source-provenance.json).
 
-Реальные FT-переводы выполняются через `ft_transfer`, а результат каждого перевода подтверждается private callback. Неудачная выплата остаётся обязательством перед исходным получателем.
+- [Candidate specification and invariants](docs/candidate/SPEC.md)
+- [Public API](API.md)
+- [Strict backend/API migration boundary](docs/candidate/MIGRATION.md)
+- [Risks, centralized server trust and mitigations](docs/candidate/RISKS.md)
+- [Verification and reproducible builds](docs/candidate/VERIFICATION.md)
 
-## Быстрый запуск
+## Build and test (Linux x86_64)
 
-Нужны Rust/rustup, C/C++ build tools, Python 3 и Node.js 24+. Версии Rust и зависимостей зафиксированы в `rust-toolchain.toml`, `Cargo.lock`, `tests/sandbox/Cargo.lock` и `package-lock.json`. На macOS нужен Apple Silicon; для Sandbox также поддерживается Linux x86_64/aarch64.
+Install system build dependencies (`build-essential`, `pkg-config`, `libssl-dev`, `python3`, `nodejs` 24+) and rustup. The committed `rust-toolchain.toml` pins Rust 1.99.1 and wasm32 target; both Cargo.lock files are committed. No wallet or network credentials are needed. Sandbox starts its own local chain, using generated throwaway test accounts only. Dependency downloads require network access.
 
-```bash
+```sh
+cd contracts/near-pvp-escrow
 rustup show
-npm ci --ignore-scripts
 bash scripts/check.sh
 ```
 
-Полная проверка собирает WASM, запускает unit-тесты, Sandbox с настоящими cross-contract receipts, Clippy, форматирование, TypeScript и клиентские тесты. Первый запуск загружает SDK и Sandbox.
+`build-candidate.sh` builds production twice in distinct target directories and compares bytes, then builds mock-token-enabled Sandbox WASM. Outputs are under `artifacts/candidate/`:
 
-```bash
-bash scripts/build.sh
-python3 scripts/preflight.py
-```
+- `mainnet-escrow.wasm`: production token pinning, starts paused; candidate only.
+- `SANDBOX-ONLY-escrow.wasm` and `SANDBOX-ONLY-token.wasm`: test artifacts, never deploy to Mainnet.
+- SHA256SUMS, toolchain and dependency reports.
 
-Результат сборки: `artifacts/near_pvp_escrow.wasm`, тестовый `test_usdc.wasm` и SHA-256 manifest. `artifacts/` не хранится в Git. Компиляция `cargo build --target wasm32-unknown-unknown` проверяется выполнением того же WASM в Sandbox; cargo-near для этого проекта не обязателен.
+**The tracked `artifacts/near_pvp_escrow.wasm` remains the historical Testnet binary.** Do not overwrite it or switch the running backend to a candidate artifact. Build scripts deliberately use a separate output directory. This task contains no Mainnet deployment command. Legacy Testnet deployment helpers are not a supported v2 deployment path.
 
-## Документация
+## Historical import
 
-- [Проектирование и решения по неоднозначностям](docs/DESIGN.md)
-- [Архитектура](ARCHITECTURE.md)
-- [API](API.md)
-- [Интеграция backend и кошелька](INTEGRATION.md)
-- [Модель безопасности](SECURITY.md)
-- [Развёртывание и обновление](DEPLOYMENT.md)
-- [Тесты и ограничения проверки](TESTING.md)
-- [Полный TypeScript-пример](examples/full-flow.ts)
-
-Ставка задаётся строкой минимальных единиц: `"1000000"` = 1 USDC. Начальная комиссия 300 bps (3% банка), таймер лобби 600 секунд, inactivity 90 секунд, countdown 3 секунды, аварийный порог heartbeat каждого матча 1800 секунд.
-
-## Структура
-
-`contract/src` содержит контракт, модели, приём ставок, жизненный цикл, выплаты, управление и события. `tests/mock-ft` — тестовый NEP-141 токен. `tests/sandbox` — интеграционные тесты и Testnet CLI. `examples` — TypeScript-интеграция без встроенных ключей. `scripts` — сборка, проверки, preflight и деплой. GitHub Actions выполняет те же проверки.
-
-Статус фактических проверок и Testnet-развёртывания фиксируется в `docs/reports/VALIDATION.md`. Это первая реализация для проверки и интеграции в Testnet. Автоматические тесты не заменяют независимый аудит перед использованием реальных средств.
-
-Переносимый архив с исходниками и собранным WASM: `python3 scripts/package.py` -> `dist/near-pvp-escrow.zip`. Ключи, node_modules и target исключаются.
-
-Лицензия MIT.
+ARCHITECTURE.md, DEPLOYMENT.md, INTEGRATION.md, SECURITY.md, TESTING.md, docs/DESIGN.md, docs/REQUIREMENTS.md and docs/reports describe the preserved v1 project and old test runs. They do not supersede the v2 candidate specification or establish fresh verification. In particular v1 immediate 0..100% fee, unrestricted token initializer and unlimited heartbeated lifetime are no longer v2 behavior.

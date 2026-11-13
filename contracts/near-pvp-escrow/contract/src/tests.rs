@@ -850,6 +850,9 @@ fn missing_callback_never_authorizes_automatic_repayment() {
     player("alice.near", 1_000_000);
     assert!(!c.claim_payout(id, 0));
     assert!(get_created_receipts().is_empty());
-    assert_eq!(c.get_match(id).unwrap().payouts[0].state, PayoutState::InFlight);
+    assert_eq!(
+        c.get_match(id).unwrap().payouts[0].state,
+        PayoutState::InFlight
+    );
     invariant(&c);
 }

@@ -15,6 +15,8 @@ use near_sdk::{AccountId, NearToken, PanicOnDefault, PromiseOrValue, env, json_t
 pub struct TestUsdc {
     token: FungibleToken,
     owner: AccountId,
+    paused: bool,
+    blocked: near_sdk::collections::LookupSet<AccountId>,
 }
 
 #[near]
@@ -24,17 +26,46 @@ impl TestUsdc {
         Self {
             token: FungibleToken::new(b"t"),
             owner,
+            paused: false,
+            blocked: near_sdk::collections::LookupSet::new(b"b"),
         }
     }
     pub fn mint(&mut self, account_id: AccountId, amount: U128) {
         assert_eq!(env::predecessor_account_id(), self.owner);
         self.token.internal_deposit(&account_id, amount.0);
     }
+    pub fn set_paused(&mut self, paused: bool) {
+        assert_eq!(env::predecessor_account_id(), self.owner);
+        self.paused = paused;
+    }
+    pub fn set_blocked(&mut self, account_id: AccountId, blocked: bool) {
+        assert_eq!(env::predecessor_account_id(), self.owner);
+        if blocked {
+            self.blocked.insert(&account_id);
+        } else {
+            self.blocked.remove(&account_id);
+        }
+    }
+    /// Fault injection only: simulate FT insolvency, never part of production escrow.
+    pub fn burn_for_test(&mut self, account_id: AccountId, amount: U128) {
+        assert_eq!(env::predecessor_account_id(), self.owner);
+        self.token.internal_withdraw(&account_id, amount.0);
+    }
+}
+impl TestUsdc {
+    fn allowed(&self, from: &AccountId, to: &AccountId) {
+        assert!(!self.paused, "Test issuer paused");
+        assert!(
+            !self.blocked.contains(from) && !self.blocked.contains(to),
+            "Test issuer blocked"
+        );
+    }
 }
 #[near]
 impl FungibleTokenCore for TestUsdc {
     #[payable]
     fn ft_transfer(&mut self, receiver_id: AccountId, amount: U128, memo: Option<String>) {
+        self.allowed(&env::predecessor_account_id(), &receiver_id);
         self.token.ft_transfer(receiver_id, amount, memo)
     }
     #[payable]
@@ -45,6 +76,7 @@ impl FungibleTokenCore for TestUsdc {
         memo: Option<String>,
         msg: String,
     ) -> PromiseOrValue<U128> {
+        self.allowed(&env::predecessor_account_id(), &receiver_id);
         self.token.ft_transfer_call(receiver_id, amount, memo, msg)
     }
     fn ft_total_supply(&self) -> U128 {
@@ -63,6 +95,7 @@ impl FungibleTokenResolver for TestUsdc {
         receiver_id: AccountId,
         amount: U128,
     ) -> U128 {
+        self.allowed(&sender_id, &receiver_id);
         self.token
             .internal_ft_resolve_transfer(&sender_id, receiver_id, amount)
             .0

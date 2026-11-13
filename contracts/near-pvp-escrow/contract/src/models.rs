@@ -99,8 +99,9 @@ impl Match {
     }
     pub fn stale(&self, now: u64) -> bool {
         self.game_deadline_ns.is_some_and(|t| now >= t.0)
-            || self.last_heartbeat_ns
-            .is_some_and(|t| now >= t.0.saturating_add(crate::HEARTBEAT_NS))
+            || self
+                .last_heartbeat_ns
+                .is_some_and(|t| now >= t.0.saturating_add(crate::HEARTBEAT_NS))
     }
     pub fn all_paid(&self) -> bool {
         self.payouts.iter().all(|p| p.state == PayoutState::Paid)

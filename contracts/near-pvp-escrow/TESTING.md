@@ -1,3 +1,5 @@
+> Historical v1 import. Not current v2 instructions or fresh validation. See [candidate specification](docs/candidate/SPEC.md) and candidate migration/security documents. Do not run historical deployment commands for this candidate.
+
 # Тестирование
 
 ```bash
