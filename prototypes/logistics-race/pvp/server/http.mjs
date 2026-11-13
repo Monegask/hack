@@ -32,7 +32,7 @@ export function createApp(cfg,store,chain,service){
     const file=files[pathname];if(!file)return send({error:'Not found'},404);
     res.writeHead(200,{...headers,'Content-Type':file.endsWith('.js')?'text/javascript':file.endsWith('.css')?'text/css':'text/html; charset=utf-8'});return fs.createReadStream(path.join(root,'public',file)).pipe(res);
    }
-   const ip=req.socket.remoteAddress||'unknown',now=Date.now(),rawSession=cookie(req,'sl_session'),rateSession=rawSession&&store.get('session',hash(rawSession)),rateKey=rateSession&&rateSession.expires>now?'session:'+hash(rawSession):'ip:'+ip,rate=limits.get(rateKey)||{at:now,n:0};if(now-rate.at>1000){rate.at=now;rate.n=0;}if(++rate.n>45)return send({error:'Too many requests'},429);limits.set(rateKey,rate);
+   const ip=req.socket.remoteAddress||'unknown',now=Date.now(),rawSession=cookie(req,'sl_session'),rateSession=rawSession&&store.get('session',hash(rawSession)),rateKey=rateSession&&rateSession.expires>now?'account:'+rateSession.account:'ip:'+ip,rate=limits.get(rateKey)||{at:now,n:0};if(now-rate.at>1000){rate.at=now;rate.n=0;}if(++rate.n>45)return send({error:'Too many requests'},429);limits.set(rateKey,rate);
    if(limits.size>2000)for(const [key,v] of limits)if(now-v.at>60000)limits.delete(key);
    let body={};if(req.method==='POST'){
     if(!req.headers['content-type']?.startsWith('application/json'))return send({error:'Expected JSON'},415);

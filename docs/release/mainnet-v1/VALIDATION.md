@@ -5,13 +5,16 @@
 ## Completed on the integrated tree
 
 - 169/169 game regression tests after a full local rebuild: solo economics, tutorial, bot and 3D presentation.
-- Initial combined backend suite: 47/47; additional integration tests cover two distinct NEP-413 wallets over real local HTTP, discovery with fractional monotonic clock, bounded catalogue reads, Mainnet public-route gates, cross-network sessions and expired-unpaid capacity.
+- Combined backend suite: 53/53, including six new release integration tests. Tests cover two distinct NEP-413 wallets over real local HTTP, discovery with fractional monotonic clock, bounded catalogue reads, Mainnet public-route gates, cross-network sessions and expired-unpaid capacity.
 - Actual local Edge: public/private creation, discovery without link, sorting, joining, occupied removal, private invite, mobile overflow; isolated contexts with fixture chain.
 - Actual local Edge financial UI: ambiguous broadcast, reload, second tab, reconnect, final state observation, wallet/deployment change, Mainnet read-only UI. Fixture transactions are not on-chain transfers.
+- Actual local Edge rebuilt offline portal: real tutorial and bot launch in fresh profiles, no page errors.
 - Actual local Edge game QA: two mirrored roles, server commands, reload, tamper recovery, mobile lobby, no page errors. Sessions are isolated from user browser data.
+- Actual truck UI for both sides: select truck 2 only, recall, return and assign a different mission; [evidence](controls-browser.json).
+- 1,920 route comparisons over 20 seeds, both sides and three road sets match the original engine exactly; [evidence](routes.json).
 - 50 completed engine replay matches: 940.3 simulated seconds, 91 commands each, identical state hash and winner to base `0e13688`; 50 unique mock settlements, no duplicates. [Evidence](determinism.json).
 - 50 concurrent admission scenarios: 400 HTTP requests, 50 idempotent duplicate creates, 50 expected losing-seat rejections, 200 deposit templates and zero unexpected errors. Templates are not transfers. [Evidence](admission.json).
-- Fresh 60s/50-match smoke: API p95 26.9ms, command p95 35.1ms, zero errors, 100 successful reconnects, acknowledged sequences match server records. A longer current run is recorded separately.
+- Fresh 60s/50-match smoke: API p95 26.9ms, command p95 35.1ms, zero errors, 100 successful reconnects, acknowledged sequences match server records. New 300s integrated run: 50 matches/100 clients, API p95 31.1ms, command p95 41.1ms, 144,726 HTTP requests, zero errors, 14,500 unique commands plus 14,500 identical retries, all 100 reconnects; maximum backlog below 100ms. [Evidence](load-50.json). This records pre-adapter code hashes; final adapter changes require another run.
 
 The full build includes `game-3d/build.mjs`, `build-offline.cjs`, bot, share portal and PvP bundle. Some initial restricted Windows runs failed due to build-tool access; the necessary rebuild/regression runs were repeated successfully with local access. Tests were never run by deleting a user save.
 

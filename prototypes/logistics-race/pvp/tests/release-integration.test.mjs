@@ -68,3 +68,29 @@ test('release A03: expired unpaid lobbies release local capacity; funded obligat
  assert.equal(f.chain.matches.get(lobbies[0].chainId).deposited[0],true);
  assert.equal(f.chain.operations.has(lobbies[0].code+':result'),false);
 });
+
+test('release R01: catalogue changes and failed RPC cannot multiply discovery workers',async t=>{
+ const f=fixture();t.after(()=>f.store.close());
+ const first=await f.game.create('one.testnet','1','catalogue-one','public');
+ let release;const gate=new Promise(r=>release=r),read=f.chain.match.bind(f.chain);let calls=0;
+ f.chain.match=async id=>{calls++;await gate;throw Error('RPC offline');};
+ const pending=f.game.lobbies();
+ // Model local admission changing the candidate set during a slow discovery read.
+ const m=structuredClone(f.game.matches.get(first.code));m.code='abcdef123456';m.players[0]='two.testnet';m.chain.creator='two.testnet';f.game.matches.set(m.code,m);
+ const during=f.game.lobbies();assert.equal(calls,1);release();
+ assert.equal((await pending).total,0);assert.equal((await during).total,0);
+ await f.game.lobbies();assert.equal(calls,3); // Changed set gets one new snapshot.
+ await Promise.all(Array.from({length:30},()=>f.game.lobbies()));assert.equal(calls,3);
+ f.chain.match=read;f.step(2001);assert.equal((await f.game.lobbies()).total,1);
+});
+
+test('release A04: multiple sessions for one wallet share a budget, other wallets stay independent',async t=>{
+ const f=fixture();t.after(()=>f.store.close());const app=createApp(f.cfg,f.store,f.chain,f.game);
+ await new Promise(r=>app.listen(0,'127.0.0.1',r));t.after(()=>new Promise(r=>app.close(r)));
+ const origin='http://127.0.0.1:'+app.address().port;f.cfg.origin=origin;
+ for(const [token,account] of [['first','alice.testnet'],['second','alice.testnet'],['third','bob.testnet']])f.store.put('session',createHash('sha256').update(token).digest('hex'),{account,scope:f.cfg.scope,expires:Date.now()+60000});
+ const realNow=Date.now,at=realNow();Date.now=()=>at;t.after(()=>{Date.now=realNow;});
+ const request=token=>fetch(origin+'/api/auth/session',{headers:{cookie:'sl_session='+token}});
+ for(let i=0;i<45;i++)assert.equal((await request('first')).status,200);
+ assert.equal((await request('second')).status,429);assert.equal((await request('third')).status,200);
+});

@@ -46,10 +46,10 @@ export class GameService{
   if(!integer(limit,50)||Number(limit)<1||!integer(offset,1000000)||!integer(minStake,100000000)||!integer(maxStake,100000000)||BigInt(minStake)>BigInt(maxStake)||!['created','stake'].includes(sort)||!['asc','desc'].includes(order))throw Error('Invalid lobby query');
   // Coalesce simultaneous discovery reads. Discovery never submits transactions or mutates match phases.
   const candidates=[...this.matches.values()].filter(m=>m.visibility==='public'&&this.available(m)),key=candidates.map(m=>m.code+':'+m.chainId).join(',');
-  if(!this.discoveryRead||this.discoveryRead.key!==key||this.now()-this.discoveryRead.at>=2000){
-   const entry={key,at:Infinity},entries=[];let cursor=0;
+  if(!this.discoveryRead||(!this.discoveryRead.pending&&(this.discoveryRead.key!==key||this.now()-this.discoveryRead.at>=2000))){
+   const entry={key,at:Infinity,pending:true},entries=[];let cursor=0;
    const worker=async()=>{while(cursor<candidates.length){const m=candidates[cursor++];entries.push([m.code,await this.chain.match(m.chainId).catch(()=>null)]);}};
-   entry.promise=Promise.all(Array.from({length:Math.min(4,candidates.length)},worker)).then(()=>{entry.at=this.now();if(entries.some(([,c])=>!c)&&this.discoveryRead===entry)this.discoveryRead=null;return new Map(entries);});this.discoveryRead=entry;
+   entry.promise=Promise.all(Array.from({length:Math.min(4,candidates.length)},worker)).then(()=>{entry.at=this.now();entry.pending=false;return new Map(entries);});this.discoveryRead=entry;
   }
   const live=await this.discoveryRead.promise;
   const rows=[...this.matches.values()].filter(m=>m.visibility==='public'&&this.available(m)&&this.chainOpen(m,live.get(m.code))&&BigInt(m.stake)>=BigInt(minStake)&&BigInt(m.stake)<=BigInt(maxStake));

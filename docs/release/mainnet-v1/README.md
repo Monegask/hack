@@ -19,7 +19,8 @@ Merged in this order. Semantic conflict resolutions preserve network/CSRF/sessio
 ## Additional integration fixes
 
 - Public discovery/join routes use the same hard Mainnet payment gate as private matches. Setting a payment flag does not bypass it.
-- Discovery converts fractional monotonic milliseconds to integer nanoseconds safely; it coalesces reads for two seconds, with at most four concurrent RPC reads. Join always checks live chain state and reserves the seat durably.
+- Discovery converts fractional monotonic milliseconds to integer nanoseconds safely; it coalesces reads for two seconds, with at most four concurrent RPC reads across catalogue changes; failed reads also retain a short negative cache. Join always checks live chain state and reserves the seat durably.
+- Authenticated rate limits apply per account across sessions; other wallets behind the same NAT retain independent budgets. Real ingress/IP/Sybil policy remains a release gate.
 - Expired **unpaid** prestart lobbies release local global capacity. Their original host remains reserved until explicit on-chain cancellation. Funded obligations are retained. This is partial A03 mitigation, not an on-chain cleanup keeper or Sybil solution.
 - Browser match/create/payment state remains deployment-scoped; lobby sorting and automatic refresh remain available with a selected match.
 - Test fixtures now provide the same deployment identity as production configuration. Browser tests await completed catalogue refresh rather than testing a stale DOM.
