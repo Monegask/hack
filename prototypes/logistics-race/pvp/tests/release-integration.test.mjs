@@ -28,6 +28,15 @@ test('release: two distinct NEP413 wallets discover and join one public lobby ov
  assert.equal((await(await guest.get('lobbies')).json()).total,0);
 });
 
+test('release: one deposit never starts a game; both deposits enforce the full three-second countdown',async t=>{
+ const f=fixture();t.after(()=>f.store.close());const a=await f.game.create('alice.testnet','5','release-countdown');
+ await f.game.join(a.code,'bob.testnet');const m=f.game.matches.get(a.code),c=f.chain.matches.get(m.chainId);
+ c.deposited[0]=true;await f.game.reconcile(m);assert.equal(m.phase,'funding');assert.equal(m.states,null);
+ f.chain.deposit(m.chainId);await f.game.reconcile(m);assert.equal(m.phase,'countdown');
+ f.step(2999);await f.game.reconcile(m);assert.equal(m.phase,'countdown');assert.equal(m.states,null);
+ f.step(1);await f.game.reconcile(m);assert.equal(m.phase,'playing');assert.equal(m.states[0].time,0);assert.equal(m.states[1].time,0);
+});
+
 test('release: public discovery supports fractional monotonic clocks and bounds RPC amplification',async t=>{
  const f=fixture();t.after(()=>f.store.close());f.cfg.maxActive=20;
  for(let i=0;i<12;i++)await f.game.create(`host${i}.testnet`,'5',`release-host-${i}`,'public');
