@@ -54,3 +54,5 @@ node --env-file=.env.mainnet server/preflight.mjs
 5. Завершить recovery без hash/при успешном FT tx с полным возвратом; доказать безопасность повторов на контракте. Проверить реальные Meteor/HOT/другие кошельки на Mainnet и mobile redirects. Сейчас проверены сетевые параметры и NEP-413 в изолированных тестах.
 
 Источники: [Circle USDC](https://developers.circle.com/stablecoins/usdc-contract-addresses), [NEAR wallet login](https://docs.near.org/web3-apps/tutorials/wallet-login), [NEP-413](https://github.com/near/NEPs/blob/master/neps/nep-0413.md), [NEP-141/145/148](https://docs.near.org/primitives/ft/standard).
+
+Для этой feature-ветки в vercel.json задано `git.deploymentEnabled["feat/mainnet-integration"]=false`, чтобы push/PR не запускал Vercel preview. Это [официальная настройка Vercel](https://vercel.com/docs/project-configuration/git-configuration); другие ветки сохраняют прежнее поведение. Railway/runtime-конфигурация не менялась.

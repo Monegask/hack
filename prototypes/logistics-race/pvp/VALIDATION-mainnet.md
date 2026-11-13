@@ -1,6 +1,6 @@
 # Проверка подготовки Mainnet · 13 ноября 2026
 
-База: `testnet-pvp-server`, commit `0e13688`. Отдельный worktree `publishing/mainnet-integration`, ветка `feat/mainnet-integration`. Другие checkout и публичный runtime не менялись. Соседние feature-ветки public-matchmaking и perf/pvp-scalability не объединены; при merge нужны разрешение пересечений http/main/client и сохранение обеих функциональностей.
+База: `testnet-pvp-server`, commit `0e13688`. Отдельный worktree `publishing/mainnet-integration`, ветка `feat/mainnet-integration`. Другие checkout и публичный runtime не менялись. Автоматический Vercel deployment этой feature-ветки отключён локальной branch-specific настройкой vercel.json перед первым push. Соседние feature-ветки public-matchmaking и perf/pvp-scalability не объединены; при merge нужны разрешение пересечений http/main/client и сохранение обеих функциональностей.
 
 ## Выполнено
 
