@@ -14,6 +14,22 @@ async function connect(){
  if(!signed)throw Error('Signature cancelled. Connect again.');session=await api('auth/verify',{challengeId:challenge.id,signed});await refresh();
  const invite=new URLSearchParams(location.search).get('join');if(invite){$('code').value=invite;await preview(invite);}
 }
+let lobbyOffset=0,lobbyRequest=0,lastLobbyRefresh=0;
+async function refreshLobbies(){
+ if(!session)return;const request=++lobbyRequest,[sort,order]=$('lobbySort').value.split(':');
+ try{
+  const page=await api(`lobbies?limit=10&offset=${lobbyOffset}&sort=${sort}&order=${order}`);
+  if(request!==lobbyRequest||!session)return;
+  if(!page.items.length&&lobbyOffset>0){lobbyOffset=0;return refreshLobbies();}
+  $('publicList').innerHTML=page.items.length?page.items.map(m=>`<div class="match-row"><div class="lobby-details"><strong>${amount(m.stake)} test ${esc(cfg.symbol)}</strong><span>${esc(m.creator)} · Open</span><time datetime="${new Date(m.created).toISOString()}">${esc(new Date(m.created).toLocaleString('en-US'))}</time></div><button data-lobby="${esc(m.id)}" ${m.creator===session.account?'disabled':''}>${m.creator===session.account?'Your lobby':'Join'}</button></div>`).join(''):'No open public lobbies. Create one to find an opponent.';
+  $('previousLobbies').disabled=lobbyOffset===0;$('nextLobbies').disabled=!page.hasMore;$('lobbyPage').textContent=`${page.total} open · Page ${Math.floor(lobbyOffset/10)+1}`;lastLobbyRefresh=Date.now();
+  for(const b of $('publicList').querySelectorAll('[data-lobby]'))b.onclick=()=>action(async()=>{
+   b.disabled=true;
+   try{current=await api('lobbies/'+b.dataset.lobby+'/join',{});sessionStorage.setItem('sl-pvp-match',current.code);renderMatch();}
+   finally{await refreshLobbies();}
+  });
+ }catch(e){if(request===lobbyRequest){$('publicList').textContent='Unable to refresh public lobbies. Retry to check availability.';$('nextLobbies').disabled=true;$('previousLobbies').disabled=true;}throw e;}
+}
 function ledger(stake,feeBps){const bank=BigInt(stake)*2n,fee=bank*BigInt(feeBps)/10000n;return `<div class="ledger"><span>Stake per player</span><b>${amount(stake)} test ${esc(cfg.symbol)}</b><span>Prize pool</span><b>${amount(bank)}</b><span>Game fee · ${feeBps/100}%</span><b>${amount(fee)}</b><strong>Winner receives</strong><strong>${amount(bank-fee)} test ${esc(cfg.symbol)}</strong></div>`;}
 function parseAmount(text){if(!/^[1-9]\d{0,2}(\.\d{1,6})?$/.test(text))return null;const [a,b='']=text.split('.');return String(BigInt(a)*1000000n+BigInt(b.padEnd(6,'0')));}
 function updateTerms(){const value=parseAmount($('amount').value);$('terms').innerHTML=value?ledger(value,cfg.feeBps):'<p>Enter 1–100 test tokens.</p>';}
@@ -55,7 +71,8 @@ async function payment(kind){
 }
 async function refresh(){
  $('welcome').hidden=!!session;$('lobbies').hidden=!session;$('account').hidden=!session;$('wallet').textContent=session?'Sign out':'Connect Testnet wallet';
- if(!session)return;
+ if(!session){lobbyRequest++;$('match').hidden=true;$('gameStage').hidden=true;$('game').removeAttribute('src');return;}
+ await refreshLobbies();
  balances=await api('balance');$('account').innerHTML=`<strong>${esc(session.account)}</strong><span>${amount(balances.balance)} test ${esc(cfg.symbol)}</span>${!balances.registered?'<button id="register">Register test token</button>':''}<span class="muted">New accounts need operator-issued test tokens.</span>`;
  $('register')?.addEventListener('click',()=>action(async()=>{const tx=await api('register',{});await(await wallet()).signAndSendTransaction({...tx.transaction,network:'testnet',signerId:session.account});message('Token registration sent.');}));
  const history=await api('matches');$('history').innerHTML=history.length?history.map(m=>`<div class="match-row"><span>${esc(m.code)} · ${esc(m.phase)} · ${amount(m.stake)} test ${esc(cfg.symbol)}</span><button data-resume="${m.code}">Open</button></div>`).join(''):'No matches yet.';
@@ -63,11 +80,15 @@ async function refresh(){
  const code=current?.code||sessionStorage.getItem('sl-pvp-match');if(code){current=await api('matches/'+code);renderMatch();}
 }
 function connectionFailure(e){reconnectMessage='Connection interrupted. Reconnecting; do not repeat a payment. '+e.message;message(reconnectMessage);}
-async function poll(){if(polling||!session||Date.now()<nextPollAt)return;polling=true;try{if(current){current=await api('matches/'+current.code);renderMatch();}else{if(Date.now()-lastIdleRefresh<15000)return;await refresh();lastIdleRefresh=Date.now();}if(reconnectMessage&&$('message').textContent===reconnectMessage)message();reconnectMessage=null;pollFailures=0;nextPollAt=0;}catch(e){connectionFailure(e);nextPollAt=Date.now()+Math.min(15000,1500*2**Math.min(++pollFailures,4));}finally{polling=false;}}
+async function poll(){if(polling||!session||Date.now()<nextPollAt)return;polling=true;try{if(Date.now()-lastLobbyRefresh>=5000)await refreshLobbies();if(current){current=await api('matches/'+current.code);renderMatch();}else{if(Date.now()-lastIdleRefresh<15000)return;await refresh();lastIdleRefresh=Date.now();}if(reconnectMessage&&$('message').textContent===reconnectMessage)message();reconnectMessage=null;pollFailures=0;nextPollAt=0;}catch(e){connectionFailure(e);nextPollAt=Date.now()+Math.min(15000,1500*2**Math.min(++pollFailures,4));}finally{polling=false;}}
 async function init(){
  cfg=await api('config');updateTerms();try{session=await api('auth/session');}catch{}
+ $('lobbySort').onchange=()=>{lobbyOffset=0;action(refreshLobbies);};
+ $('refreshLobbies').onclick=()=>action(refreshLobbies);
+ $('previousLobbies').onclick=()=>{lobbyOffset=Math.max(0,lobbyOffset-10);action(refreshLobbies);};
+ $('nextLobbies').onclick=()=>{lobbyOffset+=10;action(refreshLobbies);};
  $('amount').oninput=updateTerms;$('connect').onclick=()=>action(connect);$('wallet').onclick=()=>action(async()=>{if(!session)return connect();await api('auth/logout',{});await connector.disconnect().catch(()=>{});session=null;current=null;sessionStorage.removeItem('sl-pvp-match');$('match').hidden=true;await refresh();});
- $('create').onsubmit=e=>{e.preventDefault();action(async()=>{const id=sessionStorage.getItem('sl-pvp-create')||crypto.randomUUID();sessionStorage.setItem('sl-pvp-create',id);current=await api('matches',{amount:$('amount').value,id});sessionStorage.removeItem('sl-pvp-create');sessionStorage.setItem('sl-pvp-match',current.code);renderMatch();await refresh();});};
+ $('create').onsubmit=e=>{e.preventDefault();action(async()=>{const terms={amount:$('amount').value,visibility:$('visibility').value};let pending;try{pending=JSON.parse(sessionStorage.getItem('sl-pvp-create'));}catch{}if(!pending||pending.amount!==terms.amount||pending.visibility!==terms.visibility)pending={...terms,id:crypto.randomUUID()};sessionStorage.setItem('sl-pvp-create',JSON.stringify(pending));current=await api('matches',pending);sessionStorage.removeItem('sl-pvp-create');sessionStorage.setItem('sl-pvp-match',current.code);renderMatch();await refresh();});};
  $('join').onsubmit=e=>{e.preventDefault();action(()=>preview($('code').value));};
  window.addEventListener('message',e=>{if(e.source===$('game').contentWindow&&e.origin===location.origin&&e.data?.type==='supply-line-pvp-home'){$('gameStage').hidden=true;$('game').removeAttribute('src');}});
  connector.on('wallet:signOut',()=>{if(session)message('Wallet disconnected. Reconnect the same account before signing another transaction.');});
