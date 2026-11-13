@@ -2742,7 +2742,7 @@ async function recoverPayment() {
 async function sendWallet(kind, transaction, intentId = null) {
   const run = async () => {
     if (pending()) throw Error("A payment is unresolved. Check the wallet and escrow before retrying.");
-    if (!cfg.paymentsEnabled) throw Error("Mainnet payments are disabled pending escrow API, audit and competition approval");
+    if (!cfg.paymentsEnabled) throw Error("Mainnet payments are disabled pending independent verification, audit and competition approval");
     const w = await wallet(), key = pendingKey(cfg.scope, session.account);
     const record = { intentId, kind, code: current?.code, account: session.account, at: Date.now(), payoutIndex: kind === "claim" ? transaction.actions[0].params.args.index : null };
     localStorage.setItem(key, JSON.stringify(record));

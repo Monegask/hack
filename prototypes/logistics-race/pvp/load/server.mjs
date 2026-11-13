@@ -8,7 +8,7 @@ import {FakeChain} from '../tests/fixture.mjs';
 const dir=process.env.LOAD_SERVER_DIR||new URL('../server/',import.meta.url).pathname;
 const load=name=>import(pathToFileURL(path.resolve(dir,name+'.mjs')));
 const [{Store},{GameService},{createApp}]=await Promise.all(['store','service','http'].map(load));
-const sourceSha256=Object.fromEntries(['service.mjs','store.mjs','game.mjs','http.mjs','chain.mjs'].map(name=>[name,createHash('sha256').update(fs.readFileSync(path.resolve(dir,name))).digest('hex')]));
+const sourceSha256=Object.fromEntries(['service.mjs','store.mjs','game.mjs','http.mjs','chain.mjs','config.mjs','durable.mjs','rpc.mjs','recovery-v2.mjs','adapters/escrow-v2.mjs'].filter(name=>fs.existsSync(path.resolve(dir,name))).map(name=>[name,createHash('sha256').update(fs.readFileSync(path.resolve(dir,name))).digest('hex')]));
 sourceSha256.engine=createHash('sha256').update(fs.readFileSync(fs.existsSync(path.resolve(dir,'engine.cjs'))?path.resolve(dir,'engine.cjs'):new URL('../../dist/engine.js',import.meta.url))).digest('hex');
 const n=Number(process.env.LOAD_MATCHES),store=new Store(process.env.LOAD_DATA_DIR);
 const chain=new FakeChain(()=>Date.now()),rpc={reads:0,writes:0,maxInFlight:0,inFlight:0};
