@@ -1,0 +1,65 @@
+{
+  "get_config": {
+    "admin": "dev-20261105124658-14449107722704.testnet",
+    "pending_admin": null,
+    "server": "dev-20261105124701-22790623478956.testnet",
+    "token": "dev-20261105124714-71962479239708.testnet",
+    "fee_bps": 300,
+    "paused": false,
+    "last_heartbeat_ns": "1793883277284118357",
+    "state_version": 1
+  },
+  "get_accounting": {
+    "accepted": "50000000",
+    "locked": "0",
+    "owed": "0",
+    "paid": "50000000",
+    "in_flight": "0",
+    "live_matches": "0",
+    "stored_matches": "1"
+  },
+  "can_upgrade": false,
+  "escrow_account": {
+    "amount": "9995022721779686199999998",
+    "block_hash": "2Mz4Du6po2ZcZSxB4RNwnReeQqu82ZYd8vYeKGM2JU83",
+    "block_height": 276344309,
+    "code_hash": "AWkPGc7xMZtCm8ShbpWXFQWctsf2w1tYnvaBQCeCzYzz",
+    "locked": "0",
+    "storage_paid_at": 0,
+    "storage_usage": 461846
+  },
+  "server_access_keys": {
+    "block_hash": "BZeA6eF4yZi3kw8EbE469SoTiQJ1VZGHe4jhnjoEFJst",
+    "block_height": 276344315,
+    "keys": [
+      {
+        "access_key": {
+          "nonce": 276343733000006,
+          "permission": {
+            "FunctionCall": {
+              "allowance": "4997379830820576800000000",
+              "method_names": [
+                "create_lobby",
+                "bind_opponent",
+                "update_stake",
+                "record_activity",
+                "start_match",
+                "submit_result",
+                "heartbeat"
+              ],
+              "receiver_id": "dev-20261105124711-29870979355191.testnet"
+            }
+          }
+        },
+        "public_key": "ed25519:7Q1bKeySffN9oF7MMqE7zXXC2aPUBCFgDY6mVcQ3s819"
+      },
+      {
+        "access_key": {
+          "nonce": 276343077000002,
+          "permission": "FullAccess"
+        },
+        "public_key": "ed25519:GEX8pbfQYs8NbaAC3xAEDcEWMdKqwpRkMP5YXJgXWbHd"
+      }
+    ]
+  }
+}

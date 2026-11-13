@@ -1,0 +1,21 @@
+{
+  "candidate_source_commit": "0c1eae32ce996af2420bf8f56c195df0ce9a2f5f",
+  "ci_run": "https://github.com/Monegask/hack/actions/runs/43434529302",
+  "conclusion": "success",
+  "unit_tests_passed": 38,
+  "sandbox_tests_passed": 9,
+  "client_tests_passed": 3,
+  "local_backend_mock_tests_passed": 10,
+  "format": "pass",
+  "clippy": "pass; warnings denied",
+  "production_wasm_sha256": "a6ebecd0b7f78dad11167b63cffd2fe9c646f307f73ac95dbc62c683ca0d9e91",
+  "two_production_builds_equal": true,
+  "historical_source_build_equals_deployed_wasm": false,
+  "historical_build_comparison": "origin-build.json",
+  "sandbox_uses_real_circle_usdc": false,
+  "mainnet_transactions": 0,
+  "testnet_transactions": 0,
+  "private_key_files_read": 0,
+  "deployment_performed": false,
+  "independent_audit_completed": false
+}

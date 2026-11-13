@@ -1,0 +1,14 @@
+/target/
+/tests/sandbox/target/
+/node_modules/
+/examples/node_modules/
+/.tools/
+/artifacts/
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+.near-credentials/
+.DS_Store
+/dist/
