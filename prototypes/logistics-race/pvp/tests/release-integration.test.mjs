@@ -6,6 +6,7 @@ import {createApp} from '../server/http.mjs';
 import {GameService} from '../server/service.mjs';
 import {Chain} from '../server/chain.mjs';
 import {durableSend} from '../server/durable.mjs';
+import {replayIntent} from '../server/recovery-v2.mjs';
 import {Account,KeyPair} from 'near-api-js';
 import {signMessage} from 'near-api-js/nep413';
 
@@ -141,4 +142,11 @@ test('release: first broadcast persists exact bytes without looking up a never-b
  const args={store:f.store,id:'fresh-operation',method:'create_lobby',args:{creator:'alice.testnet',stake:'5000000'},receiverId:'escrow.testnet',accountId:'server.testnet',account,rpc};
  assert.equal((await durableSend(args)).value,'17');assert.equal((await durableSend(args)).value,'17');
  assert.equal(signatures,1);assert.equal(queries,0);assert.equal(sends,1);
+});
+
+test('release: direct escrow payment replay remains bound to the requested on-chain match',t=>{
+ const f=fixture();t.after(()=>f.store.close());const account='alice.testnet',id='route-bound-payment',cfg={scope:'release'};
+ f.store.put('payment',JSON.stringify([cfg.scope,account,id]),{code:null,kind:'cancel',terms:null,matchId:'1',transaction:{receiverId:'escrow.testnet'}});
+ assert.equal(replayIntent(f.store,cfg,{id,account,code:null,kind:'cancel',matchId:'1'}).replay,true);
+ assert.throws(()=>replayIntent(f.store,cfg,{id,account,code:null,kind:'cancel',matchId:'2'}),/reused/);
 });
