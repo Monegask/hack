@@ -35,12 +35,13 @@ async function pay(who,m,kind,extra={}){const req=await prepare(who,m,kind,extra
 async function match(){const created=await post('alice','/api/matches',{amount:'5',id:'sandbox-create-'+(++request)});assert.equal(created.phase,'lobby');await post('bob','/api/matches/'+created.code+'/join',{});return game.matches.get(created.code);}
 async function funded(){const m=await match();let c=await chain.match(m.chainId);assert.equal((await pay('alice',c,'deposit')).status.state,'accepted');c=await chain.match(m.chainId);assert.equal((await pay('bob',c,'deposit')).status.state,'accepted');return m;}
 async function start(m){await delay(3600);await game.reconcile(m);assert.equal(m.phase,'playing',JSON.stringify(m));}
+async function denied(promise,pattern){await assert.rejects(promise,error=>{const detail=String(error)+' '+JSON.stringify(error);return pattern.test(detail);});}
 async function balance(who){return BigInt(await chain.view(f.token,'ft_balance_of',{account_id:f[who].id}));}
 try{
  await chain.preflight();const permission=await chain.rpc('query',{request_type:'view_access_key',account_id:f.server.id,public_key:String(restricted.getPublicKey()),finality:'final'});console.log('Sandbox runtime permission (public):',JSON.stringify(permission.permission));await chain.checkRuntimeKey(String(restricted.getPublicKey()));
- await assert.rejects(runtime.signAndSendTransaction({receiverId:f.token,actions:[actions.functionCall('ft_transfer',{receiver_id:f.alice.id,amount:'1'},10000000000000n,0n)]}));
- await assert.rejects(runtime.signAndSendTransaction({receiverId:f.escrow,actions:[actions.transfer(1n)]}));
- await assert.rejects(runtime.signAndSendTransaction({receiverId:f.escrow,actions:[actions.functionCall('upgrade',{},10000000000000n,0n)]}));
+ await denied(runtime.signAndSendTransaction({receiverId:f.token,actions:[actions.functionCall('ft_transfer',{receiver_id:f.alice.id,amount:'1'},10000000000000n,0n)]}),/ReceiverMismatch|receiver.*match|InvalidAccessKeyError/i);
+ await denied(runtime.signAndSendTransaction({receiverId:f.escrow,actions:[actions.transfer(1n)]}),/RequiresFullAccess|full.access|InvalidAccessKeyError/i);
+ await denied(runtime.signAndSendTransaction({receiverId:f.escrow,actions:[actions.functionCall('upgrade',{},10000000000000n,0n)]}),/MethodNameMismatch|method.*(match|permit|allow)|InvalidAccessKeyError/i);
  report.checks.push('restricted runtime key: exact receiver/methods/allowance; FT/native transfers and upgrade rejected on chain');
  // Lose the response after a real broadcast; restart the SQLite owner and query the original hash.
  const realRpc=chain.rpc.bind(chain);let broadcasts=0;chain.rpc=async(method,params)=>{if(method==='send_tx'){broadcasts++;try{await realRpc(method,params);}catch(e){console.log('Sandbox original broadcast failed:',e.message,JSON.stringify(e.rpc));throw e;}throw Error('Injected lost response after real broadcast');}return realRpc(method,params);};
@@ -52,7 +53,7 @@ try{
  // Normal lifecycle through HTTP, with duplicate deposit resolver and exact ledger.
  let m=await match(),c=await chain.match(m.chainId),a0=await balance('alice'),b0=await balance('bob'),fee0=await balance('admin');
  const req=await prepare('alice',c,'deposit'),intent=store.get('payment',JSON.stringify([cfg.scope,f.alice.id,req.intentId]));
- let tx=await send('alice',req.transaction);assert.equal((await post('alice','/api/payment-status',{id:req.intentId,hash:tx.transaction.hash})).state,'accepted');
+ let tx=await send('alice',req.transaction);assert.equal((await post('alice','/api/payment-status',{id:req.intentId,hash:tx.transaction.hash})).state,'accepted');const replay=await prepare('alice',c,'deposit',{id:req.intentId});assert.equal(replay.alreadyResolved,true);
  const duplicate=prepareIntent(store,cfg,{id:'duplicate-original',account:f.alice.id,code:null,kind:'deposit',match:c,transaction:req.transaction});tx=await send('alice',req.transaction);const duplicateResult=await reconcileIntent(chain,store,duplicate,tx.transaction.hash);assert.equal(duplicateResult.state,'refunded-by-resolver');
  c=await chain.match(m.chainId);await pay('bob',c,'deposit');await start(m);game.finish(m,0,'sandbox-server-result');await game.reconcile(m);await waitMatch(m.chainId,c=>c.state==='Completed');
  assert.equal(await balance('alice'),a0+4700000n);assert.equal(await balance('bob'),b0-5000000n);assert.equal(await balance('admin'),fee0+300000n);

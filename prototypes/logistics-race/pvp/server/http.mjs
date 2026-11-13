@@ -3,7 +3,7 @@ import http from 'node:http';
 import fs from 'node:fs';
 import path from 'node:path';
 import {randomBytes,createHash} from 'node:crypto';
-import {prepareIntent,reconcileIntent} from './recovery-v2.mjs';
+import {prepareIntent,reconcileIntent,replayIntent} from './recovery-v2.mjs';
 import {root,requirePayments} from './config.mjs';
 const hash=s=>createHash('sha256').update(s).digest('hex');
 const cookie=(req,name)=>req.headers.cookie?.split(';').map(x=>x.trim()).find(x=>x.startsWith(name+'='))?.slice(name.length+1);
@@ -57,7 +57,7 @@ export function createApp(cfg,store,chain,service){
    if(req.method==='POST'&&req.headers['x-csrf-token']!==session.csrf)return send({error:'Session token changed; reload'},403);
    const account=session.account;
    const direct=pathname.match(/^\/api\/escrow\/matches\/(0|[1-9]\d*)\/transaction$/);if(direct&&req.method==='POST'&&chain.adapter){
-    requirePayments(cfg);const m=await chain.match(direct[1]);if(!m)throw Error('Escrow match missing');const control=await chain.control();const tx=chain.adapter.playerTransaction({kind:body.kind,match:m,account,terms:body.terms,now:await chain.chainTime(),config:control});const balance=await chain.balance(account);if(!balance.hasGas||(body.kind==='claim'&&!balance.registered))throw Error('FT registration and NEAR gas required');if(body.kind==='deposit'){if(!balance.registered||BigInt(balance.balance)<BigInt(m.stake))throw Error('Insufficient registered USDC balance');await chain.requireRegistered([cfg.escrow,m.creator,m.opponent,m.fee_receiver]);}const intent=prepareIntent(store,cfg,{id:body.id,account,code:null,kind:body.kind,match:m,transaction:tx});return send({network:cfg.network,transaction:tx,intentId:intent.id});
+    requirePayments(cfg);const replay=replayIntent(store,cfg,{id:body.id,account,code:null,kind:body.kind,terms:body.terms??null});if(replay)return send(replay);const m=await chain.match(direct[1]);if(!m)throw Error('Escrow match missing');const control=await chain.control();const tx=chain.adapter.playerTransaction({kind:body.kind,match:m,account,terms:body.terms,now:await chain.chainTime(),config:control});const balance=await chain.balance(account);if(!balance.hasGas||(body.kind==='claim'&&!balance.registered))throw Error('FT registration and NEAR gas required');if(body.kind==='deposit'){if(!balance.registered||BigInt(balance.balance)<BigInt(m.stake))throw Error('Insufficient registered USDC balance');await chain.requireRegistered([cfg.escrow,m.creator,m.opponent,m.fee_receiver]);}const intent=prepareIntent(store,cfg,{id:body.id,account,code:null,kind:body.kind,match:m,transaction:tx,terms:body.terms??null});return send({network:cfg.network,transaction:tx,intentId:intent.id});
    }
    if(pathname==='/api/auth/session')return send({account,csrf:session.csrf});
    if(pathname==='/api/auth/logout'&&req.method==='POST'){store.remove('session',hash(raw));setCookie('sl_session','',0);return send({ok:true},200,{'Set-Cookie':cookies});}
@@ -74,7 +74,7 @@ export function createApp(cfg,store,chain,service){
     if(tx.transaction?.signer_id!==account||tx.transaction?.hash!==body.hash)throw Error('Transaction signer or hash mismatch');
     return send({final:tx.final_execution_status==='FINAL',failed:tx.final_execution_status==='FINAL'&&!!tx.status?.Failure});
    }
-   if(pathname==='/api/register'&&req.method==='POST'){requirePayments(cfg);const balance=await chain.balance(account);if(balance.registered)return send({alreadyRegistered:true});if(BigInt(balance.nearAvailable)<BigInt(balance.storageMinimum)+BigInt(balance.gasReserve))throw Error('Insufficient spendable NEAR for storage and gas');const tx=chain.adapter?chain.adapter.registration(account,balance.storageMinimum):call(cfg.token,'storage_deposit',{account_id:account,registration_only:true},balance.storageMinimum);const intent=chain.adapter?prepareIntent(store,cfg,{id:body.id,account,code:null,kind:'register',match:null,transaction:tx}):null;return send({network:cfg.network,transaction:tx,...(intent?{intentId:intent.id}:{})});}
+   if(pathname==='/api/register'&&req.method==='POST'){requirePayments(cfg);if(chain.adapter){const replay=replayIntent(store,cfg,{id:body.id,account,code:null,kind:'register'});if(replay)return send(replay);}const balance=await chain.balance(account);if(balance.registered)return send({alreadyRegistered:true});if(BigInt(balance.nearAvailable)<BigInt(balance.storageMinimum)+BigInt(balance.gasReserve))throw Error('Insufficient spendable NEAR for storage and gas');const tx=chain.adapter?chain.adapter.registration(account,balance.storageMinimum):call(cfg.token,'storage_deposit',{account_id:account,registration_only:true},balance.storageMinimum);const intent=chain.adapter?prepareIntent(store,cfg,{id:body.id,account,code:null,kind:'register',match:null,transaction:tx}):null;return send({network:cfg.network,transaction:tx,...(intent?{intentId:intent.id}:{})});}
    if(pathname.startsWith('/api/matches')||pathname.startsWith('/api/lobbies'))requirePayments(cfg);
    const viewMatch=pathname.match(/^\/api\/escrow\/matches\/(0|[1-9]\d*)$/);if(viewMatch&&req.method==='GET'&&chain.adapter){const m=await chain.match(viewMatch[1]);if(!m||![m.creator,m.opponent,...m.payouts.map(p=>p.receiver)].includes(account))throw Error('Escrow participant required');const control=await chain.control();return send({match:m,control,chainTime:String(await chain.chainTime())});}
    if(pathname==='/api/lobbies'&&req.method==='GET'){
@@ -111,6 +111,7 @@ export function createApp(cfg,store,chain,service){
     try{return send(await service.enqueueCommand(code,account,body));}catch(e){if(e.message.startsWith('Command queue busy'))return send({error:e.message},503);throw e;}
    }
    if(action==='transaction'&&req.method==='POST'){
+    if(chain.adapter){const replay=replayIntent(store,cfg,{id:body.id,account,code,kind:body.kind,terms:body.terms??null});if(replay)return send(replay);}
     const {m,i}=service.member(code,account),c=await chain.match(m.chainId);if(!c)return send({error:'Escrow match missing'},409);
     if(c.creator!==m.players[0]||c.opponent!==m.players[1]||c.stake!==m.stake)throw Error('Escrow terms mismatch');
     const kind=body.kind,args={match_id:c.id};let tx;
@@ -119,7 +120,7 @@ export function createApp(cfg,store,chain,service){
      const funding=await chain.balance(account);if(!funding.hasGas)throw Error('Insufficient spendable NEAR for gas');
      if(kind==='deposit'){if(!funding.registered||BigInt(funding.balance)<BigInt(c.stake))throw Error('Insufficient registered USDC balance');await chain.requireRegistered([cfg.escrow,c.creator,c.opponent,c.fee_receiver]);}
      if(kind==='claim'&&!funding.registered)throw Error('Register your FT account before claiming');
-     const intent=prepareIntent(store,cfg,{id:body.id,account,code,kind,match:c,transaction:tx});return send({network:cfg.network,transaction:intent.transaction,intentId:intent.id});
+     const intent=prepareIntent(store,cfg,{id:body.id,account,code,kind,match:c,transaction:tx,terms:body.terms??null});return send({network:cfg.network,transaction:intent.transaction,intentId:intent.id});
     }
     if(kind==='deposit'){
      const terms=body.terms;if(c.state!=='AwaitingDeposits'||c.deposited[i]||!c.opponent||!terms||terms.stake!==c.stake||terms.revision!==c.revision||terms.feeBps!==c.fee_bps||terms.opponent!==m.players[1-i])throw Error('Deposit terms changed. Review them again.');

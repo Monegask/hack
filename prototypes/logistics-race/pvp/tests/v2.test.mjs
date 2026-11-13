@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {EscrowV2Adapter,validateConfig,validateMatch,validateRuntimeAccess,SERVER_METHODS,CIRCLE_USDC,assertAdmissionPolicy} from '../server/adapters/escrow-v2.mjs';
-import {prepareIntent,reconcileIntent} from '../server/recovery-v2.mjs';
+import {prepareIntent,reconcileIntent,replayIntent} from '../server/recovery-v2.mjs';
 import {Store} from '../server/store.mjs';
 import {fixture,playing} from './fixture.mjs';
 const cfg={network:'mainnet',token:CIRCLE_USDC,server:'server.near',escrow:'escrow.near',scope:'unit-v2',expectedFeeReceiver:'fee.near'};
@@ -39,7 +39,7 @@ function recoveryFixture(t,kind='deposit'){
  const chain={cfg,adapter,assertNetwork:async()=>{},rpc:async(method)=>method==='tx'?tx:{header:{height:10,hash:'final'}},view:async()=>m};return {store,m,tx,chain,intent,hash,transaction};
 }
 test('payment request IDs are immutable and unresolved payments block a second device/request',t=>{
- const f=recoveryFixture(t);assert.throws(()=>prepareIntent(f.store,cfg,{id:'request-0002',account:'alice.near',code:null,kind:'deposit',match:f.m,transaction:f.transaction}),/unresolved/);
+ const f=recoveryFixture(t);assert.equal(replayIntent(f.store,cfg,{id:f.intent.id,account:f.intent.account,code:null,kind:f.intent.kind}).replay,true);assert.throws(()=>prepareIntent(f.store,cfg,{id:'request-0002',account:'alice.near',code:null,kind:'deposit',match:f.m,transaction:f.transaction}),/unresolved/);
  assert.throws(()=>prepareIntent(f.store,cfg,{id:'request-0001',account:'alice.near',code:null,kind:'claim',match:f.m,transaction:f.transaction}),/reused/);
 });
 test('recovery never unlocks a failed resolver after token transfer, unknown tx or non-final receipts',async t=>{

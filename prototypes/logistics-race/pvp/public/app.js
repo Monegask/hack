@@ -2920,6 +2920,10 @@ async function payment(kind) {
   try {
     const c = current.chain, terms = c ? { stake: c.stake, revision: c.revision, feeBps: c.fee_bps, opponent: current.players[1 - current.side] } : null;
     const request = await api("matches/" + current.code + "/transaction", { kind, terms, id: crypto.randomUUID() });
+    if (request.replay || request.alreadyResolved) {
+      await refresh();
+      return message("Original payment request restored. Check its status before continuing.");
+    }
     message("Review the transaction in your " + cfg.network + " wallet.");
     if (request.network !== cfg.network) throw Error("Transaction network mismatch");
     await sendWallet(kind, request.transaction, request.intentId);
@@ -2952,7 +2956,7 @@ async function refresh() {
   $("recoverPayment")?.addEventListener("click", () => action(recoverPayment));
   $("register")?.addEventListener("click", () => action(async () => {
     const tx = await api("register", { id: crypto.randomUUID() });
-    if (tx.alreadyRegistered) return refresh();
+    if (tx.alreadyRegistered || tx.replay || tx.alreadyResolved) return refresh();
     if (tx.network !== cfg.network) throw Error("Transaction network mismatch");
     await sendWallet("register", tx.transaction, tx.intentId);
     message("Token registration sent.");

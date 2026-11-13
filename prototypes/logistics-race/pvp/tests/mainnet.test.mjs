@@ -56,7 +56,7 @@ test('NEP413 Mainnet login verifies the selected provider, owner key and network
 });
 test('balance checks use live FT balance and liquid NEAR after storage reserve, and propagate RPC failures',async()=>{
  const chain=mainChain();chain.cfg.gasReserve='50';chain.view=async(_id,m)=>m==='ft_balance_of'?'5000000':m==='storage_balance_bounds'?{min:'100'}:null;
- chain.rpc=async(method)=>method==='status'?{chain_id:'mainnet'}:method==='query'?{amount:'1000',storage_usage:96}:{storage_amount_per_byte:'10'};
+ chain.rpc=async(method)=>method==='status'?{chain_id:'mainnet'}:method==='query'?{amount:'1000',storage_usage:96}:{runtime_config:{storage_amount_per_byte:'10'}};
  const b=await chain.balance('alice.near');assert.equal(b.nearAvailable,'40');assert.equal(b.hasGas,false);assert.equal(b.registered,false);assert.equal(b.balance,'5000000');
  chain.rpc=async()=>{throw Error('offline');};await assert.rejects(chain.balance('alice.near'),/offline/);
 });
