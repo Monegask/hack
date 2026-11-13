@@ -46,7 +46,7 @@ export class Chain{
   if(!METHODS.includes(method))throw Error('Server method not allowed');
   await this.assertNetwork();
   // A prior signed operation must be reconciled even after pause/freeze; never create replacement bytes.
-  if(this.adapter&&this.store.get('outbox',id)){this.adapter.serverCall(method,args);return durableSend({store:this.store,id,method,args,receiverId:this.cfg.escrow,accountId:this.cfg.server,account:this.account,rpc:this.rpc.bind(this)});}
+  if(this.adapter&&this.store.get('outbox',id)){this.adapter.serverCall(method,args);await this.control();return durableSend({store:this.store,id,method,args,receiverId:this.cfg.escrow,accountId:this.cfg.server,account:this.account,rpc:this.rpc.bind(this)});}
   if(this.adapter){this.adapter.serverCall(method,args);const c=await this.control();if(c.server_frozen)throw Error('Server frozen');if(['create_lobby','bind_opponent','update_stake','start_match'].includes(method)&&c.paused)throw Error('Escrow paused');if(method==='create_lobby')await this.requireRegistered([this.cfg.escrow,c.admin],this.controlBlock.hash);}
   return durableSend({store:this.store,id,method,args,receiverId:this.cfg.escrow,accountId:this.cfg.server,account:this.account,rpc:this.rpc.bind(this)});
  }

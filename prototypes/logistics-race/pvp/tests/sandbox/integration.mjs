@@ -18,7 +18,7 @@ const provider=new JsonRpcProvider({url:f.rpc}),wallet={};for(const who of ['adm
 const directory=fs.mkdtempSync(path.join(os.tmpdir(),'supply-backend-v2-')),report={contract:CONTRACT_REVISION,realRustSandbox:true,checks:[]};
 let store=new Store(directory),cfg={rpc:f.rpc,network:(await provider.sendJsonRpc('status',[])).chain_id,adapterVersion:'escrow-v2',token:f.token,escrow:f.escrow,server:f.server.id,gasReserve:'10000000000000000000000',maxActive:10,players:[],scope:'sandbox-v2:'+f.escrow},chain=new Chain(cfg,store);
 cfg.escrowCodeHash=(await chain.rpc('query',{request_type:'view_account',account_id:f.escrow,finality:'final'})).code_hash;
-const restricted=KeyPair.fromRandom('ed25519');await wallet.server.addFunctionCallAccessKey({publicKey:restricted.getPublicKey(),contractId:f.escrow,methodNames:SERVER_METHODS,allowance:500000000000000000000000n});
+const restricted=KeyPair.fromRandom('ed25519');const grant=await wallet.server.signAndSendTransaction({receiverId:f.server.id,actions:[actions.addFunctionCallAccessKey(restricted.getPublicKey(),f.escrow,[...SERVER_METHODS],500000000000000000000000n)],waitUntil:'FINAL'});assert(Object.hasOwn(grant.status,'SuccessValue'));
 const runtime=new Account(f.server.id,provider,restricted.toString());chain.account=runtime;
 const hash=s=>createHash('sha256').update(s).digest('hex');
 let app,game,origin,request=0;
@@ -37,7 +37,7 @@ async function funded(){const m=await match();let c=await chain.match(m.chainId)
 async function start(m){await delay(3600);await game.reconcile(m);assert.equal(m.phase,'playing',JSON.stringify(m));}
 async function balance(who){return BigInt(await chain.view(f.token,'ft_balance_of',{account_id:f[who].id}));}
 try{
- await chain.preflight();await chain.checkRuntimeKey(String(restricted.getPublicKey()));
+ await chain.preflight();const permission=await chain.rpc('query',{request_type:'view_access_key',account_id:f.server.id,public_key:String(restricted.getPublicKey()),finality:'final'});console.log('Sandbox runtime permission (public):',JSON.stringify(permission.permission));await chain.checkRuntimeKey(String(restricted.getPublicKey()));
  await assert.rejects(runtime.signAndSendTransaction({receiverId:f.token,actions:[actions.functionCall('ft_transfer',{receiver_id:f.alice.id,amount:'1'},10000000000000n,0n)]}));
  await assert.rejects(runtime.signAndSendTransaction({receiverId:f.escrow,actions:[actions.transfer(1n)]}));
  await assert.rejects(runtime.signAndSendTransaction({receiverId:f.escrow,actions:[actions.functionCall('upgrade',{},10000000000000n,0n)]}));
