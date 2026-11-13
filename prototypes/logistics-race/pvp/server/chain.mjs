@@ -12,7 +12,10 @@ export class Chain{
  constructor(cfg,store){this.cfg=cfg;this.store=store;this.provider=new JsonRpcProvider({url:cfg.rpc});this.tail=Promise.resolve();}
  rpc(method,params){return callRpc(this.cfg.rpc,method,params);}
  async view(account,method,args={}){const r=await this.rpc('query',{request_type:'call_function',account_id:account,method_name:method,args_base64:Buffer.from(JSON.stringify(args)).toString('base64'),finality:'final'});return JSON.parse(Buffer.from(r.result).toString());}
- match(id){requirePayments(this.cfg);return this.view(this.cfg.escrow,'get_match',{match_id:String(id)});}
+ match(id){requirePayments(this.cfg);
+  this.matchReads??=new Map();id=String(id);if(this.matchReads.has(id))return this.matchReads.get(id);
+  const pending=this.view(this.cfg.escrow,'get_match',{match_id:id}).finally(()=>this.matchReads.delete(id));this.matchReads.set(id,pending);return pending;
+ }
  async preflight({loadSigner=true}={}){
   if(this.cfg.network==='mainnet')return this.mainnetPreflight();
   const [status,cfg,token,account]=await Promise.all([this.rpc('status',[]),this.view(this.cfg.escrow,'get_config'),this.view(this.cfg.token,'ft_metadata'),this.rpc('query',{request_type:'view_account',account_id:this.cfg.escrow,finality:'final'})]);

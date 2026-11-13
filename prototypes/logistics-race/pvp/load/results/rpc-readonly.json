@@ -1,0 +1,67 @@
+{
+  "url": "https://rpc.testnet.near.org",
+  "date": "2026-11-13T13:17:09.123Z",
+  "concurrency": 1,
+  "results": [
+    {
+      "method": "status",
+      "ms": 3499.3257,
+      "ok": true
+    },
+    {
+      "method": "block",
+      "ms": 3127.3028999999997,
+      "ok": true
+    },
+    {
+      "method": "status",
+      "ms": 3121.171699999999,
+      "ok": true
+    },
+    {
+      "method": "block",
+      "ms": 3221.9604,
+      "ok": true
+    },
+    {
+      "method": "status",
+      "ms": 3117.7716999999993,
+      "ok": true
+    },
+    {
+      "method": "block",
+      "ms": 3113.683499999999,
+      "ok": true
+    },
+    {
+      "method": "status",
+      "ms": 3204.105199999998,
+      "ok": true
+    },
+    {
+      "method": "block",
+      "ms": 3134.731899999999,
+      "ok": true
+    },
+    {
+      "method": "status",
+      "ms": 3120.1442000000025,
+      "ok": true
+    },
+    {
+      "method": "block",
+      "ms": 3116.341199999999,
+      "ok": true
+    },
+    {
+      "method": "status",
+      "ms": 3116.759199999997,
+      "ok": true
+    },
+    {
+      "method": "block",
+      "ms": 3137.4001999999964,
+      "ok": true
+    }
+  ]
+}

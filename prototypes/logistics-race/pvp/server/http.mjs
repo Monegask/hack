@@ -1,3 +1,4 @@
+import {gzipSync} from 'node:zlib';
 import http from 'node:http';
 import fs from 'node:fs';
 import path from 'node:path';
@@ -7,7 +8,7 @@ const hash=s=>createHash('sha256').update(s).digest('hex');
 const cookie=(req,name)=>req.headers.cookie?.split(';').map(x=>x.trim()).find(x=>x.startsWith(name+'='))?.slice(name.length+1);
 const call=(receiverId,methodName,args,deposit='0',gas='150000000000000')=>({receiverId,actions:[{type:'FunctionCall',params:{methodName,args,deposit,gas}}]});
 export function createApp(cfg,store,chain,service){
- const limits=new Map();let balanceCache=new Map();
+ const limits=new Map(),wireCache=new Map();let balanceCache=new Map();
  const server=http.createServer(async(req,res)=>{
   let status=200;const headers={...(cfg.scope?{'X-Supply-Line-Scope':cfg.scope}:{}),'X-Content-Type-Options':'nosniff','Referrer-Policy':'same-origin','Cache-Control':'no-store','X-Frame-Options':'SAMEORIGIN'};
   const send=(value,code=200,extra={})=>{res.writeHead(code,{...headers,'Content-Type':'application/json',...extra});res.end(JSON.stringify(value));};
@@ -31,7 +32,7 @@ export function createApp(cfg,store,chain,service){
     const file=files[pathname];if(!file)return send({error:'Not found'},404);
     res.writeHead(200,{...headers,'Content-Type':file.endsWith('.js')?'text/javascript':file.endsWith('.css')?'text/css':'text/html; charset=utf-8'});return fs.createReadStream(path.join(root,'public',file)).pipe(res);
    }
-   const ip=req.socket.remoteAddress||'unknown',now=Date.now(),rate=limits.get(ip)||{at:now,n:0};if(now-rate.at>1000){rate.at=now;rate.n=0;}if(++rate.n>45)return send({error:'Too many requests'},429);limits.set(ip,rate);
+   const ip=req.socket.remoteAddress||'unknown',now=Date.now(),rawSession=cookie(req,'sl_session'),rateSession=rawSession&&store.get('session',hash(rawSession)),rateKey=rateSession&&rateSession.expires>now?'session:'+hash(rawSession):'ip:'+ip,rate=limits.get(rateKey)||{at:now,n:0};if(now-rate.at>1000){rate.at=now;rate.n=0;}if(++rate.n>45)return send({error:'Too many requests'},429);limits.set(rateKey,rate);
    if(limits.size>2000)for(const [key,v] of limits)if(now-v.at>60000)limits.delete(key);
    let body={};if(req.method==='POST'){
     if(!req.headers['content-type']?.startsWith('application/json'))return send({error:'Expected JSON'},415);
@@ -82,8 +83,25 @@ export function createApp(cfg,store,chain,service){
    const [,code,action]=route;
    if(action==='preview'&&req.method==='GET')return send(service.preview(code));
    if(action==='join'&&req.method==='POST')return send(await service.join(code,account));
-   if(!action&&req.method==='GET')return send(service.snapshot(code,account,{touch:true}));
-   if(action==='command'&&req.method==='POST')return send(service.command(code,account,body));
+   if(!action&&req.method==='GET'){
+    const value=service.snapshot(code,account,{touch:true}),metadata=url.searchParams.get('view')==='metadata';
+    value.hasStates=!!value.states;if(metadata)delete value.states;
+    // serverNow is advisory; it must not invalidate unchanged paused/lobby snapshots.
+    const {states,serverNow,...meta}=value,key=code+':'+value.side+':'+metadata,stamp=JSON.stringify(meta);
+    let cached=wireCache.get(key);
+    if(!cached||cached.stamp!==stamp){
+     const text=JSON.stringify(value);cached={stamp,text,etag:'"'+hash(text)+'"',gzip:null};wireCache.set(key,cached);
+     // Bounded by cached responses, including archived games; no unbounded per-poll history.
+     if(wireCache.size>800)wireCache.delete(wireCache.keys().next().value);
+    }
+    const extra={'ETag':cached.etag,'Cache-Control':'private, no-cache','Vary':'Accept-Encoding'};
+    if(req.headers['if-none-match']===cached.etag){res.writeHead(304,{...headers,...extra});return res.end();}
+    if(/\bgzip\b/.test(req.headers['accept-encoding']||'')&&cached.text.length>2048){cached.gzip??=gzipSync(cached.text,{level:1});res.writeHead(200,{...headers,...extra,'Content-Type':'application/json','Content-Encoding':'gzip'});return res.end(cached.gzip);}
+    res.writeHead(200,{...headers,...extra,'Content-Type':'application/json'});return res.end(cached.text);
+   }
+   if(action==='command'&&req.method==='POST'){
+    try{return send(await service.enqueueCommand(code,account,body));}catch(e){if(e.message.startsWith('Command queue busy'))return send({error:e.message},503);throw e;}
+   }
    if(action==='transaction'&&req.method==='POST'){
     const {m,i}=service.member(code,account),c=await chain.match(m.chainId);if(!c)return send({error:'Escrow match missing'},409);
     if(c.creator!==m.players[0]||c.opponent!==m.players[1]||c.stake!==m.stake)throw Error('Escrow terms mismatch');

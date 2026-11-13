@@ -24,7 +24,7 @@ export function config(env=process.env){
  }
  const rpcUrl=new URL(c.rpc);if(rpcUrl.protocol!=='https:')throw Error('RPC requires HTTPS');
  if((mainnet&&rpcUrl.hostname.includes('testnet'))||(!mainnet&&rpcUrl.hostname.includes('mainnet')))throw Error('RPC URL network mismatch');
- if(!Number.isInteger(c.maxActive)||c.maxActive<1||c.maxActive>100)throw Error('MAX_ACTIVE_MATCHES must be 1–100');
+ if(!Number.isInteger(c.maxActive)||c.maxActive<1||c.maxActive>200)throw Error('MAX_ACTIVE_MATCHES must be 1–200');
  return c;
 }
 

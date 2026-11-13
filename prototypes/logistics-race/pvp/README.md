@@ -113,3 +113,15 @@ Discovery coalesces concurrent chain reads and checks current escrow terms/state
 The browser refreshes discovery about every 6 seconds (5-second threshold on the existing 1.5-second timer), even while a match is selected, and after Join/create. Server responses exclude a reserved seat immediately; other browsers remove their stale row on the next refresh, and a stale Join cannot claim the seat. Manual refresh, sorting and pagination are available. USDC is explicitly the configured **test/mock** token; no Circle USDC or new financial integration is claimed.
 
 Validation on the feature branch: 27 backend tests (including five new integration/concurrency cases), 169 game regressions, offline build, PvP build, and `node tests/matchmaking-browser.mjs` passed. The browser scenario uses three isolated sessions and a mock chain: public creation, automatic list refresh, sorting, Join, occupied removal, private invitation and mobile overflow check. No live transaction, deployment, contract, fee/deposit/countdown change or Mainnet configuration change. Browser automation can save its screenshot using `MATCHMAKING_SCREENSHOT`.
+## Scalability candidate (13 November 2026)
+
+The `perf/pvp-scalability` branch adds grouped durable command commits, batched dirty
+checkpoints, fixed-step backlog tracking, bounded chain reconciliation, route caches,
+and compressed/conditional state polling. Menu polling uses `?view=metadata`.
+`MAX_ACTIVE_MATCHES` now accepts 1–200; its default remains 10. This is a configuration
+range, not a certified capacity. Do not raise a public deployment's limit based on
+local mock-chain results alone. Keep exactly one authoritative process per DATA_DIR.
+
+Reproduction, resource constraints and limitations: [load/README.md](load/README.md).
+Measurements and scaling decisions: [performance report](../../../docs/performance-2026-11-13.md).
+No contract, Mainnet deployment, production database or production cap was changed.

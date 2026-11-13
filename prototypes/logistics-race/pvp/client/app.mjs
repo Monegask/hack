@@ -78,7 +78,7 @@ function renderMatch(){
  if(m.phase==='playing'&&!m.recovering&&openedMatch!==m.code)openGame();
  if(['settling','finished','cancelled','refund'].includes(m.phase)&&!$('gameStage').hidden){$('gameStage').hidden=true;$('game').removeAttribute('src');}
 }
-function openGame(){if(!current?.states)return message('The server is preparing the match.');openedMatch=current.code;$('game').src='/pvp/game?match='+current.code;$('gameStage').hidden=false;}
+function openGame(){if(!current?.states&&!current?.hasStates)return message('The server is preparing the match.');openedMatch=current.code;$('game').src='/pvp/game?match='+current.code;$('gameStage').hidden=false;}
 async function payment(kind){
  if(paying)return;
  if(pending())throw Error('Previous payment is unresolved. Do not repeat it.');
@@ -98,12 +98,12 @@ async function refresh(){
  $('register')?.addEventListener('click',()=>action(async()=>{const tx=await api('register',{});if(tx.alreadyRegistered)return refresh();if(tx.network!==cfg.network)throw Error('Transaction network mismatch');await sendWallet('register',tx.transaction);message('Token registration sent.');}));
  if(!cfg.paymentsEnabled){$('lobbies').hidden=true;return;}
  const history=await api('matches');$('history').innerHTML=history.length?history.map(m=>`<div class="match-row"><span>${esc(m.code)} · ${esc(m.phase)} · ${amount(m.stake)} ${esc(tokenLabel())}</span><button data-resume="${m.code}">Open</button></div>`).join(''):'No matches yet.';
- for(const b of $('history').querySelectorAll('[data-resume]'))b.onclick=()=>action(async()=>{current=await api('matches/'+b.dataset.resume);sessionStorage.setItem(matchKey(),current.code);renderMatch();});
- const code=current?.code||sessionStorage.getItem(matchKey())||pending()?.code;if(code){current=await api('matches/'+code);renderMatch();}await reconcilePayment();
+ for(const b of $('history').querySelectorAll('[data-resume]'))b.onclick=()=>action(async()=>{current=await api('matches/'+b.dataset.resume+'?view=metadata');sessionStorage.setItem(matchKey(),current.code);renderMatch();});
+ const code=current?.code||sessionStorage.getItem(matchKey())||pending()?.code;if(code){current=await api('matches/'+code+'?view=metadata');renderMatch();}await reconcilePayment();
 }
 function connectionFailure(e){reconnectMessage='Connection interrupted. Reconnecting; do not repeat a payment. '+e.message;message(reconnectMessage);}
 async function poll(){
- if(session&&cfg.paymentsEnabled&&Date.now()-lastLobbyRefresh>8000){lastLobbyRefresh=Date.now();refreshLobbies().catch(()=>{});}if(polling||!session||Date.now()<nextPollAt)return;polling=true;try{if(current){current=await api('matches/'+current.code);renderMatch();await reconcilePayment();}else{if(Date.now()-lastIdleRefresh<15000)return;await refresh();lastIdleRefresh=Date.now();}if(reconnectMessage&&$('message').textContent===reconnectMessage)message();reconnectMessage=null;pollFailures=0;nextPollAt=0;}catch(e){connectionFailure(e);nextPollAt=Date.now()+Math.min(15000,1500*2**Math.min(++pollFailures,4));}finally{polling=false;}}
+ if(session&&cfg.paymentsEnabled&&Date.now()-lastLobbyRefresh>8000){lastLobbyRefresh=Date.now();refreshLobbies().catch(()=>{});}if(polling||!session||Date.now()<nextPollAt)return;polling=true;try{if(current){current=await api('matches/'+current.code+'?view=metadata');renderMatch();await reconcilePayment();}else{if(Date.now()-lastIdleRefresh<15000)return;await refresh();lastIdleRefresh=Date.now();}if(reconnectMessage&&$('message').textContent===reconnectMessage)message();reconnectMessage=null;pollFailures=0;nextPollAt=0;}catch(e){connectionFailure(e);nextPollAt=Date.now()+Math.min(15000,1500*2**Math.min(++pollFailures,4));}finally{polling=false;}}
 async function init(){
  cfg=await api('config');if(!['testnet','mainnet'].includes(cfg.network))throw Error('Unsupported network');
  connector=new NearConnector({network:cfg.network,features:{signMessage:true,signAndSendTransaction:true,...(cfg.network==='testnet'?{testnet:true}:{})}});
@@ -123,4 +123,4 @@ async function init(){
  try{await refresh();lastIdleRefresh=Date.now();}catch(e){connectionFailure(e);}$('connect').disabled=false;$('wallet').disabled=false;setInterval(poll,1500);const invite=new URLSearchParams(location.search).get('join');if(invite&&session&&cfg.paymentsEnabled){$('code').value=invite;await preview(invite);}
 }
 init().catch(e=>message('Unable to load PvP: '+e.message));
-
+

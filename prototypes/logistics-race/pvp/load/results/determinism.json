@@ -1,0 +1,13 @@
+{
+  "reference": "0e13688 original engine and service",
+  "matches": 50,
+  "seed": 42,
+  "simulationSeconds": 940.3000000001452,
+  "commandsPerMatch": 91,
+  "stateSha256": "56171d893e7ed6758a6e6dea743b15f44d994f6ff443b3e904bf47a153b80759",
+  "winnerSide": 1,
+  "settlements": 50,
+  "deterministic": true,
+  "doubleSettlements": 0,
+  "chain": "mock only; no signed transactions"
+}

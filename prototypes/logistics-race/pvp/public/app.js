@@ -24,9 +24,9 @@ var __toESM = (mod, isNodeMode, target) => (target = mod != null ? __create(__ge
   mod
 ));
 
-// node_modules/@hot-labs/near-connect/build/helpers/storage.js
+// ../../prototypes/logistics-race/pvp/node_modules/@hot-labs/near-connect/build/helpers/storage.js
 var require_storage = __commonJS({
-  "node_modules/@hot-labs/near-connect/build/helpers/storage.js"(exports) {
+  "../../prototypes/logistics-race/pvp/node_modules/@hot-labs/near-connect/build/helpers/storage.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.LocalStorage = void 0;
@@ -51,9 +51,9 @@ var require_storage = __commonJS({
   }
 });
 
-// node_modules/@hot-labs/near-connect/build/helpers/base58.js
+// ../../prototypes/logistics-race/pvp/node_modules/@hot-labs/near-connect/build/helpers/base58.js
 var require_base58 = __commonJS({
-  "node_modules/@hot-labs/near-connect/build/helpers/base58.js"(exports) {
+  "../../prototypes/logistics-race/pvp/node_modules/@hot-labs/near-connect/build/helpers/base58.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.encodeBase58 = encodeBase58;
@@ -94,9 +94,9 @@ var require_base58 = __commonJS({
   }
 });
 
-// node_modules/@hot-labs/near-connect/build/actions/index.js
+// ../../prototypes/logistics-race/pvp/node_modules/@hot-labs/near-connect/build/actions/index.js
 var require_actions = __commonJS({
-  "node_modules/@hot-labs/near-connect/build/actions/index.js"(exports) {
+  "../../prototypes/logistics-race/pvp/node_modules/@hot-labs/near-connect/build/actions/index.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.nearActionsToConnectorActions = void 0;
@@ -214,9 +214,9 @@ var require_actions = __commonJS({
   }
 });
 
-// node_modules/@hot-labs/near-connect/build/actions/gas-keys.js
+// ../../prototypes/logistics-race/pvp/node_modules/@hot-labs/near-connect/build/actions/gas-keys.js
 var require_gas_keys = __commonJS({
-  "node_modules/@hot-labs/near-connect/build/actions/gas-keys.js"(exports) {
+  "../../prototypes/logistics-race/pvp/node_modules/@hot-labs/near-connect/build/actions/gas-keys.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.isGasKeyAction = void 0;
@@ -234,9 +234,9 @@ var require_gas_keys = __commonJS({
   }
 });
 
-// node_modules/@hot-labs/near-connect/build/helpers/uuid.js
+// ../../prototypes/logistics-race/pvp/node_modules/@hot-labs/near-connect/build/helpers/uuid.js
 var require_uuid = __commonJS({
-  "node_modules/@hot-labs/near-connect/build/helpers/uuid.js"(exports) {
+  "../../prototypes/logistics-race/pvp/node_modules/@hot-labs/near-connect/build/helpers/uuid.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.uuid4 = void 0;
@@ -253,9 +253,9 @@ var require_uuid = __commonJS({
   }
 });
 
-// node_modules/@hot-labs/near-connect/build/ParentFrameWallet.js
+// ../../prototypes/logistics-race/pvp/node_modules/@hot-labs/near-connect/build/ParentFrameWallet.js
 var require_ParentFrameWallet = __commonJS({
-  "node_modules/@hot-labs/near-connect/build/ParentFrameWallet.js"(exports) {
+  "../../prototypes/logistics-race/pvp/node_modules/@hot-labs/near-connect/build/ParentFrameWallet.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.ParentFrameWallet = void 0;
@@ -348,9 +348,9 @@ var require_ParentFrameWallet = __commonJS({
   }
 });
 
-// node_modules/@hot-labs/near-connect/build/helpers/url.js
+// ../../prototypes/logistics-race/pvp/node_modules/@hot-labs/near-connect/build/helpers/url.js
 var require_url = __commonJS({
-  "node_modules/@hot-labs/near-connect/build/helpers/url.js"(exports) {
+  "../../prototypes/logistics-race/pvp/node_modules/@hot-labs/near-connect/build/helpers/url.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.parseUrl = void 0;
@@ -365,9 +365,9 @@ var require_url = __commonJS({
   }
 });
 
-// node_modules/@hot-labs/near-connect/build/helpers/clipboard.js
+// ../../prototypes/logistics-race/pvp/node_modules/@hot-labs/near-connect/build/helpers/clipboard.js
 var require_clipboard = __commonJS({
-  "node_modules/@hot-labs/near-connect/build/helpers/clipboard.js"(exports) {
+  "../../prototypes/logistics-race/pvp/node_modules/@hot-labs/near-connect/build/helpers/clipboard.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.copyText = void 0;
@@ -395,9 +395,9 @@ var require_clipboard = __commonJS({
   }
 });
 
-// node_modules/@hot-labs/near-connect/build/helpers/telegram.js
+// ../../prototypes/logistics-race/pvp/node_modules/@hot-labs/near-connect/build/helpers/telegram.js
 var require_telegram = __commonJS({
-  "node_modules/@hot-labs/near-connect/build/helpers/telegram.js"(exports) {
+  "../../prototypes/logistics-race/pvp/node_modules/@hot-labs/near-connect/build/helpers/telegram.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.openExternalLink = exports.openTelegramLink = exports.isTelegramMiniApp = void 0;
@@ -450,9 +450,9 @@ var require_telegram = __commonJS({
   }
 });
 
-// node_modules/@hot-labs/near-connect/build/helpers/events.js
+// ../../prototypes/logistics-race/pvp/node_modules/@hot-labs/near-connect/build/helpers/events.js
 var require_events = __commonJS({
-  "node_modules/@hot-labs/near-connect/build/helpers/events.js"(exports) {
+  "../../prototypes/logistics-race/pvp/node_modules/@hot-labs/near-connect/build/helpers/events.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.EventEmitter = void 0;
@@ -518,9 +518,9 @@ var require_events = __commonJS({
   }
 });
 
-// node_modules/@hot-labs/near-connect/build/helpers/html.js
+// ../../prototypes/logistics-race/pvp/node_modules/@hot-labs/near-connect/build/helpers/html.js
 var require_html = __commonJS({
-  "node_modules/@hot-labs/near-connect/build/helpers/html.js"(exports) {
+  "../../prototypes/logistics-race/pvp/node_modules/@hot-labs/near-connect/build/helpers/html.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.escapeHtml = escapeHtml;
@@ -548,9 +548,9 @@ var require_html = __commonJS({
   }
 });
 
-// node_modules/@hot-labs/near-connect/build/popups/styles.js
+// ../../prototypes/logistics-race/pvp/node_modules/@hot-labs/near-connect/build/popups/styles.js
 var require_styles = __commonJS({
-  "node_modules/@hot-labs/near-connect/build/popups/styles.js"(exports) {
+  "../../prototypes/logistics-race/pvp/node_modules/@hot-labs/near-connect/build/popups/styles.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.css = void 0;
@@ -819,9 +819,9 @@ ${id} .connect-item p {
   }
 });
 
-// node_modules/@hot-labs/near-connect/build/popups/Popup.js
+// ../../prototypes/logistics-race/pvp/node_modules/@hot-labs/near-connect/build/popups/Popup.js
 var require_Popup = __commonJS({
-  "node_modules/@hot-labs/near-connect/build/popups/Popup.js"(exports) {
+  "../../prototypes/logistics-race/pvp/node_modules/@hot-labs/near-connect/build/popups/Popup.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.Popup = void 0;
@@ -926,9 +926,9 @@ var require_Popup = __commonJS({
   }
 });
 
-// node_modules/@hot-labs/near-connect/build/popups/IframeWalletPopup.js
+// ../../prototypes/logistics-race/pvp/node_modules/@hot-labs/near-connect/build/popups/IframeWalletPopup.js
 var require_IframeWalletPopup = __commonJS({
-  "node_modules/@hot-labs/near-connect/build/popups/IframeWalletPopup.js"(exports) {
+  "../../prototypes/logistics-race/pvp/node_modules/@hot-labs/near-connect/build/popups/IframeWalletPopup.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.IframeWalletPopup = void 0;
@@ -976,9 +976,9 @@ var require_IframeWalletPopup = __commonJS({
   }
 });
 
-// node_modules/@hot-labs/near-connect/build/nearConnectStatic.js
+// ../../prototypes/logistics-race/pvp/node_modules/@hot-labs/near-connect/build/nearConnectStatic.js
 var require_nearConnectStatic = __commonJS({
-  "node_modules/@hot-labs/near-connect/build/nearConnectStatic.js"(exports) {
+  "../../prototypes/logistics-race/pvp/node_modules/@hot-labs/near-connect/build/nearConnectStatic.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.NEAR_CONNECT_VERSION = void 0;
@@ -986,9 +986,9 @@ var require_nearConnectStatic = __commonJS({
   }
 });
 
-// node_modules/@hot-labs/near-connect/build/SandboxedWallet/code.js
+// ../../prototypes/logistics-race/pvp/node_modules/@hot-labs/near-connect/build/SandboxedWallet/code.js
 var require_code = __commonJS({
-  "node_modules/@hot-labs/near-connect/build/SandboxedWallet/code.js"(exports) {
+  "../../prototypes/logistics-race/pvp/node_modules/@hot-labs/near-connect/build/SandboxedWallet/code.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var nearConnectStatic_1 = require_nearConnectStatic();
@@ -1334,9 +1334,9 @@ var require_code = __commonJS({
   }
 });
 
-// node_modules/@hot-labs/near-connect/build/SandboxedWallet/iframe.js
+// ../../prototypes/logistics-race/pvp/node_modules/@hot-labs/near-connect/build/SandboxedWallet/iframe.js
 var require_iframe = __commonJS({
-  "node_modules/@hot-labs/near-connect/build/SandboxedWallet/iframe.js"(exports) {
+  "../../prototypes/logistics-race/pvp/node_modules/@hot-labs/near-connect/build/SandboxedWallet/iframe.js"(exports) {
     "use strict";
     var __importDefault = exports && exports.__importDefault || function(mod) {
       return mod && mod.__esModule ? mod : { "default": mod };
@@ -1427,9 +1427,9 @@ var require_iframe = __commonJS({
   }
 });
 
-// node_modules/@hot-labs/near-connect/build/SandboxedWallet/executor.js
+// ../../prototypes/logistics-race/pvp/node_modules/@hot-labs/near-connect/build/SandboxedWallet/executor.js
 var require_executor = __commonJS({
-  "node_modules/@hot-labs/near-connect/build/SandboxedWallet/executor.js"(exports) {
+  "../../prototypes/logistics-race/pvp/node_modules/@hot-labs/near-connect/build/SandboxedWallet/executor.js"(exports) {
     "use strict";
     var __importDefault = exports && exports.__importDefault || function(mod) {
       return mod && mod.__esModule ? mod : { "default": mod };
@@ -1777,9 +1777,9 @@ var require_executor = __commonJS({
   }
 });
 
-// node_modules/@hot-labs/near-connect/build/SandboxedWallet/index.js
+// ../../prototypes/logistics-race/pvp/node_modules/@hot-labs/near-connect/build/SandboxedWallet/index.js
 var require_SandboxedWallet = __commonJS({
-  "node_modules/@hot-labs/near-connect/build/SandboxedWallet/index.js"(exports) {
+  "../../prototypes/logistics-race/pvp/node_modules/@hot-labs/near-connect/build/SandboxedWallet/index.js"(exports) {
     "use strict";
     var __importDefault = exports && exports.__importDefault || function(mod) {
       return mod && mod.__esModule ? mod : { "default": mod };
@@ -1857,9 +1857,9 @@ var require_SandboxedWallet = __commonJS({
   }
 });
 
-// node_modules/@hot-labs/near-connect/build/InjectedWallet.js
+// ../../prototypes/logistics-race/pvp/node_modules/@hot-labs/near-connect/build/InjectedWallet.js
 var require_InjectedWallet = __commonJS({
-  "node_modules/@hot-labs/near-connect/build/InjectedWallet.js"(exports) {
+  "../../prototypes/logistics-race/pvp/node_modules/@hot-labs/near-connect/build/InjectedWallet.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.InjectedWallet = void 0;
@@ -1939,9 +1939,9 @@ var require_InjectedWallet = __commonJS({
   }
 });
 
-// node_modules/@hot-labs/near-connect/build/popups/NearWalletsPopup.js
+// ../../prototypes/logistics-race/pvp/node_modules/@hot-labs/near-connect/build/popups/NearWalletsPopup.js
 var require_NearWalletsPopup = __commonJS({
-  "node_modules/@hot-labs/near-connect/build/popups/NearWalletsPopup.js"(exports) {
+  "../../prototypes/logistics-race/pvp/node_modules/@hot-labs/near-connect/build/popups/NearWalletsPopup.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.NearWalletsPopup = void 0;
@@ -2102,9 +2102,9 @@ var require_NearWalletsPopup = __commonJS({
   }
 });
 
-// node_modules/@hot-labs/near-connect/build/helpers/indexdb.js
+// ../../prototypes/logistics-race/pvp/node_modules/@hot-labs/near-connect/build/helpers/indexdb.js
 var require_indexdb = __commonJS({
-  "node_modules/@hot-labs/near-connect/build/helpers/indexdb.js"(exports) {
+  "../../prototypes/logistics-race/pvp/node_modules/@hot-labs/near-connect/build/helpers/indexdb.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var IndexedDB = class {
@@ -2273,9 +2273,9 @@ var require_indexdb = __commonJS({
   }
 });
 
-// node_modules/@hot-labs/near-connect/build/NearConnector.js
+// ../../prototypes/logistics-race/pvp/node_modules/@hot-labs/near-connect/build/NearConnector.js
 var require_NearConnector = __commonJS({
-  "node_modules/@hot-labs/near-connect/build/NearConnector.js"(exports) {
+  "../../prototypes/logistics-race/pvp/node_modules/@hot-labs/near-connect/build/NearConnector.js"(exports) {
     "use strict";
     var __importDefault = exports && exports.__importDefault || function(mod) {
       return mod && mod.__esModule ? mod : { "default": mod };
@@ -2614,9 +2614,9 @@ var require_NearConnector = __commonJS({
   }
 });
 
-// node_modules/@hot-labs/near-connect/build/index.js
+// ../../prototypes/logistics-race/pvp/node_modules/@hot-labs/near-connect/build/index.js
 var require_build = __commonJS({
-  "node_modules/@hot-labs/near-connect/build/index.js"(exports) {
+  "../../prototypes/logistics-race/pvp/node_modules/@hot-labs/near-connect/build/index.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.assertGasKeyActionsSupported = exports.isGasKeyAction = exports.nearActionsToConnectorActions = exports.NearConnector = exports.InjectedWallet = exports.SandboxWallet = exports.ParentFrameWallet = exports.LocalStorage = void 0;
@@ -2654,7 +2654,7 @@ var require_build = __commonJS({
   }
 });
 
-// client/app.mjs
+// prototypes/logistics-race/pvp/client/app.mjs
 var import_near_connect = __toESM(require_build(), 1);
 var $ = (id) => document.getElementById(id);
 var esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
@@ -2802,7 +2802,7 @@ function renderMatch() {
   }
 }
 function openGame() {
-  if (!current?.states) return message("The server is preparing the match.");
+  if (!current?.states && !current?.hasStates) return message("The server is preparing the match.");
   openedMatch = current.code;
   $("game").src = "/pvp/game?match=" + current.code;
   $("gameStage").hidden = false;
@@ -2848,13 +2848,13 @@ async function refresh() {
   const history = await api("matches");
   $("history").innerHTML = history.length ? history.map((m) => `<div class="match-row"><span>${esc(m.code)} \xB7 ${esc(m.phase)} \xB7 ${amount(m.stake)} test ${esc(cfg.symbol)}</span><button data-resume="${m.code}">Open</button></div>`).join("") : "No matches yet.";
   for (const b of $("history").querySelectorAll("[data-resume]")) b.onclick = () => action(async () => {
-    current = await api("matches/" + b.dataset.resume);
+    current = await api("matches/" + b.dataset.resume + "?view=metadata");
     sessionStorage.setItem("sl-pvp-match", current.code);
     renderMatch();
   });
   const code = current?.code || sessionStorage.getItem("sl-pvp-match");
   if (code) {
-    current = await api("matches/" + code);
+    current = await api("matches/" + code + "?view=metadata");
     renderMatch();
   }
 }
@@ -2868,7 +2868,7 @@ async function poll() {
   try {
     if (Date.now() - lastLobbyRefresh >= 5e3) await refreshLobbies();
     if (current) {
-      current = await api("matches/" + current.code);
+      current = await api("matches/" + current.code + "?view=metadata");
       renderMatch();
     } else {
       if (Date.now() - lastIdleRefresh < 15e3) return;
