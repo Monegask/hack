@@ -3,21 +3,22 @@ import path from 'node:path';
 import {createHash} from 'node:crypto';
 import {Account,JsonRpcProvider,KeyPair,baseEncode} from 'near-api-js';
 import {verifyMessage} from 'near-api-js/nep413';
+import {EscrowV2Adapter,SERVER_METHODS,validateRuntimeAccess} from './adapters/escrow-v2.mjs';
 import {root,accountOnNetwork,requirePayments,CIRCLE_USDC} from './config.mjs';
 import {durableSend,PendingChain} from './durable.mjs';
 import {callRpc} from './rpc.mjs';
-const METHODS=['create_lobby','bind_opponent','update_stake','record_activity','start_match','submit_result','heartbeat'];
+const METHODS=SERVER_METHODS;
 export {PendingChain};
 export class Chain{
- constructor(cfg,store){this.cfg=cfg;this.store=store;this.provider=new JsonRpcProvider({url:cfg.rpc});this.tail=Promise.resolve();}
+ constructor(cfg,store){this.cfg=cfg;this.store=store;this.provider=new JsonRpcProvider({url:cfg.rpc});this.tail=Promise.resolve();this.adapter=(cfg.network==='mainnet'||cfg.adapterVersion==='escrow-v2')?new EscrowV2Adapter(cfg):null;}
  rpc(method,params){if(method==='send_tx')this.store.assertLease();return callRpc(this.cfg.rpc,method,params);}
- async view(account,method,args={}){const r=await this.rpc('query',{request_type:'call_function',account_id:account,method_name:method,args_base64:Buffer.from(JSON.stringify(args)).toString('base64'),finality:'final'});return JSON.parse(Buffer.from(r.result).toString());}
- match(id){requirePayments(this.cfg);
+ async view(account,method,args={},blockId=null){const r=await this.rpc('query',{request_type:'call_function',account_id:account,method_name:method,args_base64:Buffer.from(JSON.stringify(args)).toString('base64'),...(blockId?{block_id:blockId}:{finality:'final'})});return JSON.parse(Buffer.from(r.result).toString());}
+ match(id){
   this.matchReads??=new Map();id=String(id);if(this.matchReads.has(id))return this.matchReads.get(id);
-  const pending=this.view(this.cfg.escrow,'get_match',{match_id:id}).finally(()=>this.matchReads.delete(id));this.matchReads.set(id,pending);return pending;
+  const pending=this.view(this.cfg.escrow,'get_match',{match_id:id}).then(m=>this.adapter?this.adapter.match(m):m).finally(()=>this.matchReads.delete(id));this.matchReads.set(id,pending);return pending;
  }
  async preflight({loadSigner=true}={}){
-  if(this.cfg.network==='mainnet')return this.mainnetPreflight();
+  if(this.adapter)return this.v2Preflight();
   const [status,cfg,token,account]=await Promise.all([this.rpc('status',[]),this.view(this.cfg.escrow,'get_config'),this.view(this.cfg.token,'ft_metadata'),this.rpc('query',{request_type:'view_account',account_id:this.cfg.escrow,finality:'final'})]);
   if(status.chain_id!=='testnet'||cfg.token!==this.cfg.token||cfg.server!==this.cfg.server||token.decimals!==6||cfg.paused)throw Error('Testnet escrow configuration mismatch or paused');
   const wasm=fs.readFileSync(path.resolve(root,'../../../contracts/near-pvp-escrow/artifacts/near_pvp_escrow.wasm'));
@@ -47,6 +48,9 @@ export class Chain{
   requirePayments(this.cfg);
   if(!METHODS.includes(method))throw Error('Server method not allowed');
   await this.assertNetwork();
+  // A prior signed operation must be reconciled even after pause/freeze; never create replacement bytes.
+  if(this.adapter&&this.store.get('outbox',id)){this.adapter.serverCall(method,args);await this.control();return durableSend({store:this.store,id,method,args,receiverId:this.cfg.escrow,accountId:this.cfg.server,account:this.account,rpc:this.rpc.bind(this)});}
+  if(this.adapter){this.adapter.serverCall(method,args);const c=await this.control();if(c.server_frozen)throw Error('Server frozen');if(['create_lobby','bind_opponent','update_stake','start_match'].includes(method)&&c.paused)throw Error('Escrow paused');if(method==='create_lobby')await this.requireRegistered([this.cfg.escrow,c.admin],this.controlBlock.hash);}
   return durableSend({store:this.store,id,method,args,receiverId:this.cfg.escrow,accountId:this.cfg.server,account:this.account,rpc:this.rpc.bind(this)});
  }
  async balance(account){
@@ -59,19 +63,25 @@ export class Chain{
   return {balance,registered:!!storage,storageMinimum:bounds.min,nearAvailable:String(available),gasReserve:this.cfg.gasReserve,hasGas:available>=BigInt(this.cfg.gasReserve)};
  }
  async assertNetwork(){const status=await this.rpc('status',[]);if(status.chain_id!==(this.cfg.network||'testnet'))throw Error('RPC chain_id does not match selected network');}
- async mainnetPreflight(){
-  await this.assertNetwork();
-  if(this.cfg.token!==CIRCLE_USDC)throw Error('Native Circle USDC required');
-  const [token,account,registered]=await Promise.all([this.view(this.cfg.token,'ft_metadata'),this.rpc('query',{request_type:'view_account',account_id:this.cfg.escrow,finality:'final'}),this.view(this.cfg.token,'storage_balance_of',{account_id:this.cfg.escrow})]);
-  if(token.decimals!==6||token.symbol!=='USDC')throw Error('Circle USDC metadata mismatch');
-  if(account.code_hash!==this.cfg.escrowCodeHash)throw Error('Escrow code hash mismatch');
-  if(!registered)throw Error('Escrow must be registered with Circle USDC by its operator');
-  // No guessed calls to the new escrow ABI; no signer is loaded in Mainnet.
-  this.chainConfig={};
-  return {network:'mainnet',escrow:this.cfg.escrow,token:this.cfg.token,symbol:token.symbol,signerChecked:false,paymentsEnabled:false,escrowApi:'unavailable'};
+ async control(){
+  if(!this.adapter)return this.chainConfig;
+  const block=await this.rpc('block',{finality:'final'});
+  const [c,code]=await Promise.all([this.view(this.cfg.escrow,'get_config',{},block.header.hash),this.rpc('query',{request_type:'view_account',account_id:this.cfg.escrow,block_id:block.header.hash})]);
+  if(code.code_hash!==this.cfg.escrowCodeHash)throw Error('Escrow code hash mismatch');
+  this.controlBlock=block.header;this.chainConfig=this.adapter.config(c);return this.chainConfig;
  }
+ async requireRegistered(accounts,blockId=null){for(const id of new Set(accounts))if(!await this.view(this.cfg.token,'storage_balance_of',{account_id:id},blockId))throw Error('FT recipient not registered: '+id);}
+ async v2Preflight(){
+  await this.assertNetwork();const c=await this.control();
+  const token=await this.view(this.cfg.token,'ft_metadata',{},this.controlBlock.hash);
+  if(token.decimals!==6||(this.cfg.network==='mainnet'&&token.symbol!=='USDC'))throw Error('USDC metadata mismatch');
+  await this.requireRegistered([this.cfg.escrow,c.admin],this.controlBlock.hash);
+  return {network:this.cfg.network,escrow:this.cfg.escrow,token:this.cfg.token,symbol:token.symbol,feeBps:c.fee_bps,pendingFee:c.pending_fee,paused:c.paused,serverFrozen:c.server_frozen,signerChecked:false,paymentsEnabled:false,escrowApi:'escrow-v2'};
+ }
+ async checkRuntimeKey(publicKey){const access=await this.rpc('query',{request_type:'view_access_key',account_id:this.cfg.server,public_key:publicKey,finality:'final'});validateRuntimeAccess(access,this.cfg);return true;}
+
  async chainTime(){
-  if(!this.blockTime||Date.now()-this.blockTime.at>=1000){
+  if(!this.blockTime||Date.now()-this.blockTime.at>=250){
    const entry={at:Infinity};entry.promise=this.rpc('block',{finality:'final'}).then(r=>{entry.at=Date.now();return BigInt(r.header.timestamp_nanosec);}).catch(e=>{if(this.blockTime===entry)this.blockTime=null;throw e;});this.blockTime=entry;
   }return this.blockTime.promise;
  }

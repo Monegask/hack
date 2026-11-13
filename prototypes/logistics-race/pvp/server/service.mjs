@@ -36,7 +36,7 @@ export class GameService{
  member(code,account){const m=this.memberOrLobby(code),i=m.players.indexOf(account);if(i<0)throw Error('Not a participant');return {m,i};}
  snapshot(code,account,{touch=false}={}){
   const {m,i}=this.member(code,account);if(touch)m.seen[i]=this.now();
-  return {code:m.code,visibility:m.visibility||'private',players:m.players,side:i,stake:m.stake,seed:m.seed,phase:m.phase,chainId:m.chainId,chain:m.chain,states:m.states,revision:m.revision,result:m.result,error:m.error,recovering:!!m.recovering,serverNow:this.now(),lastSequence:m.sequences?.[i]||0};
+  return {code:m.code,visibility:m.visibility||'private',players:m.players,side:i,stake:m.stake,seed:m.seed,phase:m.phase,chainId:m.chainId,chain:m.chain,states:m.states,revision:m.revision,result:m.result,error:m.error,recovering:!!m.recovering,serverNow:Math.floor(this.now()),control:this.chain.adapter?this.chain.chainConfig:undefined,lastSequence:m.sequences?.[i]||0};
  }
  list(account){return [...this.matches.values()].filter(m=>m.players.includes(account)).map(m=>({code:m.code,phase:m.phase,chainId:m.chainId,players:m.players,stake:m.stake,created:m.created})).sort((a,b)=>b.created-a.created);}
  chainOpen(m,c){return !!c&&c.state==='LobbyOpen'&&!c.opponent&&c.creator===m.players[0]&&c.stake===m.stake&&BigInt(c.deadline_ns||'0')>BigInt(Math.floor(this.now()))*1000000n;}
@@ -130,6 +130,8 @@ export class GameService{
   if(this.busy.has(m.code))return;this.busy.add(m.code);
   const before=JSON.stringify({chain:m.chain,phase:m.phase,error:m.error,recovering:m.recovering});
   try{
+   const control=this.chain.adapter?await this.chain.control():null;
+   if(control&&(control.server_frozen||control.paused)&&['creating','binding'].includes(m.phase))throw Error('Escrow admissions unavailable');
    if(m.phase==='creating'){
     const r=await this.chain.execute(m.code+':create','create_lobby',{creator:m.players[0],stake:m.stake});m.chainId=String(r.value);m.phase='lobby';this.save(m);
    }
@@ -144,6 +146,7 @@ export class GameService{
    m.chain=chain;m.error=null;
    if(['Completed','Cancelled'].includes(chain.state)){m.phase=chain.state==='Completed'?'finished':'cancelled';m.states?.forEach(s=>s.paused=true);this.save(m);return;}
    if(chain.state==='SettlementPending'){m.phase='settling';m.states?.forEach(s=>s.paused=true);this.save(m);return;}
+   if(this.chain.adapter&&chain.state==='InProgress'){const reason=this.chain.adapter.refundReason(chain,control,await this.chain.chainTime());if(reason){m.phase='refund';m.error=reason;m.states?.forEach(s=>s.paused=true);this.save(m);return;}}
    if(m.phase==='refund'){this.save(m);return;} // Stop heartbeat; participants can mutually cancel or emergency-refund.
    if(chain.state==='ReadyToStart'){
     m.phase='countdown';this.save(m);const now=await this.chain.chainTime();if(now>=BigInt(chain.deadline_ns))return;
@@ -171,17 +174,22 @@ export class GameService{
     m.error=e.pending?e.message:'Blockchain sync paused. Your match and transaction IDs are saved; retrying reconciliation.';this.save(m);throw e;
    }finally{this.busy.delete(m.code);}
  }
+ async reconcileAll(){
+  const queue=[...this.matches.values()].filter(m=>!['finished','cancelled'].includes(m.phase)||m.chain?.payouts?.some(p=>p.state!=='Paid'&&p.amount!=='0'));
+  let cursor=0;
+  const worker=async()=>{while(cursor<queue.length){const m=queue[cursor++];try{await this.reconcile(m);}catch{}}};
+  await Promise.all(Array.from({length:Math.min(4,queue.length)},worker));
+ }
  async sync(){
-  let heartbeatError=null;const now=this.now();if(now-this.lastHeartbeat>=30000){
+  if(this.chain.adapter)await this.reconcileAll();
+  const control=this.chain.adapter?await this.chain.control():null;
+  let heartbeatError=null;const now=this.now();if(!control?.server_frozen&&now-this.lastHeartbeat>=30000){
    // Deliberately exclude refund-required games, even when their on-chain state is InProgress.
    const ids=[...this.matches.values()].filter(m=>m.phase==='playing'&&!m.recovering).map(m=>m.chainId);
    for(let i=0;i<ids.length;i+=32){try{await this.chain.execute('heartbeat:'+Math.floor(now/30000)+':'+i,'heartbeat',{match_ids:ids.slice(i,i+32)});}catch(e){heartbeatError=e;}}
    if(!heartbeatError)this.lastHeartbeat=now;
   }
-  const queue=[...this.matches.values()].filter(m=>!['finished','cancelled'].includes(m.phase)||m.chain?.payouts?.some(p=>p.state!=='Paid'&&p.amount!=='0'));
-  let cursor=0;
-  const worker=async()=>{while(cursor<queue.length){const m=queue[cursor++];try{await this.reconcile(m);}catch{}}};
-  await Promise.all(Array.from({length:Math.min(4,queue.length)},worker));
+  if(!this.chain.adapter)await this.reconcileAll();
   // A failed/expired heartbeat batch must not starve reconciliation that removes it.
   if(heartbeatError)throw heartbeatError;
  }
