@@ -22,7 +22,7 @@ export class FakeChain{
  }
  async match(id){return structuredClone(this.matches.get(String(id)));}
  async chainTime(){return BigInt(this.now())*1000000n;}
- async balance(){return {balance:'20000000',registered:true,storageMinimum:'1250000000000000000000'};}
+ async balance(){return {balance:'20000000',registered:true,storageMinimum:'1250000000000000000000',nearAvailable:'1000000000000000000000000',gasReserve:'10000000000000000000000',hasGas:true};}
  deposit(id){const m=this.matches.get(id);m.deposited=[true,true];m.state='ReadyToStart';m.ready_at_ns=String(BigInt(this.now())*1000000n);}
 }
 export function fixture(){let clock=1800000000000;const now=()=>clock,store=new Store('',{memory:true}),chain=new FakeChain(now),cfg={...chain.cfg,origin:'http://localhost:4190',network:'testnet',maxActive:10,players:[]},game=new GameService(cfg,store,chain,now);return {now,store,chain,cfg,game,step(ms){clock+=ms;game.advance();}};}

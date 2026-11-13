@@ -17,3 +17,5 @@ prototypes/logistics-race/dist/assets/asphalt-plant.glb
 *.log
 
 /.tools/
+!.env.testnet.example
+!.env.mainnet.example
