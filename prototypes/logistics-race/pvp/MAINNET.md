@@ -1,29 +1,41 @@
-# Подготовка Circle USDC / NEAR Mainnet · 13 ноября 2026
+# Supply Line · native Circle USDC / escrow-v2
 
-Эта ветка — подготовка интеграции, **не готовый Mainnet PvP**. Новый escrow API отсутствует (пользователь подтвердил, что не знает о существующем согласованном API). Mainnet запускается только как проверяемый read-only клиент баланса/аутентификации после заполнения реальных deployment-параметров. Финансовые маршруты, FT-регистрация, игровые матчи и server signer в Mainnet заблокированы кодом. Переменной окружения для снятия блокировки нет. Production не развёртывался, средства не переводились, секреты не читались.
+Актуализация 13 ноября 2026: фактический Rust API из PR #1 (`6b6cd1c`) интегрирован отдельным versioned adapter. Первоначальная запись о неизвестном API больше не описывает текущее состояние. **Mainnet deployment, реальные деньги и включение финансовых endpoints не выполняются.** Guard не имеет env override; независимый аудит и проверка разрешений денежных соревнований остаются отдельными условиями.
 
-## Что изменено
+## Конфигурации и совместимость
 
-- Testnet остаётся сетью по умолчанию со старым escrow API и mock FT. `.env.example` сохранён; `.env.testnet.example` — явный профиль.
-- `.env.mainnet.example` требует явных RPC/origin, escrow/server/token, ожидаемого code hash и абсолютного отдельного DATA_DIR. REQUIRED — обязательные незаполненные значения, а не реальные аккаунты. Не подставлять старый Testnet escrow или WASM.
-- Единственный Mainnet token ID: `17208628f84f5d6ad33f0da3bbbeb27ffcb398eac501a31bd6ad2011e36133a1`. Это нативный USDC из [реестра Circle](https://developers.circle.com/stablecoins/usdc-contract-addresses); USDC.e и любые другие токены отклоняются независимо от symbol.
-- Preflight Mainnet проверяет RPC chain_id, ID токена, decimals=6, symbol=USDC, code hash escrow и его FT-регистрацию. Не вызывает неизвестные методы нового escrow и не выдаёт code-hash pin за независимый аудит. Права/роли нового escrow пока не подтверждаются.
-- Wallet connector и NEP-413 используют выбранную сервером сеть; сообщение привязано к сети, escrow, origin и одноразовому nonce. Проверяются подпись и FullAccess ключ на выбранном RPC. Browser не выбирает сеть параметром URL. При смене deployment ответы отвергаются до перезагрузки.
-- SQLite привязана к network/escrow/token. Mainnet отвергает чужую либо заполненную старую БД без scope. Старые Testnet-сессии остаются допустимыми только в Testnet. Сохранения игры не удаляются.
-- Баланс: final FT balance, NEP-145 registration/bounds, NEAR amount минус storage_usage × storage_amount_per_byte. Это консервативная оценка liquid NEAR: staking collateral не засчитывается. Резерв 0.01 NEAR — политика допуска, **не обещанная цена gas**. Изменение цены газа и одновременные траты могут всё равно привести к отказу транзакции.
-- Testnet self-registration: только текущий authenticated account, registration_only=true, точный storage minimum, проверка NEAR для storage + gas. Уже зарегистрированный аккаунт не получает второй запрос. Escrow и fee receiver оператор должен зарегистрировать отдельно; backend не спонсирует чужие аккаунты.
-- Перед Testnet-депозитом заново проверяются точные terms/revision/opponent, FT registration/balance и NEAR. Перед прочими wallet-вызовами проверяется gas. Старый API escrow и restricted signer сохранены.
-- Суммы отображаются целочисленно, включая micro-USDC; принятые депозиты, общий принятый объём, комиссия/банк/приз и отдельные payout/refund состояния читаются из escrow. Mainnet не показывает вымышленный fee rate или match data.
+- Testnet: `.env.example` / `.env.testnet.example`, сеть по умолчанию testnet, старый escrow-v1/WASM/mock FT. В wire API и пользовательской БД v1 нет миграции.
+- Mainnet: `.env.mainnet.example`, явные network/origin/RPC/escrow/server/token/code hash/абсолютный DATA_DIR и ESCROW_API_VERSION=2. REQUIRED не является адресом готового deployment. DB scope включает версию adapter; нельзя переиспользовать старую/чужую БД.
+- Только [нативный Circle USDC](https://developers.circle.com/stablecoins/usdc-contract-addresses): `17208628f84f5d6ad33f0da3bbbeb27ffcb398eac501a31bd6ad2011e36133a1`, decimals=6. USDC.e и подмены по symbol отклоняются.
+- Preflight v2 проверяет chain_id, pinned code hash, schema/state_version=2, immutable token/roles, metadata и FT registration escrow/fee receiver. Config/code читаются на одном final block. Initially paused и server_frozen показываются read-only; допуск матчей при них закрыт.
+- SERVER_KEY_FILE в Mainnet запрещён. Опциональный **публичный** SERVER_RUNTIME_PUBLIC_KEY позволяет read-only проверить exact receiver/7 methods/finite allowance; это не загрузка signer и не разрешение транзакций. Необозначенная проверка возвращает signerChecked=false.
+- NEP-413 подписывает сеть/escrow/origin/одноразовый challenge; FullAccess ключ проверяется в выбранной сети. При смене deployment API responses отвергаются до reload. Сеть не выбирается параметром URL.
 
-## Повторные платежи и неизвестный результат
+## Adapter и финансовый lifecycle
 
-Web Locks исключает одновременную подпись в нескольких вкладках одного origin. Перед вызовом кошелька localStorage получает журнал с deployment/account/match/action; перезагрузка, sign-out и другая вкладка его не стирают. После ответа кошелька сохраняется hash, если он возвращён. Кнопки заблокированы до конкретного подтверждения: принятый депозит, регистрация, переход соответствующего payout в InFlight/Paid или нужное состояние escrow. Успех wallet API сам по себе не подтверждает выплату. Серверный outbox по-прежнему повторно передаёт те же подписанные байты, а не создаёт новый платёж.
+`server/adapters/escrow-v2.mjs` содержит строгую схему, точные server/player transaction builders и refund eligibility. Backend Chain/GameService используют create/bind/activity/heartbeat/start/result. Начальные game states сохраняются до start; client victory не принимается как денежный результат. Scope и старый v1 branch отделены. Сводная карта API: ESCROW_API_REQUIRED.md.
 
-При известном hash `/api/payment-status` проверяет выбранную сеть, signer, hash и FINAL. Только окончательная top-level Failure позволяет автоматически снять блокировку неуспешной транзакции; успешный tx без принятого депозита не трактуется как депозит. RPC timeout, unknown tx, receipt failure и возврат из FT resolver требуют дальнейшей проверки. Если кошелёк закрылся/отказал без hash, журнал остаётся заблокированным: приложение не может доказать отсутствие broadcast. Проверить историю кошелька, receipts и final escrow с оператором; не удалять журнал/данные, чтобы просто повторить оплату. Полный пользовательский workflow безопасного разбора случая без hash остаётся открытым. Web Locks не координирует разные устройства; защита от двойного приёма должна обеспечиваться escrow.
+До deposit проверяются текущие участники/stake/revision/fee, registry/balance USDC, spendable NEAR и FT storage escrow/обоих игроков/фиксированного fee receiver. Self-registration использует minimum storage, registration_only и текущий authenticated account. Native reserve 0.01 NEAR — консервативная политика допуска, не цена gas. Расчёт liquid NEAR вычитает storage_usage × storage_amount_per_byte; staking collateral не засчитывается. Конкурентные траты/изменение gas всё ещё могут вызвать отказ.
 
-## Локальные команды
+Player deposit использует 150 Tgas и 1 yoctoNEAR; cancellation/forfeit/claim — 250 Tgas и 1 yoctoNEAR по API v2. Комиссия и приз вычисляются целочисленно; fee/receiver snapshots не подменяются текущим admin config. UI отдельно показывает принятую сумму депозитов, банк/fee, effective/pending fee и реальные Ready/InFlight/Paid. Cancelled не означает, что все refunds доставлены.
 
-Node.js 24+, из этой папки:
+Mainnet `requirePayments` блокирует create/join/deposit/register/claim/refund/forfeit и публичные lobbies; worker и signer не запускаются. Read-only `/api/escrow/matches/:id` доступен только участнику/получателю выплаты. Подготовленные builders исполняются интеграционным harness только в локальном Sandbox — environment config такой режим не разрешает.
+
+## Неизвестная wallet-транзакция
+
+Сервер сохраняет immutable `payment` intent до передачи transaction в browser; ключ — deployment/account/request ID. Один unresolved intent блокирует следующий, в том числе с другого устройства. Web Locks и localStorage дополняют серверный журнал. `GET /api/payments` восстанавливает его после потери browser storage; `POST /api/payment-status` принимает ID и исходный hash из кошелька. Hash и transaction binding проверяются до сохранения; другой signer/receiver/args/deposit не принимаются. Нельзя заменить уже проверенный hash.
+
+Reconciliation проверяет FINAL и весь receipt tree, затем escrow на final block >= высот всех receipts. Для deposit receipt-linked deposit_accepted + accepted final state подтверждают приём; amount-used=0 успешного FT resolver подтверждает полный возврат; root token receipt Failure до transfer означает атомарный отказ. Failure resolver после transfer не трактуется как возврат. Баланс всего escrow не используется для приписывания депозита.
+
+Для claim факт top-level success не равен Paid. Ready после завершённых receipts даёт безопасный retry фиксированного обязательства; InFlight остаётся заблокированным; Paid подтверждает доставку. Cancel/result означает создание обязательств, а не доставку всех переводов. Unknown tx/hash без final evidence не сбрасывается по таймауту. Кнопка «Check original transaction hash» позволяет проверить исходный hash из wallet history. Если hash отсутствует, приложение не может доказать отсутствие broadcast; автоматический повтор запрещён.
+
+Server signed outbox после restart использует тот же hash/bytes; даже frozen/paused не создаёт замену. До broadcast проверяется SQLite lease; `chainTime` coalesces reads на 250ms и evicts failure. Code-hash mismatch останавливает выполнение, а refund states при freeze/абсолютном deadline переводят worker в refund и исключают winner/result/heartbeat.
+
+## Ограничения контракта до production
+
+См. CONTRACT_REVIEW-v2.md: у v2 нет proof-based восстановления потерянного payout callback или безопасного возврата unaccounted FT после failed resolver. Полный автоматический recovery во всех случаях не реализован ни контрактом, ни adapter. Runtime — централизованный winner oracle; FunctionCall key не может произвольно переводить FT/NEAR, но компрометация сервера всё ещё позволяет выбрать нечестного победителя среди участников. FullAccess deployment/admin и Circle issuer — отдельные доверенные роли.
+
+## Проверки и локальные команды
 
 ```powershell
 npm ci
@@ -35,24 +47,8 @@ node ../bot/build-race.cjs
 npm run build
 ```
 
-Для `game-3d/build.mjs` нужны зависимости `../threejs-trial` (`npm ci` там). Первая команда build-offline выполняет требуемую пересборку автономного HTML; игровые правила не изменены. Не использовать user data для тестов. Browser QA создаёт изолированные контексты Edge и тестовый HTTP сервер, не обращается к RPC/кошелькам.
+Для 3D build нужны зависимости `../threejs-trial`. Browser tests используют изолированные профили, не трогают пользовательский save.
 
-Для read-only Mainnet preflight после появления настоящего escrow и проверенных параметров:
+Workflow `.github/workflows/escrow-v2-integration.yml` берёт PR #1 по **точному SHA**, компилирует Rust с sandbox feature, запускает near-workspaces 0.24.0 и реальную JS backend/HTTP цепочку. Sandbox WASM и ephemeral keys не используются в Mainnet; ключи временных аккаунтов остаются в private temp file runner и не попадают в artifacts. Отчёт содержит только публичные receipt/ledger данные. Итоговые результаты и границы фиксируются в VALIDATION-escrow-v2.md.
 
-```powershell
-node --env-file=.env.mainnet server/preflight.mjs
-```
-
-Не запускать до заполнения шаблона. Mainnet SERVER_KEY_FILE должен быть unset; сервер не загрузит signer. Значения существующего Testnet signer не копировать в Mainnet. Примеры env не содержат ключей. Любой запуск/deployment за пределами локальной QA потребует отдельной задачи; этот PR ничего не публикует в runtime.
-
-## Что ещё требуется до Mainnet
-
-1. Согласованный versioned escrow API: views, схемы/единицы, ft_transfer_call msg, методы всех lifecycle/refund/claim операций, события, таймауты, роли и ровно допустимые методы runtime key. См. `ESCROW_API_REQUIRED.md`.
-2. Новый adapter с schema validation, настоящие адреса/roles/token pin, проверка fee receiver и всех получателей на FT storage, независимый аудит exact WASM и upgrade/admin permissions.
-3. Проверка разрешений для денежных соревнований; отдельное решение о rollout и снятии программной блокировки через review.
-4. Тест нового API с failure callbacks, refund resolver, payout retries, финальностью и перезапусками; затем отдельно авторизованный end-to-end цикл с двумя кошельками. Нынешние fixtures не являются on-chain выплатами.
-5. Завершить recovery без hash/при успешном FT tx с полным возвратом; доказать безопасность повторов на контракте. Проверить реальные Meteor/HOT/другие кошельки на Mainnet и mobile redirects. Сейчас проверены сетевые параметры и NEP-413 в изолированных тестах.
-
-Источники: [Circle USDC](https://developers.circle.com/stablecoins/usdc-contract-addresses), [NEAR wallet login](https://docs.near.org/web3-apps/tutorials/wallet-login), [NEP-413](https://github.com/near/NEPs/blob/master/neps/nep-0413.md), [NEP-141/145/148](https://docs.near.org/primitives/ft/standard).
-
-Для этой feature-ветки в vercel.json задано `git.deploymentEnabled["feat/mainnet-integration"]=false`, чтобы push/PR не запускал Vercel preview. Это [официальная настройка Vercel](https://vercel.com/docs/project-configuration/git-configuration); другие ветки сохраняют прежнее поведение. Railway/runtime-конфигурация не менялась.
+Автодеплой Vercel для feat/mainnet-integration отключён branch-specific настройкой vercel.json. Railway/Mainnet не развёртываются. [Vercel configuration](https://vercel.com/docs/project-configuration/git-configuration), [wallet login](https://docs.near.org/web3-apps/tutorials/wallet-login), [NEP-141/145](https://docs.near.org/primitives/ft/standard).

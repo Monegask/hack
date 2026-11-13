@@ -3,7 +3,7 @@ import path from 'node:path';
 import {createHash} from 'node:crypto';
 import {Account,JsonRpcProvider,KeyPair,baseEncode} from 'near-api-js';
 import {verifyMessage} from 'near-api-js/nep413';
-import {EscrowV2Adapter,SERVER_METHODS,validateRuntimeAccess} from './adapters/escrow-v2.mjs';
+import {EscrowV2Adapter,SERVER_METHODS,validateRuntimeAccess,assertAdmissionPolicy} from './adapters/escrow-v2.mjs';
 import {root,accountOnNetwork,requirePayments,CIRCLE_USDC} from './config.mjs';
 import {durableSend,PendingChain} from './durable.mjs';
 import {callRpc} from './rpc.mjs';
@@ -73,7 +73,9 @@ export class Chain{
   const token=await this.view(this.cfg.token,'ft_metadata',{},this.controlBlock.hash);
   if(token.decimals!==6||(this.cfg.network==='mainnet'&&token.symbol!=='USDC'))throw Error('USDC metadata mismatch');
   await this.requireRegistered([this.cfg.escrow,c.admin],this.controlBlock.hash);
-  return {network:this.cfg.network,escrow:this.cfg.escrow,token:this.cfg.token,symbol:token.symbol,feeBps:c.fee_bps,pendingFee:c.pending_fee,paused:c.paused,serverFrozen:c.server_frozen,signerChecked:false,paymentsEnabled:false,escrowApi:'escrow-v2'};
+  if(c.fee_bps!==300||c.admin!==this.cfg.expectedFeeReceiver)throw Error('Approved 3% fee/receiver policy mismatch');
+  if(this.cfg.runtimePublicKey)await this.checkRuntimeKey(this.cfg.runtimePublicKey);
+  return {network:this.cfg.network,escrow:this.cfg.escrow,token:this.cfg.token,symbol:token.symbol,feeBps:c.fee_bps,pendingFee:c.pending_fee,paused:c.paused,serverFrozen:c.server_frozen,signerChecked:!!this.cfg.runtimePublicKey,paymentsEnabled:false,escrowApi:'escrow-v2'};
  }
  async checkRuntimeKey(publicKey){const access=await this.rpc('query',{request_type:'view_access_key',account_id:this.cfg.server,public_key:publicKey,finality:'final'});validateRuntimeAccess(access,this.cfg);return true;}
 

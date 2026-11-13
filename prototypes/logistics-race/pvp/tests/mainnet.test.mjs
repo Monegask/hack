@@ -11,14 +11,14 @@ import {Store} from '../server/store.mjs';
 import {createApp} from '../server/http.mjs';
 import {fixture} from './fixture.mjs';
 import {formatUnits,paymentObserved,pendingKey} from '../client/finance.mjs';
-const main={NEAR_NETWORK:'mainnet',PUBLIC_ORIGIN:'https://supply.example',NEAR_RPC_URL:'https://rpc.mainnet.near.org',TOKEN_ID:CIRCLE_USDC,ESCROW_ID:'escrow-reviewed.near',SERVER_ACCOUNT:'runtime.near',ESCROW_CODE_HASH:'1'.repeat(32),DATA_DIR:path.join(os.tmpdir(),'supply-line-isolated-mainnet')};
+const main={NEAR_NETWORK:'mainnet',ESCROW_API_VERSION:'2',FEE_RECEIVER_ID:'admin.near',PUBLIC_ORIGIN:'https://supply.example',NEAR_RPC_URL:'https://rpc.mainnet.near.org',TOKEN_ID:CIRCLE_USDC,ESCROW_ID:'escrow-reviewed.near',SERVER_ACCOUNT:'runtime.near',ESCROW_CODE_HASH:'1'.repeat(32),DATA_DIR:path.join(os.tmpdir(),'supply-line-isolated-mainnet')};
 const hash=s=>createHash('sha256').update(s).digest('hex');
 
 test('configuration preserves Testnet defaults and requires every explicit Mainnet deployment value',()=>{
  assert.equal(config({}).network,'testnet');assert.equal(config({}).paymentsEnabled,true);
  assert.equal(config(main).paymentsEnabled,false);
  for(const key of Object.keys(main)){if(key==='NEAR_NETWORK')continue;const env={...main};delete env[key];assert.throws(()=>config(env),key);}
- for(const patch of [{NEAR_NETWORK:'other'},{TOKEN_ID:'usdc.bridge.near'},{TOKEN_ID:'usdc.fakes.near'},{ESCROW_ID:'escrow.testnet'},{NEAR_RPC_URL:'https://rpc.testnet.near.org'},{NEAR_RPC_URL:'http://rpc.mainnet.near.org'},{SERVER_KEY_FILE:'C:/never-read.json'},{PUBLIC_ORIGIN:'http://localhost:4191'},{ESCROW_CODE_HASH:'REQUIRED'},{DATA_DIR:'./data'}])assert.throws(()=>config({...main,...patch}),JSON.stringify(patch));
+ for(const patch of [{NEAR_NETWORK:'other'},{ESCROW_API_VERSION:'1'},{TOKEN_ID:'usdc.bridge.near'},{TOKEN_ID:'usdc.fakes.near'},{ESCROW_ID:'escrow.testnet'},{NEAR_RPC_URL:'https://rpc.testnet.near.org'},{NEAR_RPC_URL:'http://rpc.mainnet.near.org'},{SERVER_KEY_FILE:'C:/never-read.json'},{PUBLIC_ORIGIN:'http://localhost:4191'},{ESCROW_CODE_HASH:'REQUIRED'},{DATA_DIR:'./data'}])assert.throws(()=>config({...main,...patch}),JSON.stringify(patch));
  assert.equal(config({...main,MAINNET_PAYMENTS_ENABLED:'true',AUDIT_APPROVED:'true'}).paymentsEnabled,false);
 });
 test('account syntax and network rules reject alternate-network wallets',()=>{

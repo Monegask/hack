@@ -1,10 +1,10 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {EscrowV2Adapter,validateConfig,validateMatch,validateRuntimeAccess,SERVER_METHODS,CIRCLE_USDC} from '../server/adapters/escrow-v2.mjs';
+import {EscrowV2Adapter,validateConfig,validateMatch,validateRuntimeAccess,SERVER_METHODS,CIRCLE_USDC,assertAdmissionPolicy} from '../server/adapters/escrow-v2.mjs';
 import {prepareIntent,reconcileIntent} from '../server/recovery-v2.mjs';
 import {Store} from '../server/store.mjs';
 import {fixture,playing} from './fixture.mjs';
-const cfg={network:'mainnet',token:CIRCLE_USDC,server:'server.near',escrow:'escrow.near',scope:'unit-v2'};
+const cfg={network:'mainnet',token:CIRCLE_USDC,server:'server.near',escrow:'escrow.near',scope:'unit-v2',expectedFeeReceiver:'fee.near'};
 const config=()=>({state_version:2,admin:'fee.near',pending_admin:null,server:cfg.server,token:cfg.token,paused:false,server_frozen:false,pending_fee:null,last_heartbeat_ns:'100000000000',fee_bps:300});
 const match=()=>({id:'0',creator:'alice.near',opponent:'bob.near',stake:'5000000',revision:'0',fee_bps:300,fee_receiver:'fee.near',created_at_ns:'1',deadline_ns:'600000000001',joined_at_ns:'2',activity_confirmed:true,deposited:[false,false],ready_at_ns:null,last_heartbeat_ns:null,game_deadline_ns:null,state:'AwaitingDeposits',winner:null,cancel_requester:null,cancel_nonce:'0',payouts:[{receiver:'alice.near',amount:'0',state:'Paid',attempt:'0'},{receiver:'fee.near',amount:'0',state:'Paid',attempt:'0'}]});
 const adapter=new EscrowV2Adapter(cfg);
@@ -53,5 +53,7 @@ test('recovery distinguishes confirmed full resolver refund and atomic pre-trans
 test('recovery requires exact signer/receiver/arguments and receipt-linked accepted deposit',async t=>{
  const f=recoveryFixture(t);f.tx.transaction.receiver_id='evil.near';await assert.rejects(reconcileIntent(f.chain,f.store,f.intent,f.hash),/identity/);f.tx.transaction.receiver_id=cfg.token;
  f.m.deposited[0]=true;f.tx.status={SuccessValue:Buffer.from('"5000000"').toString('base64')};assert.equal((await reconcileIntent(f.chain,f.store,f.intent,f.hash)).state,'unknown');
- f.tx.receipts_outcome.push({id:'accept',block_hash:'b',outcome:{executor_id:cfg.escrow,status:{SuccessValue:'MA=='},logs:['EVENT_JSON:'+JSON.stringify({standard:'near_pvp_escrow',event:'deposit_accepted',data:[{match_id:'0',sender:'alice.near',amount:'5000000',revision:'0'}]})]}});assert.equal((await reconcileIntent(f.chain,f.store,f.intent,f.hash)).state,'accepted');
+ f.tx.receipts_outcome.push({id:'accept',block_hash:'b',outcome:{executor_id:cfg.escrow,status:{SuccessValue:'MA=='},logs:['EVENT_JSON:'+JSON.stringify({standard:'near_pvp_escrow',version:'1.0.0',event:'deposit_accepted',data:[{match_id:'0',sender:'alice.near',amount:'5000000',revision:'0'}]})]}});assert.equal((await reconcileIntent(f.chain,f.store,f.intent,f.hash)).state,'accepted');
 });
+
+test('3% bank fee and explicit fee recipient are admission policy, not the generic v2 500bps schema cap',()=>{assertAdmissionPolicy(config(),cfg);assert.throws(()=>assertAdmissionPolicy({...config(),fee_bps:500},cfg));assert.throws(()=>assertAdmissionPolicy(config(),{...cfg,expectedFeeReceiver:'other.near'}));assert.throws(()=>assertAdmissionPolicy({...config(),server_frozen:true},cfg));});
