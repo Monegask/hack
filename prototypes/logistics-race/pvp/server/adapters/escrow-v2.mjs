@@ -30,6 +30,8 @@ export function validateMatch(m){
  if(!Array.isArray(m.deposited)||m.deposited.length!==2)throw Error('Invalid deposits');m.deposited.forEach(bool);bool(m.activity_confirmed);
  if(!Array.isArray(m.payouts)||m.payouts.length!==2)throw Error('Invalid payouts');
  for(const p of m.payouts){account(p.receiver);uint(p.amount,128);uint(p.attempt);if(!['Ready','InFlight','Paid'].includes(p.state))throw Error('Unknown payout state');}
+ if(m.state==='Completed'&&m.payouts.some(p=>p.state!=='Paid'))throw Error('Completed match contains unpaid obligations');
+ if(m.payouts.some(p=>p.amount==='0'&&p.state!=='Paid'))throw Error('Zero payout must be Paid');
  if(['InProgress','SettlementPending','Completed'].includes(m.state)&&(!m.game_deadline_ns||!m.last_heartbeat_ns||!m.deposited.every(Boolean)))throw Error('Invalid game lifecycle');
  const bank=BigInt(m.stake)*2n;
  if(['SettlementPending','Completed'].includes(m.state)){
@@ -46,6 +48,11 @@ export function validateRuntimeAccess(access,cfg){
  uint(p.allowance,128);const allowance=BigInt(p.allowance);
  if(allowance<10000000000000000000000n||allowance>BigInt(cfg.maxRuntimeAllowance||'1000000000000000000000000'))throw Error('Runtime allowance outside reviewed limits');
  return true;
+}
+export function assertAdmissionPolicy(c,cfg){
+ if(c.fee_bps!==300)throw Error('Only the approved 3% bank fee may admit new matches');
+ if(!cfg.expectedFeeReceiver||c.admin!==cfg.expectedFeeReceiver)throw Error('Approved fee receiver mismatch');
+ if(c.paused||c.server_frozen)throw Error('Escrow admissions paused or frozen');
 }
 export class EscrowV2Adapter{
  constructor(cfg){this.cfg=cfg;this.version='escrow-v2';}
@@ -65,6 +72,7 @@ export class EscrowV2Adapter{
   const m=this.match(match),c=this.config(config);account(who);const side=[m.creator,m.opponent].indexOf(who);if(side<0&&!(kind==='claim'&&m.payouts.some(p=>p.receiver===who)))throw Error('Participant only');const args={match_id:m.id};let method,deposit='1',gas='250000000000000',receiver=this.cfg.escrow;
   const live=m.state==='InProgress'&&!this.refundReason(m,c,now);
   if(kind==='deposit'){
+   if(m.fee_bps!==300||m.fee_receiver!==this.cfg.expectedFeeReceiver)throw Error('Unapproved match fee or receiver');
    if(c.paused||c.server_frozen||m.state!=='AwaitingDeposits'||!m.opponent||m.deposited[side]||now>=BigInt(m.deadline_ns)||(!m.activity_confirmed&&!m.deposited.some(Boolean)&&m.joined_at_ns&&now>=BigInt(m.joined_at_ns)+90000000000n))throw Error('Deposits unavailable');
    if(!terms||terms.stake!==m.stake||terms.revision!==m.revision||terms.feeBps!==m.fee_bps||terms.opponent!==[m.creator,m.opponent][1-side])throw Error('Deposit terms changed');
    return this.call(this.cfg.token,'ft_transfer_call',{receiver_id:this.cfg.escrow,amount:m.stake,msg:JSON.stringify({match_id:m.id,revision:m.revision,stake:m.stake,fee_bps:m.fee_bps})},'1','150000000000000');

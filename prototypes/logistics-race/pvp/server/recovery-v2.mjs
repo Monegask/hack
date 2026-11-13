@@ -19,7 +19,7 @@ export async function reconcileIntent(chain,store,intent,hash){
  if(!hash)return {state:'unknown',retrySafe:false};
  if(!/^[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(hash))throw Error('Invalid transaction hash');
  if(intent.hash&&intent.hash!==hash)throw Error('Payment hash cannot be replaced');
- await chain.assertNetwork();
+ await chain.assertNetwork();if(chain.control)await chain.control();
  const tx=await chain.rpc('tx',{tx_hash:hash,sender_account_id:intent.account,wait_until:'FINAL'});
  if(tx.transaction?.hash!==hash)throw Error('Payment hash mismatch');transactionMatches(tx.transaction,intent);
  intent.hash=hash;store.put('payment',intent.key,intent);
@@ -36,7 +36,7 @@ export async function reconcileIntent(chain,store,intent,hash){
  if(intent.kind==='deposit'){
   const p=intent.transaction.actions[0].params,terms=JSON.parse(p.args.msg);
   const accepted=outcomes.some(r=>r.outcome.executor_id===chain.cfg.escrow&&!r.outcome.status?.Failure&&(r.outcome.logs||[]).some(log=>{
-   if(!log.startsWith('EVENT_JSON:'))return false;try{const e=JSON.parse(log.slice(11));return e.standard==='near_pvp_escrow'&&e.event==='deposit_accepted'&&e.data.some(d=>d.match_id===intent.matchId&&d.sender===intent.account&&d.amount===p.args.amount&&d.revision===terms.revision);}catch{return false;}
+   if(!log.startsWith('EVENT_JSON:'))return false;try{const e=JSON.parse(log.slice(11));return e.standard==='near_pvp_escrow'&&e.version==='1.0.0'&&e.event==='deposit_accepted'&&e.data.some(d=>d.match_id===intent.matchId&&d.sender===intent.account&&d.amount===p.args.amount&&d.revision===terms.revision);}catch{return false;}
   }));
   if(accepted&&m?.deposited[[m.creator,m.opponent].indexOf(intent.account)])result={state:'accepted',retrySafe:false,resolved:true};
   else if(initialFailure)result={state:'failed-before-transfer',retrySafe:true,resolved:true};
