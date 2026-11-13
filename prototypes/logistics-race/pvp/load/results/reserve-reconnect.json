@@ -1,0 +1,213 @@
+{
+  "timestamp": "2026-11-13T13:40:02.347Z",
+  "label": "final-reserve-reconnect",
+  "host": {
+    "platform": "win32",
+    "node": "v26.13.0",
+    "cpu": "Intel(R) Core(TM) i7-8700K CPU @ 3.70GHz",
+    "logicalCpus": 12,
+    "totalMemory": 34295083008
+  },
+  "settings": {
+    "matches": "20,100,200",
+    "seconds": "30",
+    "affinity": "15",
+    "reconnect": "true",
+    "label": "final-reserve-reconnect",
+    "out": "prototypes/logistics-race/pvp/load/results/reserve-reconnect.json"
+  },
+  "results": [
+    {
+      "matches": 20,
+      "players": 40,
+      "duration": 30,
+      "requests": 5859,
+      "bytes": 5462042,
+      "bytesPerSecond": 182068.06666666668,
+      "errors": {},
+      "errorSamples": [],
+      "apiP95Ms": 16.79899999999907,
+      "apiMaxMs": 33.54249999999956,
+      "commandP95Ms": 25.03849999999875,
+      "commands": 600,
+      "duplicates": 600,
+      "unchanged": 0,
+      "reconnections": 40,
+      "setupP95Ms": 2004.6954999999998,
+      "sourceSha256": {
+        "service.mjs": "366b4f5804d50ba2170bf5d84560c0bb10d2342d1f44d3c577ea2f36ea4257c6",
+        "store.mjs": "166809319bb1d331bbf15951ab92b629f42f3750f0637c8d5e6293eb8978f588",
+        "game.mjs": "284eca64653b47d79b514c91cf753ffe3b54853faedab0bd4c8c76260ad94b8e",
+        "http.mjs": "125fe037d9d8c38b9bc8c66af04c0f5aa69d7c640607c62f0ec104fa8af9aa29",
+        "chain.mjs": "52155e9b328e5a63d13cfa71292cb7d94869a780f685971bbeb7c74bbc55496d",
+        "engine": "1b40dd0bf5f1f7bbf058c7bd42410b4da7cf03d45584c7e49af5677a0ce6e631"
+      },
+      "setupRpc": {
+        "reads": 120,
+        "writes": 100,
+        "maxInFlight": 20,
+        "inFlight": 0
+      },
+      "elapsedMs": 30198.382700000002,
+      "cpuMs": 2422,
+      "peakRss": 171552768,
+      "heap": 33473104,
+      "eventLoopP95Ms": 26.034175,
+      "eventLoopMaxMs": 34.308095,
+      "rpc": {
+        "reads": 600,
+        "writes": 1,
+        "maxInFlight": 4,
+        "inFlight": 0
+      },
+      "syncCycles": 15,
+      "simulationLagMs": 98.3826999998455,
+      "sqliteMetrics": {
+        "writes": 1460,
+        "serializedBytes": 6400044,
+        "writeMs": 220.8810000000017,
+        "transactions": 197,
+        "commitMs": 149.489799999978
+      },
+      "simulationMetrics": {
+        "backlogMs": 49.610351562498266,
+        "maxBacklogMs": 99.58789062499953,
+        "maxPumpDelayMs": 28.933837890625,
+        "pumps": 280
+      },
+      "databaseBytes": 348160,
+      "tickP95Ms": 0.6224000000001979,
+      "checkpointP95Ms": 6.759100000000217,
+      "commandCountMatches": true,
+      "passed": true
+    },
+    {
+      "matches": 100,
+      "players": 200,
+      "duration": 30,
+      "requests": 29600,
+      "bytes": 27751032,
+      "bytesPerSecond": 925034.4,
+      "errors": {},
+      "errorSamples": [],
+      "apiP95Ms": 46.19050000000425,
+      "apiMaxMs": 76.6137000000017,
+      "commandP95Ms": 57.517100000004575,
+      "commands": 3000,
+      "duplicates": 3000,
+      "unchanged": 0,
+      "reconnections": 200,
+      "setupP95Ms": 7910.2273000000005,
+      "sourceSha256": {
+        "service.mjs": "366b4f5804d50ba2170bf5d84560c0bb10d2342d1f44d3c577ea2f36ea4257c6",
+        "store.mjs": "166809319bb1d331bbf15951ab92b629f42f3750f0637c8d5e6293eb8978f588",
+        "game.mjs": "284eca64653b47d79b514c91cf753ffe3b54853faedab0bd4c8c76260ad94b8e",
+        "http.mjs": "125fe037d9d8c38b9bc8c66af04c0f5aa69d7c640607c62f0ec104fa8af9aa29",
+        "chain.mjs": "52155e9b328e5a63d13cfa71292cb7d94869a780f685971bbeb7c74bbc55496d",
+        "engine": "1b40dd0bf5f1f7bbf058c7bd42410b4da7cf03d45584c7e49af5677a0ce6e631"
+      },
+      "setupRpc": {
+        "reads": 600,
+        "writes": 500,
+        "maxInFlight": 100,
+        "inFlight": 0
+      },
+      "elapsedMs": 30195.4257,
+      "cpuMs": 10500,
+      "peakRss": 254828544,
+      "heap": 69032432,
+      "eventLoopP95Ms": 22.970367,
+      "eventLoopMaxMs": 41.877503,
+      "rpc": {
+        "reads": 3000,
+        "writes": 4,
+        "maxInFlight": 4,
+        "inFlight": 0
+      },
+      "syncCycles": 15,
+      "simulationLagMs": 95.42569999984335,
+      "sqliteMetrics": {
+        "writes": 7300,
+        "serializedBytes": 32052202,
+        "writeMs": 1017.2502999999972,
+        "transactions": 163,
+        "commitMs": 206.35740000003352
+      },
+      "simulationMetrics": {
+        "backlogMs": 16.374999999998238,
+        "maxBacklogMs": 99.96874999999861,
+        "maxPumpDelayMs": 31.621337890625,
+        "pumps": 280
+      },
+      "databaseBytes": 1675264,
+      "tickP95Ms": 0.9576999999990221,
+      "checkpointP95Ms": 14.08220000000074,
+      "commandCountMatches": true,
+      "passed": true
+    },
+    {
+      "matches": 200,
+      "players": 400,
+      "duration": 30,
+      "requests": 59103,
+      "bytes": 55455851,
+      "bytesPerSecond": 1848528.3666666667,
+      "errors": {},
+      "errorSamples": [],
+      "apiP95Ms": 83.49880000000121,
+      "apiMaxMs": 284.59999999999127,
+      "commandP95Ms": 106.31360000000859,
+      "commands": 6000,
+      "duplicates": 6000,
+      "unchanged": 0,
+      "reconnections": 400,
+      "setupP95Ms": 16814.5294,
+      "sourceSha256": {
+        "service.mjs": "366b4f5804d50ba2170bf5d84560c0bb10d2342d1f44d3c577ea2f36ea4257c6",
+        "store.mjs": "166809319bb1d331bbf15951ab92b629f42f3750f0637c8d5e6293eb8978f588",
+        "game.mjs": "284eca64653b47d79b514c91cf753ffe3b54853faedab0bd4c8c76260ad94b8e",
+        "http.mjs": "125fe037d9d8c38b9bc8c66af04c0f5aa69d7c640607c62f0ec104fa8af9aa29",
+        "chain.mjs": "52155e9b328e5a63d13cfa71292cb7d94869a780f685971bbeb7c74bbc55496d",
+        "engine": "1b40dd0bf5f1f7bbf058c7bd42410b4da7cf03d45584c7e49af5677a0ce6e631"
+      },
+      "setupRpc": {
+        "reads": 1200,
+        "writes": 1000,
+        "maxInFlight": 200,
+        "inFlight": 0
+      },
+      "elapsedMs": 30210.1551,
+      "cpuMs": 16234,
+      "peakRss": 370597888,
+      "heap": 141394256,
+      "eventLoopP95Ms": 30.621695,
+      "eventLoopMaxMs": 76.021759,
+      "rpc": {
+        "reads": 6000,
+        "writes": 7,
+        "maxInFlight": 4,
+        "inFlight": 0
+      },
+      "syncCycles": 15,
+      "simulationLagMs": 110.15509999984351,
+      "sqliteMetrics": {
+        "writes": 14800,
+        "serializedBytes": 65152028,
+        "writeMs": 1811.6896000000947,
+        "transactions": 327,
+        "commitMs": 506.88520000000426
+      },
+      "simulationMetrics": {
+        "backlogMs": 56.76269531249864,
+        "maxBacklogMs": 99.04760742187408,
+        "maxPumpDelayMs": 49.985107421875,
+        "pumps": 276
+      },
+      "databaseBytes": 3334144,
+      "tickP95Ms": 1.9432999999989988,
+      "checkpointP95Ms": 23.82839999999851,
+      "commandCountMatches": true,
+      "passed": true
+    }
+  ]
+}

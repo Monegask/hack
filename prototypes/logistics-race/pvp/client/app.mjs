@@ -42,7 +42,7 @@ function renderMatch(){
  if(m.phase==='playing'&&!m.recovering&&openedMatch!==m.code)openGame();
  if(['settling','finished','cancelled','refund'].includes(m.phase)&&!$('gameStage').hidden){$('gameStage').hidden=true;$('game').removeAttribute('src');}
 }
-function openGame(){if(!current?.states)return message('The server is preparing the match.');openedMatch=current.code;$('game').src='/pvp/game?match='+current.code;$('gameStage').hidden=false;}
+function openGame(){if(!current?.states&&!current?.hasStates)return message('The server is preparing the match.');openedMatch=current.code;$('game').src='/pvp/game?match='+current.code;$('gameStage').hidden=false;}
 async function payment(kind){
  if(paying)return;
  if(kind==='forfeit'&&!confirm('Forfeit this match? Your opponent receives the prize.'))return;
@@ -59,11 +59,11 @@ async function refresh(){
  balances=await api('balance');$('account').innerHTML=`<strong>${esc(session.account)}</strong><span>${amount(balances.balance)} test ${esc(cfg.symbol)}</span>${!balances.registered?'<button id="register">Register test token</button>':''}<span class="muted">New accounts need operator-issued test tokens.</span>`;
  $('register')?.addEventListener('click',()=>action(async()=>{const tx=await api('register',{});await(await wallet()).signAndSendTransaction({...tx.transaction,network:'testnet',signerId:session.account});message('Token registration sent.');}));
  const history=await api('matches');$('history').innerHTML=history.length?history.map(m=>`<div class="match-row"><span>${esc(m.code)} · ${esc(m.phase)} · ${amount(m.stake)} test ${esc(cfg.symbol)}</span><button data-resume="${m.code}">Open</button></div>`).join(''):'No matches yet.';
- for(const b of $('history').querySelectorAll('[data-resume]'))b.onclick=()=>action(async()=>{current=await api('matches/'+b.dataset.resume);sessionStorage.setItem('sl-pvp-match',current.code);renderMatch();});
- const code=current?.code||sessionStorage.getItem('sl-pvp-match');if(code){current=await api('matches/'+code);renderMatch();}
+ for(const b of $('history').querySelectorAll('[data-resume]'))b.onclick=()=>action(async()=>{current=await api('matches/'+b.dataset.resume+'?view=metadata');sessionStorage.setItem('sl-pvp-match',current.code);renderMatch();});
+ const code=current?.code||sessionStorage.getItem('sl-pvp-match');if(code){current=await api('matches/'+code+'?view=metadata');renderMatch();}
 }
 function connectionFailure(e){reconnectMessage='Connection interrupted. Reconnecting; do not repeat a payment. '+e.message;message(reconnectMessage);}
-async function poll(){if(polling||!session||Date.now()<nextPollAt)return;polling=true;try{if(current){current=await api('matches/'+current.code);renderMatch();}else{if(Date.now()-lastIdleRefresh<15000)return;await refresh();lastIdleRefresh=Date.now();}if(reconnectMessage&&$('message').textContent===reconnectMessage)message();reconnectMessage=null;pollFailures=0;nextPollAt=0;}catch(e){connectionFailure(e);nextPollAt=Date.now()+Math.min(15000,1500*2**Math.min(++pollFailures,4));}finally{polling=false;}}
+async function poll(){if(polling||!session||Date.now()<nextPollAt)return;polling=true;try{if(current){current=await api('matches/'+current.code+'?view=metadata');renderMatch();}else{if(Date.now()-lastIdleRefresh<15000)return;await refresh();lastIdleRefresh=Date.now();}if(reconnectMessage&&$('message').textContent===reconnectMessage)message();reconnectMessage=null;pollFailures=0;nextPollAt=0;}catch(e){connectionFailure(e);nextPollAt=Date.now()+Math.min(15000,1500*2**Math.min(++pollFailures,4));}finally{polling=false;}}
 async function init(){
  cfg=await api('config');updateTerms();try{session=await api('auth/session');}catch{}
  $('amount').oninput=updateTerms;$('connect').onclick=()=>action(connect);$('wallet').onclick=()=>action(async()=>{if(!session)return connect();await api('auth/logout',{});await connector.disconnect().catch(()=>{});session=null;current=null;sessionStorage.removeItem('sl-pvp-match');$('match').hidden=true;await refresh();});

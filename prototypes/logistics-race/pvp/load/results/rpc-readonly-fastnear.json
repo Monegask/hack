@@ -1,0 +1,67 @@
+{
+  "url": "https://test.rpc.fastnear.com",
+  "date": "2026-11-13T13:33:10.375Z",
+  "concurrency": 1,
+  "results": [
+    {
+      "method": "status",
+      "ms": 468.45459999999997,
+      "ok": true
+    },
+    {
+      "method": "block",
+      "ms": 130.38150000000007,
+      "ok": true
+    },
+    {
+      "method": "status",
+      "ms": 209.18729999999994,
+      "ok": true
+    },
+    {
+      "method": "block",
+      "ms": 186.38120000000004,
+      "ok": true
+    },
+    {
+      "method": "status",
+      "ms": 117.75379999999996,
+      "ok": true
+    },
+    {
+      "method": "block",
+      "ms": 128.36120000000005,
+      "ok": true
+    },
+    {
+      "method": "status",
+      "ms": 124.76609999999982,
+      "ok": true
+    },
+    {
+      "method": "block",
+      "ms": 420.5471,
+      "ok": true
+    },
+    {
+      "method": "status",
+      "ms": 123.26080000000002,
+      "ok": true
+    },
+    {
+      "method": "block",
+      "ms": 116.7686000000001,
+      "ok": true
+    },
+    {
+      "method": "status",
+      "ms": 131.7539999999999,
+      "ok": true
+    },
+    {
+      "method": "block",
+      "ms": 115.55150000000003,
+      "ok": true
+    }
+  ]
+}

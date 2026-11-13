@@ -10,9 +10,12 @@ const METHODS=['create_lobby','bind_opponent','update_stake','record_activity','
 export {PendingChain};
 export class Chain{
  constructor(cfg,store){this.cfg=cfg;this.store=store;this.provider=new JsonRpcProvider({url:cfg.rpc});this.tail=Promise.resolve();}
- rpc(method,params){return callRpc(this.cfg.rpc,method,params);}
+ rpc(method,params){if(method==='send_tx')this.store.assertLease();return callRpc(this.cfg.rpc,method,params);}
  async view(account,method,args={}){const r=await this.rpc('query',{request_type:'call_function',account_id:account,method_name:method,args_base64:Buffer.from(JSON.stringify(args)).toString('base64'),finality:'final'});return JSON.parse(Buffer.from(r.result).toString());}
- match(id){return this.view(this.cfg.escrow,'get_match',{match_id:String(id)});}
+ match(id){
+  this.matchReads??=new Map();id=String(id);if(this.matchReads.has(id))return this.matchReads.get(id);
+  const pending=this.view(this.cfg.escrow,'get_match',{match_id:id}).finally(()=>this.matchReads.delete(id));this.matchReads.set(id,pending);return pending;
+ }
  async preflight({loadSigner=true}={}){
   const [status,cfg,token,account]=await Promise.all([this.rpc('status',[]),this.view(this.cfg.escrow,'get_config'),this.view(this.cfg.token,'ft_metadata'),this.rpc('query',{request_type:'view_account',account_id:this.cfg.escrow,finality:'final'})]);
   if(status.chain_id!=='testnet'||cfg.token!==this.cfg.token||cfg.server!==this.cfg.server||token.decimals!==6||cfg.paused)throw Error('Testnet escrow configuration mismatch or paused');
@@ -48,5 +51,9 @@ export class Chain{
   }
   const [balance,storage,bounds]=await Promise.all([this.view(this.cfg.token,'ft_balance_of',{account_id:account}),this.view(this.cfg.token,'storage_balance_of',{account_id:account}),this.bounds.promise]);return {balance,registered:!!storage,storageMinimum:bounds.min};
  }
- async chainTime(){const r=await this.rpc('block',{finality:'final'});return BigInt(r.header.timestamp_nanosec);}
+ async chainTime(){
+  if(!this.blockTime||Date.now()-this.blockTime.at>=1000){
+   const entry={at:Infinity};entry.promise=this.rpc('block',{finality:'final'}).then(r=>{entry.at=Date.now();return BigInt(r.header.timestamp_nanosec);}).catch(e=>{if(this.blockTime===entry)this.blockTime=null;throw e;});this.blockTime=entry;
+  }return this.blockTime.promise;
+ }
 }
