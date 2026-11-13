@@ -2706,6 +2706,43 @@ async function connect() {
     await preview(invite);
   }
 }
+var lobbyOffset = 0;
+var lobbyRequest = 0;
+var lastLobbyRefresh = 0;
+async function refreshLobbies() {
+  if (!session) return;
+  const request = ++lobbyRequest, [sort, order] = $("lobbySort").value.split(":");
+  try {
+    const page = await api(`lobbies?limit=10&offset=${lobbyOffset}&sort=${sort}&order=${order}`);
+    if (request !== lobbyRequest || !session) return;
+    if (!page.items.length && lobbyOffset > 0) {
+      lobbyOffset = 0;
+      return refreshLobbies();
+    }
+    $("publicList").innerHTML = page.items.length ? page.items.map((m) => `<div class="match-row"><div class="lobby-details"><strong>${amount(m.stake)} test ${esc(cfg.symbol)}</strong><span>${esc(m.creator)} \xB7 Open</span><time datetime="${new Date(m.created).toISOString()}">${esc(new Date(m.created).toLocaleString("en-US"))}</time></div><button data-lobby="${esc(m.id)}" ${m.creator === session.account ? "disabled" : ""}>${m.creator === session.account ? "Your lobby" : "Join"}</button></div>`).join("") : "No open public lobbies. Create one to find an opponent.";
+    $("previousLobbies").disabled = lobbyOffset === 0;
+    $("nextLobbies").disabled = !page.hasMore;
+    $("lobbyPage").textContent = `${page.total} open \xB7 Page ${Math.floor(lobbyOffset / 10) + 1}`;
+    lastLobbyRefresh = Date.now();
+    for (const b of $("publicList").querySelectorAll("[data-lobby]")) b.onclick = () => action(async () => {
+      b.disabled = true;
+      try {
+        current = await api("lobbies/" + b.dataset.lobby + "/join", {});
+        sessionStorage.setItem("sl-pvp-match", current.code);
+        renderMatch();
+      } finally {
+        await refreshLobbies();
+      }
+    });
+  } catch (e) {
+    if (request === lobbyRequest) {
+      $("publicList").textContent = "Unable to refresh public lobbies. Retry to check availability.";
+      $("nextLobbies").disabled = true;
+      $("previousLobbies").disabled = true;
+    }
+    throw e;
+  }
+}
 function ledger(stake, feeBps) {
   const bank = BigInt(stake) * 2n, fee = bank * BigInt(feeBps) / 10000n;
   return `<div class="ledger"><span>Stake per player</span><b>${amount(stake)} test ${esc(cfg.symbol)}</b><span>Prize pool</span><b>${amount(bank)}</b><span>Game fee \xB7 ${feeBps / 100}%</span><b>${amount(fee)}</b><strong>Winner receives</strong><strong>${amount(bank - fee)} test ${esc(cfg.symbol)}</strong></div>`;
@@ -2793,7 +2830,14 @@ async function refresh() {
   $("lobbies").hidden = !session;
   $("account").hidden = !session;
   $("wallet").textContent = session ? "Sign out" : "Connect Testnet wallet";
-  if (!session) return;
+  if (!session) {
+    lobbyRequest++;
+    $("match").hidden = true;
+    $("gameStage").hidden = true;
+    $("game").removeAttribute("src");
+    return;
+  }
+  await refreshLobbies();
   balances = await api("balance");
   $("account").innerHTML = `<strong>${esc(session.account)}</strong><span>${amount(balances.balance)} test ${esc(cfg.symbol)}</span>${!balances.registered ? '<button id="register">Register test token</button>' : ""}<span class="muted">New accounts need operator-issued test tokens.</span>`;
   $("register")?.addEventListener("click", () => action(async () => {
@@ -2822,6 +2866,7 @@ async function poll() {
   if (polling || !session || Date.now() < nextPollAt) return;
   polling = true;
   try {
+    if (Date.now() - lastLobbyRefresh >= 5e3) await refreshLobbies();
     if (current) {
       current = await api("matches/" + current.code);
       renderMatch();
@@ -2848,6 +2893,19 @@ async function init() {
     session = await api("auth/session");
   } catch {
   }
+  $("lobbySort").onchange = () => {
+    lobbyOffset = 0;
+    action(refreshLobbies);
+  };
+  $("refreshLobbies").onclick = () => action(refreshLobbies);
+  $("previousLobbies").onclick = () => {
+    lobbyOffset = Math.max(0, lobbyOffset - 10);
+    action(refreshLobbies);
+  };
+  $("nextLobbies").onclick = () => {
+    lobbyOffset += 10;
+    action(refreshLobbies);
+  };
   $("amount").oninput = updateTerms;
   $("connect").onclick = () => action(connect);
   $("wallet").onclick = () => action(async () => {
@@ -2864,9 +2922,15 @@ async function init() {
   $("create").onsubmit = (e) => {
     e.preventDefault();
     action(async () => {
-      const id = sessionStorage.getItem("sl-pvp-create") || crypto.randomUUID();
-      sessionStorage.setItem("sl-pvp-create", id);
-      current = await api("matches", { amount: $("amount").value, id });
+      const terms = { amount: $("amount").value, visibility: $("visibility").value };
+      let pending;
+      try {
+        pending = JSON.parse(sessionStorage.getItem("sl-pvp-create"));
+      } catch {
+      }
+      if (!pending || pending.amount !== terms.amount || pending.visibility !== terms.visibility) pending = { ...terms, id: crypto.randomUUID() };
+      sessionStorage.setItem("sl-pvp-create", JSON.stringify(pending));
+      current = await api("matches", pending);
       sessionStorage.removeItem("sl-pvp-create");
       sessionStorage.setItem("sl-pvp-match", current.code);
       renderMatch();
