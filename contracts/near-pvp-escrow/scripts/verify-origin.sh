@@ -13,9 +13,10 @@ registry=json.loads(pathlib.Path('docs/candidate/source-provenance.json').read_t
 for entry in registry['files']:
     name=entry['path']
     if name in ('Cargo.toml','Cargo.lock','rust-toolchain.toml','contract/Cargo.toml') or (name.startswith('contract/src/') and name != 'contract/src/tests.rs'):
-        # Import registry used CRLF. Restored text has LF; normalize to CRLF for identity.
-        raw=(root/name).read_bytes().replace(b'\r\n',b'\n').replace(b'\n',b'\r\n')
-        assert hashlib.sha256(raw).hexdigest()==entry['expected_sha256'], name
+        # The preserved Windows import mixes LF/CRLF; check both exact encodings.
+        raw=(root/name).read_bytes().replace(b'\r\n',b'\n')
+        variants=[raw,raw.replace(b'\n',b'\r\n')]
+        assert any(hashlib.sha256(v).hexdigest()==entry['expected_sha256'] for v in variants), name
 print('Original production-source import hashes verified')
 PY
 CARGO_TARGET_DIR="$PWD/target/repro-a" cargo build --manifest-path target/original-source/Cargo.toml -p near-pvp-escrow --locked --release --target wasm32-unknown-unknown
