@@ -2,7 +2,7 @@ import {setTimeout as delay} from 'node:timers/promises';
 let lastWarning=0;
 // Only reads are retried here. Signed writes remain owned by the durable outbox.
 export async function callRpc(url,method,params,{fetcher=fetch,wait=delay}={}){
- const read=['status','query','block','tx'].includes(method);
+ const read=['status','query','block','tx','EXPERIMENTAL_protocol_config'].includes(method);
  for(let attempt=0;;attempt++){
   let retryable=false;
   try{

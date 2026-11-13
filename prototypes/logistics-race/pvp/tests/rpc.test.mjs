@@ -16,7 +16,8 @@ test('RPC deterministic errors are not retried and transport failures carry an a
  calls=0;await assert.rejects(callRpc('https://unused.test','query',{}, {fetcher:async()=>{calls++;throw Error('network');},wait:async()=>{}}),e=>e.rpc.kind==='transport');assert.equal(calls,2);
 });
 test('token storage bounds are shared but balances remain live for each wallet',async()=>{
- const chain=new Chain({rpc:'https://unused.test',token:'token.testnet'},null);let bounds=0,balances=0;
+ const chain=new Chain({rpc:'https://unused.test',token:'token.testnet',gasReserve:'10'},null);let bounds=0,balances=0;
+ chain.rpc=async(method)=>method==='status'?{chain_id:'testnet'}:method==='query'?{amount:'1000',storage_usage:2}:{storage_amount_per_byte:'10'};
  chain.view=async(_account,method,args)=>{if(method==='storage_balance_bounds'){bounds++;return {min:'125'};}if(method==='storage_balance_of')return {total:'125'};balances++;return args.account_id==='a.testnet'?'20':'15';};
  const [a,b]=await Promise.all([chain.balance('a.testnet'),chain.balance('b.testnet')]);assert.equal(bounds,1);assert.equal(balances,2);assert.equal(a.balance,'20');assert.equal(b.balance,'15');
 });
