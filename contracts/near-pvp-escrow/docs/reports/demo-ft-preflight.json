@@ -1,0 +1,49 @@
+{
+  "network": "testnet",
+  "block_height": 276343999,
+  "block_time": "2026-11-05T12:56:09.505809985Z",
+  "token": "dev-20261105124714-71962479239708.testnet",
+  "metadata": {
+    "spec": "ft-1.0.0",
+    "name": "Test USDC",
+    "symbol": "USDC",
+    "icon": null,
+    "reference": null,
+    "reference_hash": null,
+    "decimals": 6
+  },
+  "storage_bounds": {
+    "min": "1250000000000000000000",
+    "max": "1250000000000000000000"
+  },
+  "accounts": {
+    "dev-20261105124711-29870979355191.testnet": {
+      "registration": {
+        "total": "1250000000000000000000",
+        "available": "0"
+      },
+      "balance": "0"
+    },
+    "dev-20261105124704-41684631579002.testnet": {
+      "registration": {
+        "total": "1250000000000000000000",
+        "available": "0"
+      },
+      "balance": "48500000"
+    },
+    "dev-20261105124708-29694703510030.testnet": {
+      "registration": {
+        "total": "1250000000000000000000",
+        "available": "0"
+      },
+      "balance": "0"
+    },
+    "dev-20261105124658-14449107722704.testnet": {
+      "registration": {
+        "total": "1250000000000000000000",
+        "available": "0"
+      },
+      "balance": "1500000"
+    }
+  }
+}

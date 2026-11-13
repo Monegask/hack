@@ -1,0 +1,23 @@
+{
+  "observed_at_utc": "2026-11-13T13:20:11.932339+00:00",
+  "read_only": true,
+  "rpc": "https://rpc.mainnet.near.org",
+  "chain_id": "mainnet",
+  "token": "17208628f84f5d6ad33f0da3bbbeb27ffcb398eac501a31bd6ad2011e36133a1",
+  "height": 224368739,
+  "block_hash": "CSsRWNRrKviFJMwx61jDnytnbJ5PHQP1XCoPbWnVvoAs",
+  "code_hash": "DVJx7F3dHEHJYwpYPwXHu8K9Uo7h4kXFcALucY5oNX8q",
+  "metadata": {
+    "spec": "ft-1.0.0",
+    "name": "USDC",
+    "symbol": "USDC",
+    "decimals": 6,
+    "reference": null,
+    "reference_hash": null
+  },
+  "storage_balance_bounds": {
+    "min": "1250000000000000000000",
+    "max": "1250000000000000000000"
+  },
+  "limitations": "No issuer source-to-deployed-WASM equivalence, registration, transfer, pause/blocklist state or transaction tested."
+}

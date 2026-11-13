@@ -1,0 +1,13 @@
+{
+  "date": "2026-11-13",
+  "command": "node --test prototypes/logistics-race/pvp/tests/chain.test.mjs prototypes/logistics-race/pvp/tests/recovery.test.mjs prototypes/logistics-race/pvp/tests/rpc.test.mjs",
+  "runtime": "Node.js 26.13.0 on Windows",
+  "passed": 10,
+  "failed": 0,
+  "transport": "mock RPC; no live signing or financial transactions",
+  "source_sha256": {
+    "prototypes\\logistics-race\\pvp\\server\\chain.mjs": "38aa8f80e2e0c1b74bf8ee13321702b71bdf83ad7da93b72dd6331973f35d0d1",
+    "prototypes\\logistics-race\\pvp\\server\\durable.mjs": "4fb578e33058d12e0c4f22ef59f580ba1e3a8da10b0af13b631dee5473bfe0ae",
+    "prototypes\\logistics-race\\pvp\\server\\rpc.mjs": "e7541b500fe30b58865d031c043a3efb6610379a650160f0e0b656103199b408"
+  }
+}

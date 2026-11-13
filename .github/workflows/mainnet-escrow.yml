@@ -1,0 +1,47 @@
+name: Mainnet escrow candidate
+on:
+  pull_request:
+    branches: [testnet-pvp-server]
+    paths: ['contracts/**', '!contracts/**/*.md', '!contracts/**/docs/**', '.github/workflows/mainnet-escrow.yml']
+permissions:
+  contents: read
+jobs:
+  audit-candidate:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    defaults:
+      run:
+        working-directory: contracts/near-pvp-escrow
+    steps:
+      - uses: actions/checkout@v4
+      - name: Pinned Rust
+        run: rustup show
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Format
+        run: |
+          cargo fmt --all --check
+          cargo fmt --manifest-path tests/sandbox/Cargo.toml --check
+      - name: Unit tests and lints
+        run: |
+          cargo clippy --workspace --all-targets --locked -- -D warnings
+          cargo test -p near-pvp-escrow --lib --locked
+      - name: Build production twice and Sandbox artifact
+        run: |
+          bash scripts/verify-origin.sh
+          bash scripts/build-candidate.sh
+      - name: Sandbox receipts
+        run: |
+          cargo clippy --manifest-path tests/sandbox/Cargo.toml --all-targets --locked -- -D warnings
+          cargo test --manifest-path tests/sandbox/Cargo.toml --locked -- --test-threads=1
+      - name: Client examples
+        run: |
+          npm ci --ignore-scripts
+          npm run check
+          npm test
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: escrow-candidate-wasm
+          path: contracts/near-pvp-escrow/artifacts/candidate/

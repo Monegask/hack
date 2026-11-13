@@ -1,0 +1,7 @@
+{
+  "sha256": {
+    "artifacts/near_pvp_escrow.wasm": "8d581487374ce5f59935deb3710c952cfdda07ef9f9c9a8cd366716fb8f74d77",
+    "artifacts/candidate/rebuilt-v1-Testnet.wasm": "62795eacd3a59fd2981c0a7c10262e46da2d47a5a436cd0016394adc8e9ca33f"
+  },
+  "equal": false
+}
