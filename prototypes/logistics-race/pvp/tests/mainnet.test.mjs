@@ -29,10 +29,10 @@ test('SQLite scope prevents reusing Testnet state on Mainnet without deleting us
  assert.throws(()=>bindStore(config(main),store),/different network/);assert.equal(store.get('session','saved').account,'alice.testnet');
  const old=new Store('',{memory:true});t.after(()=>old.close());old.put('match','old',{stake:'5'});assert.throws(()=>bindStore(config(main),old),/empty/);
 });
-function mainChain(){const cfg=config(main),chain=new Chain(cfg,null);chain.rpc=async(method)=>method==='status'?{chain_id:'mainnet'}:{code_hash:cfg.escrowCodeHash};chain.view=async(_id,method)=>method==='ft_metadata'?{symbol:'USDC',decimals:6}:{total:'1'};return chain;}
-test('Mainnet preflight checks real network/token metadata/hash/registration without loading a signer or guessing an escrow ABI',async()=>{
- const chain=mainChain();const info=await chain.preflight();assert.equal(info.paymentsEnabled,false);assert.equal(info.signerChecked,false);assert.equal(chain.account,undefined);assert.deepEqual(chain.chainConfig,{});
- await assert.rejects(chain.execute('x','create_lobby',{}),/Mainnet payments disabled/);assert.throws(()=>chain.match('1'),/Mainnet payments disabled/);
+function mainChain(){const cfg=config(main),chain=new Chain(cfg,null);chain.rpc=async(method)=>method==='status'?{chain_id:'mainnet'}:method==='block'?{header:{hash:'final',height:1}}:{code_hash:cfg.escrowCodeHash};chain.view=async(_id,method)=>method==='ft_metadata'?{symbol:'USDC',decimals:6}:method==='get_config'?{state_version:2,admin:'admin.near',server:cfg.server,token:cfg.token,paused:true,server_frozen:false,pending_fee:null,pending_admin:null,fee_bps:300,last_heartbeat_ns:'1'}:method==='get_match'?null:{total:'1'};return chain;}
+test('Mainnet preflight checks real network/token metadata/hash/registration without loading a signer and validates the actual v2 ABI',async()=>{
+ const chain=mainChain();const info=await chain.preflight();assert.equal(info.paymentsEnabled,false);assert.equal(info.signerChecked,false);assert.equal(chain.account,undefined);assert.equal(chain.chainConfig.state_version,2);
+ await assert.rejects(chain.execute('x','create_lobby',{}),/Mainnet payments disabled/);assert.equal(await chain.match('1'),null);
  for(const failure of ['network','metadata','hash','registration']){
   const c=mainChain();if(failure==='network')c.rpc=async()=>({chain_id:'testnet'});
   if(failure==='metadata')c.view=async()=>({symbol:'USDC.e',decimals:6});
