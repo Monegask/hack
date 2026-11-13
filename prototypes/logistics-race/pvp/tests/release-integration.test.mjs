@@ -4,6 +4,8 @@ import {createHash} from 'node:crypto';
 import {fixture,playing} from './fixture.mjs';
 import {createApp} from '../server/http.mjs';
 import {GameService} from '../server/service.mjs';
+import {Chain} from '../server/chain.mjs';
+import {durableSend} from '../server/durable.mjs';
 import {Account,KeyPair} from 'near-api-js';
 import {signMessage} from 'near-api-js/nep413';
 
@@ -114,4 +116,29 @@ test('release P4-01: recovery drops only pre-resume match time while other match
  assert.equal(recovered.recovering,false);assert.equal(recovered.states[0].time,initial);
  assert.ok(ongoing.states[0].time-initial>29);
  f.step(200);game.advance();assert.ok(recovered.states[0].time>initial);assert.ok(recovered.states[0].time-initial<=.21);
+});
+
+test('release: worker rechecks approved fee policy before signing every new lobby',async t=>{
+ const f=fixture();t.after(()=>f.store.close());
+ const cfg={...f.cfg,adapterVersion:'escrow-v2',expectedFeeReceiver:'fee.testnet'},chain=new Chain(cfg,f.store);
+ chain.assertNetwork=async()=>{};chain.requireRegistered=async()=>{throw Error('Must reject before registration and signing');};
+ for(const control of [{fee_bps:400,admin:'fee.testnet'},{fee_bps:300,admin:'changed.testnet'}]){
+  chain.control=async()=>control;
+  await assert.rejects(chain.execute('policy-check','create_lobby',{creator:'alice.testnet',stake:'5000000'}),/3%|fee receiver/i);
+ }
+ assert.equal(f.store.all('outbox').length,0);
+});
+
+test('release: first broadcast persists exact bytes without looking up a never-broadcast hash',async t=>{
+ const f=fixture();t.after(()=>f.store.close());let signatures=0,queries=0,sends=0;
+ const account={createSignedTransaction:async()=>{signatures++;return {transaction:{encode:()=>Buffer.from('transaction')},encode:()=>Buffer.from('signed-transaction')};}};
+ const rpc=async(method,args)=>{
+  if(method==='tx'){queries++;throw Error('Never-broadcast hash must not be queried');}
+  assert.equal(method,'send_tx');sends++;const stored=f.store.get('outbox','fresh-operation');
+  assert.equal(stored.status,'signed');assert.equal(stored.bytes,args.signed_tx_base64);
+  return {final_execution_status:'FINAL',status:{SuccessValue:Buffer.from('"17"').toString('base64')}};
+ };
+ const args={store:f.store,id:'fresh-operation',method:'create_lobby',args:{creator:'alice.testnet',stake:'5000000'},receiverId:'escrow.testnet',accountId:'server.testnet',account,rpc};
+ assert.equal((await durableSend(args)).value,'17');assert.equal((await durableSend(args)).value,'17');
+ assert.equal(signatures,1);assert.equal(queries,0);assert.equal(sends,1);
 });
