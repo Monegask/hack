@@ -41,6 +41,10 @@ Rejected deposits normally return through NEP-141 resolver. A resolver failure a
 
 The test-only burn operation simulates insufficient escrow FT balance. The escrow correctly records Ready rather than Paid. It cannot manufacture missing USDC; recapitalization in the test uses mock mint and demonstrates state recovery only. Real insolvency needs a separate incident resolution.
 
+## Historical source-to-binary gap
+
+The v1 source bundle matches its preserved import registry; its historical WASM matches the current Testnet code hash. The fresh Linux v1 build still differs from that binary after historical dependency-path remapping. The precise cause is unresolved. Do not infer deployed-code equivalence from matching API exports, import hashes or passing candidate tests. Independently audit v2 source and reproducibly build its own artifact; treat historic deployment provenance as a separate open issue.
+
 ## Additional audit targets
 
 - Verify the official token address, current code hash, metadata decimals, registration semantics and gas against current Mainnet read-only state; published source is not verified deployed-code identity.

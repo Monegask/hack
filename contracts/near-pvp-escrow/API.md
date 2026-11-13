@@ -70,7 +70,7 @@ Match возвращает: id, creator, opponent, stake, revision, fee_bps, fee
 
 ## Администрирование
 
-Все вызовы от admin, 0 attached deposit; except accept_admin — от предложенного нового admin.
+Все вызовы от admin, 0 attached deposit; except accept_admin — от предложенного нового admin, apply_fee — permissionless.
 
 | Метод | Аргументы | Действие |
 |---|---|---|
@@ -89,7 +89,7 @@ Match возвращает: id, creator, opponent, stake, revision, fee_bps, fee
 
 ## События
 
-Формат NEP-297: `EVENT_JSON:{standard:"near_pvp_escrow",version:"1.0.0",event,data:[...]}`. События: lobby_created (полный snapshot), opponent_bound, stake_updated, activity_confirmed, deposit_accepted, match_started, heartbeat, result_recorded, match_cancelled, payout_dispatched, payout_deferred, payout_resolved, match_pruned, paused, unpaused, server_frozen, fee_scheduled, fee_schedule_cancelled, fee_changed, admin_proposed, admin_changed, server_changed, upgrade_requested.
+Формат NEP-297: `EVENT_JSON:{standard:"near_pvp_escrow",version:"1.0.0",event,data:[...]}`. События: lobby_created (полный snapshot), opponent_bound, stake_updated, activity_confirmed, cancel_requested, cancel_rejected, deposit_accepted, match_started, heartbeat, result_recorded, match_cancelled, payout_dispatched, payout_deferred, payout_resolved, match_pruned, paused, unpaused, server_frozen, fee_scheduled, fee_schedule_cancelled, fee_changed, admin_proposed, admin_changed, server_changed, upgrade_requested.
 
 Индексировать только final successful receipts; dedup по receipt ID + log index. Наличие лога result не доказывает перевод: проверяйте payout_resolved.success и состояние. Ошибки lifecycle/auth отклоняют receipt целиком. Депозитные ошибки возвращают всю amount через FT resolver.
 

@@ -18,7 +18,7 @@ rustup show
 bash scripts/check.sh
 ```
 
-`build-candidate.sh` builds production twice in distinct target directories and compares bytes, then builds mock-token-enabled Sandbox WASM. Outputs are under `artifacts/candidate/`:
+`build-candidate.sh` builds production twice in distinct target directories and compares bytes, then builds mock-token-enabled Sandbox WASM. The script fixes dependency panic paths with `--remap-path-prefix=<cargo-home>=/cargo` and records that flag, so the artifact does not depend on the host Cargo home. Use the pinned official crates.io dependencies and toolchain without additional compiler flags. Outputs are under `artifacts/candidate/`:
 
 - `mainnet-escrow.wasm`: production token pinning, starts paused; candidate only.
 - `SANDBOX-ONLY-escrow.wasm` and `SANDBOX-ONLY-token.wasm`: test artifacts, never deploy to Mainnet.

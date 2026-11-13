@@ -1,0 +1,12 @@
+{
+  "read_only": true,
+  "observed_at_utc": "2026-11-13T13:26:30.538889+00:00",
+  "rpc": "https://rpc.testnet.near.org",
+  "account": "dev-20261105124711-29870979355191.testnet",
+  "height": 277515871,
+  "block_hash": "GczAvqxKSdSw3eFarJs2VWwuXE9ezZZkUPPZrdTAXbJV",
+  "onchain_code_hash": "AWkPGc7xMZtCm8ShbpWXFQWctsf2w1tYnvaBQCeCzYzz",
+  "tracked_wasm_sha256": "8d581487374ce5f59935deb3710c952cfdda07ef9f9c9a8cd366716fb8f74d77",
+  "tracked_wasm_code_hash": "AWkPGc7xMZtCm8ShbpWXFQWctsf2w1tYnvaBQCeCzYzz",
+  "match": true
+}
