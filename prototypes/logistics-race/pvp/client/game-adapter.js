@@ -1,7 +1,7 @@
 // Loaded after the existing offline app. Only the server may mutate gameplay.
 'use strict';
 const pvpConfig=window.__supplyLinePvp;
-let pvpSnapshot=null,pvpSequence=0,pvpQueue=Promise.resolve(),pvpPollBusy=false,pvpFailed=false,pvpFocused=false;
+let pvpEtag=null,pvpSnapshot=null,pvpSequence=0,pvpQueue=Promise.resolve(),pvpPollBusy=false,pvpFailed=false,pvpFocused=false;
 const pvpLocalMethods=Object.fromEntries(['tick','start','stopTruck','buyTruck','roadToCenter','buildRoad','buildPipeCell'].map(name=>[name,E[name]]));
 const pvpTicks=pvpConfig.side===0?[pvpLocalMethods.tick,globalRaceWorldEngines.rival.tick]:[globalRaceWorldEngines.rival.tick,pvpLocalMethods.tick];
 const pvpVisual=SupplyLinePvpPresentation.create(pvpTicks);
@@ -50,9 +50,9 @@ document.querySelector('.prototype-note').textContent='TESTNET PvP · The server
 async function pvpPoll(){
  if(pvpPollBusy)return;pvpPollBusy=true;
  try{
-  const response=await fetch('/api/matches/'+pvpConfig.code,{signal:AbortSignal.timeout(5000)});const value=await response.json();if(!response.ok)throw Error(value.error);
+  const response=await fetch('/api/matches/'+pvpConfig.code,{signal:AbortSignal.timeout(5000),headers:pvpEtag?{'If-None-Match':pvpEtag}:{}});if(response.status===304){pvpStatus.textContent=pvpSnapshot?.recovering?'Waiting for both players to reconnect':'TESTNET · '+(pvpSnapshot?.phase==='playing'?'Connected':pvpSnapshot?.phase);return;}const value=await response.json();if(!response.ok)throw Error(value.error);
   if(pvpSnapshot&&value.revision<pvpSnapshot.revision)return;
-  pvpSnapshot=value;if(value.states){
+  pvpEtag=response.headers.get('etag');pvpSnapshot=value;if(value.states){
    pvpVisual.receive(value,performance.now());
    // Preserve the root identity: card UI treats a new root as a new game.
    const next=value.states[pvpConfig.side];for(const key of Object.keys(state))if(!(key in next))delete state[key];Object.assign(state,next);

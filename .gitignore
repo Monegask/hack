@@ -15,3 +15,6 @@ prototypes/logistics-race/dist/assets/city-hub.glb
 prototypes/logistics-race/dist/assets/asphalt-plant.glb
 **/build-report.json
 *.log
+
+**/.baseline-server/
+*.cpuprofile

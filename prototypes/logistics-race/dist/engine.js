@@ -7,7 +7,7 @@ const costs={oil2:{iron:5,copper:1},iron:{iron:5,copper:1},copper:{iron:5,copper
 const positions=config.positions||{oil2:[9,9],city:[3,8],oil:[1,8],iron:[1,7],copper:[7,8],gravel:[3,5],asphalt:[4,8],center:[11,4]};
 const mountains=config.mountains||[[5,4],[6,4],[7,4],[5,5],[6,5],[7,5],[6,6],[7,6],[8,6]];
 const fuelRates={transport:1.1/12,refinery:.11,metal:2/15*1.1,asphalt:.11};
-const key=p=>p.join(',');
+const key=p=>p[0]+','+p[1];
 function create(){return {version:1,time:0,paused:true,won:false,fuel:12,city:{iron:14,copper:6,gravel:0,asphalt:0,ironOre:0,copperOre:0,oil:0},goal:{iron:12,copper:6,asphalt:8},delivered:{iron:0,copper:0,asphalt:0},outgoing:{iron:0,copper:0,asphalt:0},roads:[...initialRoadCells],pipeCells:[],oilPipe:null,sites:Object.fromEntries(Object.keys(costs).map(id=>[id,{id,active:false,enabled:true,stock:0,received:{iron:0,copper:0},incoming:{iron:0,copper:0},claimed:0,mining:null,construction:null}])),trucks:[truck(1),truck(2)],builder:null,production:{oil:null,refinery:null,metal:null,asphalt:null,vehicle:null},enabled:{oil:true,refinery:true,metal:true,asphalt:true},metalMode:'auto',log:[{t:0,text:'Start by delivering materials to the iron deposit.'}],notice:'',stats:{spent:0,produced:0,trips:0},firstDelivery:null};}
 function truck(id){return {id,position:[...positions.city],job:null,leg:null,at:'city',status:'Idle',cargo:{},stop:false,trip:0};}
 function log(s,text){s.log.unshift({t:s.time,text});s.log=s.log.slice(0,40);}
@@ -49,8 +49,17 @@ function buildPipeCell(s,p){
 // Use the paved network whenever it connects both loading points. A faster
 // cross-country shortcut must not silently abandon the road the player built.
 // Within either network Dijkstra still chooses the quickest legal route.
+let pathRoads=null;const paths=new Map();
 function path(s,a,b,diagonal=true){
- return (onRoad(s,a)&&onRoad(s,b)?shortestPath(s,a,b,diagonal,true):null)||shortestPath(s,a,b,diagonal,false);
+ // Routes depend only on this world's fixed geometry, direction and complete road set.
+ // Preserve Dijkstra ordering exactly; copy results so callers cannot mutate cached routes.
+ const roads=s.roads.join(';');if(roads!==pathRoads){pathRoads=roads;paths.clear();}
+ const id=key(a)+'>'+key(b)+':'+diagonal;
+ if(!paths.has(id)){
+  const points=(onRoad(s,a)&&onRoad(s,b)?shortestPath(s,a,b,diagonal,true):null)||shortestPath(s,a,b,diagonal,false);
+  if(paths.size>=128)paths.delete(paths.keys().next().value);paths.set(id,points);
+ }
+ return paths.get(id)?.map(p=>[...p])||null;
 }
 // Shared pure presentation geometry also constrains authoritative route planning.
 // Keep model anchors and yard dimensions aligned with the 3D asset layout.

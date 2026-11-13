@@ -2,7 +2,7 @@ import {createRequire} from 'node:module';
 const require=createRequire(import.meta.url),World=require('../../dist/race-world.js');
 const SITES=['oil2','iron','copper','gravel','asphalt'],TARGETS=[...SITES,'oil','city','center'];
 export function engines(seed){const w=World.create(seed);return [w.player,w.rival];}
-export function newGame(seed){const e=engines(seed),states=e.map(x=>x.create());states[1].roads=states[0].roads;return states;}
+export function newGame(seed,e=engines(seed)){const states=e.map(x=>x.create());states[1].roads=states[0].roads;return states;}
 export function relink(states){states[1].roads=states[0].roads;return states;}
 export function applyCommand(E,state,command,side){
  const {type}=command||{};const integer=n=>Number.isInteger(n)&&n>=1&&n<=100;

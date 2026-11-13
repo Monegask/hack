@@ -1,0 +1,12 @@
+{
+  "matches": 50,
+  "requests": 400,
+  "p95Ms": 222.4085,
+  "duplicateCreates": 50,
+  "seatRaces": 50,
+  "expectedSeatRejections": 50,
+  "depositTemplates": 200,
+  "serverDepositBroadcasts": 0,
+  "unexpectedErrors": 0,
+  "scope": "real local HTTP/disk SQLite; mock chain, repeated templates are not token transfers"
+}

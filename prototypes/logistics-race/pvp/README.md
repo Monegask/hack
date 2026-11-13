@@ -95,3 +95,17 @@ Deployment `9f0bf3c1-6667-4cee-a1bf-43a82d4809fc` SUCCESS, runtime `597b47e`. П
 ## 12 ноября — управление грузовиками и плавное представление
 
 Текущий runtime 7c3a519 исправляет непреднамеренные команды при preview доступности, сброс выбранной карточки и дискретные анимации. После deployment обновить страницу на обоих устройствах. Старые назначения сохраняются: открыть нужный truck → End route, дождаться возврата и назначить новую работу. Экономику/победу по-прежнему рассчитывает сервер; локальные визуальные копии служат только для 3D и ограничены при обрыве сети. Пройдены 22 backend/presentation теста, 169 игровых регрессий и две отдельные браузерные стороны: выбор только truck 2, отзыв/возврат/переназначение, кадровое движение, reload/tamper/mobile. Тесты не являются новой on-chain выплатой.
+
+
+## Scalability candidate (13 November 2026)
+
+The `perf/pvp-scalability` branch adds grouped durable command commits, batched dirty
+checkpoints, fixed-step backlog tracking, bounded chain reconciliation, route caches,
+and compressed/conditional state polling. Menu polling uses `?view=metadata`.
+`MAX_ACTIVE_MATCHES` now accepts 1–200; its default remains 10. This is a configuration
+range, not a certified capacity. Do not raise a public deployment's limit based on
+local mock-chain results alone. Keep exactly one authoritative process per DATA_DIR.
+
+Reproduction, resource constraints and limitations: [load/README.md](load/README.md).
+Measurements and scaling decisions: [performance report](../../../docs/performance-2026-11-13.md).
+No contract, Mainnet deployment, production database or production cap was changed.
