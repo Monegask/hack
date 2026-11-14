@@ -76,7 +76,7 @@ export class Chain{
   await this.requireRegistered([this.cfg.escrow,c.admin],this.controlBlock.hash);
   if(c.fee_bps!==300||c.admin!==this.cfg.expectedFeeReceiver)throw Error('Approved 3% fee/receiver policy mismatch');
   if(this.cfg.runtimePublicKey)await this.checkRuntimeKey(this.cfg.runtimePublicKey);
-  return {network:this.cfg.network,escrow:this.cfg.escrow,token:this.cfg.token,symbol:token.symbol,feeBps:c.fee_bps,pendingFee:c.pending_fee,paused:c.paused,serverFrozen:c.server_frozen,signerChecked:!!this.cfg.runtimePublicKey,paymentsEnabled:false,escrowApi:'escrow-v2'};
+  return {network:this.cfg.network,escrow:this.cfg.escrow,token:this.cfg.token,symbol:token.symbol,feeBps:c.fee_bps,pendingFee:c.pending_fee,paused:c.paused,serverFrozen:c.server_frozen,signerChecked:false,runtimeKeyChecked:!!this.cfg.runtimePublicKey,paymentsEnabled:false,escrowApi:'escrow-v2'};
  }
  async checkRuntimeKey(publicKey){const access=await this.rpc('query',{request_type:'view_access_key',account_id:this.cfg.server,public_key:publicKey,finality:'final'});validateRuntimeAccess(access,this.cfg);return true;}
 

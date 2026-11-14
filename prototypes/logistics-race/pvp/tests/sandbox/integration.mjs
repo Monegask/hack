@@ -32,7 +32,7 @@ async function open(){game=new GameService(cfg,store,chain);app=createApp(cfg,st
 async function close(){if(app){await new Promise(r=>app.close(r));app=null;}store.close();}
 async function prepare(who,m,kind,extra={}){const terms={stake:m.stake,revision:m.revision,feeBps:m.fee_bps,opponent:who==='alice'?f.bob.id:f.alice.id};return post(who,'/api/escrow/matches/'+m.id+'/transaction',{id:'sandbox-wallet-'+(++request),kind,terms,...extra});}
 async function pay(who,m,kind,extra={}){const req=await prepare(who,m,kind,extra),tx=await send(who,req.transaction),status=await post(who,'/api/payment-status',{id:req.intentId,hash:tx.transaction.hash});return {req,tx,status};}
-async function match(){const created=await post('alice','/api/matches',{amount:'5',id:'sandbox-create-'+(++request)});assert.equal(created.phase,'lobby');await post('bob','/api/matches/'+created.code+'/join',{});return game.matches.get(created.code);}
+async function match(){await game.sync();const created=await post('alice','/api/matches',{amount:'5',id:'sandbox-create-'+(++request)});assert.equal(created.phase,'lobby');await post('bob','/api/matches/'+created.code+'/join',{});return game.matches.get(created.code);}
 async function funded(){const m=await match();let c=await chain.match(m.chainId);assert.equal((await pay('alice',c,'deposit')).status.state,'accepted');c=await chain.match(m.chainId);assert.equal((await pay('bob',c,'deposit')).status.state,'accepted');return m;}
 async function start(m){await delay(3600);await game.reconcile(m);assert.equal(m.phase,'playing',JSON.stringify(m));}
 async function denied(promise,pattern){await assert.rejects(promise,error=>{const detail=String(error)+' '+JSON.stringify(error);return pattern.test(detail);});}
@@ -79,6 +79,7 @@ try{
  await pay('bob',await chain.match(m.chainId),'emergency');c=await waitMatch(m.chainId,c=>c.state==='Cancelled'&&c.payouts.every(p=>p.state==='Paid'));assert.equal(c.payouts[0].amount,'5000000');assert.equal(c.payouts[1].amount,'5000000');
  const ledger=await chain.view(f.escrow,'get_accounting');assert.equal(ledger.locked,'0');assert.equal(ledger.owed,'0');assert.equal(ledger.in_flight,'0');assert.equal(ledger.accepted,ledger.paid);
  report.checks.push('server_frozen stops worker/result and enables immediate player full refunds; final accounting drains exactly');
+ report.accounting=ledger;report.escrowFtBalance=await chain.view(f.token,'ft_balance_of',{account_id:f.escrow});assert.equal(report.escrowFtBalance,'0');assert.equal((await balance('alice'))+(await balance('bob'))+(await balance('admin'))+(await balance('carol')),400000000n);
  report.passed=true;console.log(JSON.stringify(report,null,2));
 }finally{
  if(process.env.SANDBOX_REPORT)fs.writeFileSync(process.env.SANDBOX_REPORT,JSON.stringify(report,null,2));await close();

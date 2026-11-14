@@ -103,3 +103,5 @@ test('a challenge issued for one network/deployment cannot mint a session after 
  const result=await fetch(appOrigin+'/api/auth/verify',{method:'POST',headers:{origin:appOrigin,cookie,'content-type':'application/json'},body:JSON.stringify({challengeId:challenge.id,signed:{}})});
  assert.equal(result.status,401);
 });
+
+test('read-only runtime public-key verification never claims private signer possession',async()=>{const chain=mainChain();chain.cfg.runtimePublicKey=String(KeyPair.fromRandom('ed25519').getPublicKey());let checked=false;chain.checkRuntimeKey=async()=>{checked=true;};const info=await chain.preflight();assert.equal(checked,true);assert.equal(info.runtimeKeyChecked,true);assert.equal(info.signerChecked,false);assert.equal(chain.account,undefined);});

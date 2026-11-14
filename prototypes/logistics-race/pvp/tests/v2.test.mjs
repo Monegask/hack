@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import {EscrowV2Adapter,validateConfig,validateMatch,validateRuntimeAccess,SERVER_METHODS,CIRCLE_USDC,assertAdmissionPolicy} from '../server/adapters/escrow-v2.mjs';
 import {prepareIntent,reconcileIntent,replayIntent} from '../server/recovery-v2.mjs';
 import {Store} from '../server/store.mjs';
+import {Chain} from '../server/chain.mjs';
 import {fixture,playing} from './fixture.mjs';
 const cfg={network:'mainnet',token:CIRCLE_USDC,server:'server.near',escrow:'escrow.near',scope:'unit-v2',expectedFeeReceiver:'fee.near'};
 const config=()=>({state_version:2,admin:'fee.near',pending_admin:null,server:cfg.server,token:cfg.token,paused:false,server_frozen:false,pending_fee:null,last_heartbeat_ns:'100000000000',fee_bps:300});
@@ -57,3 +58,5 @@ test('recovery requires exact signer/receiver/arguments and receipt-linked accep
 });
 
 test('3% bank fee and explicit fee recipient are admission policy, not the generic v2 500bps schema cap',()=>{assertAdmissionPolicy(config(),cfg);assert.throws(()=>assertAdmissionPolicy({...config(),fee_bps:500},cfg));assert.throws(()=>assertAdmissionPolicy(config(),{...cfg,expectedFeeReceiver:'other.near'}));assert.throws(()=>assertAdmissionPolicy({...config(),server_frozen:true},cfg));});
+
+test('actual Chain create path checks fee and beneficiary policy before signing or creating outbox rows',async t=>{const store=new Store('',{memory:true});t.after(()=>store.close());const chain=new Chain({...cfg,network:'sandbox',adapterVersion:'escrow-v2',rpc:'https://unused.test'},store);chain.assertNetwork=async()=>{};chain.account={createSignedTransaction:async()=>assert.fail('Policy mismatch must not sign')};chain.requireRegistered=async()=>{};for(const changed of [{...config(),fee_bps:400},{...config(),admin:'changed.near'}]){chain.control=async()=>changed;await assert.rejects(chain.execute('policy-create','create_lobby',{creator:'alice.near',stake:'5000000'}),/approved|receiver/i);assert.deepEqual(store.all('outbox'),[]);}});
