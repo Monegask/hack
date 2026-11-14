@@ -111,6 +111,7 @@ try{
  await pay('bob',await chain.match(m.chainId),'emergency');c=await waitMatch(m.chainId,c=>c.state==='Cancelled'&&c.payouts.every(p=>p.state==='Paid'));assert.equal(c.payouts[0].amount,'5000000');assert.equal(c.payouts[1].amount,'5000000');
  const ledger=await chain.view(f.escrow,'get_accounting');assert.equal(ledger.locked,'0');assert.equal(ledger.owed,'0');assert.equal(ledger.in_flight,'0');assert.equal(ledger.accepted,ledger.paid);
  report.checks.push('server_frozen stops worker/result and enables immediate player full refunds; final accounting drains exactly');
+ report.accounting=ledger;report.escrowFtBalance=await chain.view(f.token,'ft_balance_of',{account_id:f.escrow});assert.equal(report.escrowFtBalance,'0');assert.equal((await balance('alice'))+(await balance('bob'))+(await balance('admin'))+(await balance('carol')),400000000n);
  report.passed=true;console.log(JSON.stringify(report,null,2));
 }finally{
  if(process.env.SANDBOX_REPORT)fs.writeFileSync(process.env.SANDBOX_REPORT,JSON.stringify(report,null,2));await close();
