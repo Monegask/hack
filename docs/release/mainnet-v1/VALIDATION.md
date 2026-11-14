@@ -63,7 +63,7 @@ Audit identified that full history reconciliation before v2 heartbeat could forc
 
 Positive tests cover 360 historical reads with bounded 20s responses over 30 simulated minutes; 50 live IDs with a slow read; freeze-after-read/deadline; single nonce ownership; unknown signed predecessor; and queued revocation. K1 closes a separator-boundary bug where a child directory beginning with `..` could pass the external-signer check; its empty-credential test proves rejection before reading a secret.
 
-A new 50-match v2-specific load uses validated v2 view fixtures and requires `v2BranchExercised=true` plus a positive v2 scheduler cycle count. Previous load reports do not satisfy that condition and remain historical evidence only. Results and the independent targeted retest are recorded after completion. Neither fixture mode measures real RPC or signer throughput.
+A new 50-match v2-specific load uses validated v2 view fixtures and requires `v2BranchExercised=true` plus a positive v2 scheduler cycle count. Previous load reports do not satisfy that condition and remain historical evidence only. The final v2 run passed and the independent targeted retest closed the reproduced R08/K1 cases; the evidence is linked below. Neither fixture mode measures real RPC or signer throughput.
 
 ## Latest fully verified runtime slice: 616e870
 
@@ -72,4 +72,10 @@ A new 50-match v2-specific load uses validated v2 view fixtures and requires `v2
 - [Actual integrated backend/engine/Rust financial cycle](https://github.com/Monegask/hack/actions/runs/43577158948): **PASS**, including full delivery win, exact state restart and reconnect, disconnect winner and real mock-FT payout, all prior cancellation/recovery/freeze scenarios. [Report](sandbox-616e870.json): accepted=paid=55000000, locked=owed=in_flight=0, escrow FT balance=0.
 - Independent AI reviewer retested 79 backend tests, five additional scheduling/key-boundary checks and twelve prior positive cases; closed concrete R08 starvation and K1 path bypass on this exact SHA. [Retest](security-baseline/RELEASE-616e870-RETEST.md). It is not professional audit or Mainnet authorization.
 
-The final augmented harness also verifies real public discovery and public Join without an invitation before the engine/financial lifecycle. Its own final CI link is recorded after completion; the already-passed runtime evidence above is not re-attributed to a different tree.
+## Final augmented public-flow test slice: 3624367
+
+[The actual backend/Rust Sandbox run](https://github.com/Monegask/hack/actions/runs/43578306779) passed public discovery and public Join without an invitation before both deposits, countdown, full authoritative engine victory and actual mock-FT settlement. It also passed private/cancellation/recovery/freeze and playing-restart/disconnect scenarios. [Exact report](sandbox-3624367.json): accepted=paid=55000000, locked=owed=in_flight=live_matches=0, escrow FT=0.
+
+[Linux Node 24 integration checks](https://github.com/Monegask/hack/actions/runs/43578306773) passed full builds, 169 game tests, 79 backend tests and 50 completed replay matches on this test-only augmentation. Production server/engine code is unchanged from independently reviewed runtime 616e870. The final documentation commit does not change runtime or test behavior.
+
+The copied independent audit positive suites were also run from this worktree: 5/5 queue/path tests and 12/12 prior positive tests. Historical EXPOSURE assertions are archived, not passed off as positive regression gates. See security-baseline/README.md for reproduction.
