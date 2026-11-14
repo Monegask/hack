@@ -2919,6 +2919,7 @@ async function payment(kind) {
   renderMatch();
   try {
     const c = current.chain, terms = c ? { stake: c.stake, revision: c.revision, feeBps: c.fee_bps, opponent: current.players[1 - current.side] } : null;
+    await wallet();
     const request = await api("matches/" + current.code + "/transaction", { kind, terms, id: crypto.randomUUID() });
     if (request.replay || request.alreadyResolved) {
       await refresh();
@@ -2955,6 +2956,7 @@ async function refresh() {
   $("account").innerHTML = `<strong>${esc(session.account)}</strong><span>${amount(balances.balance)} ${esc(tokenLabel())}</span>${!balances.registered && cfg.paymentsEnabled ? '<button id="register">Register token account</button>' : ""}<span class="muted">Spendable NEAR: ${formatUnits(balances.nearAvailable, 24)} \xB7 ${balances.hasGas ? "gas reserve available" : "insufficient gas reserve"}</span>${cfg.pendingFee ? `<span>Scheduled fee: ${cfg.pendingFee.fee_bps / 100}% from ${esc(new Date(Number(BigInt(cfg.pendingFee.activate_at_ns) / 1000000n)).toISOString())}. Existing lobbies keep their original fee.</span>` : ""}${cfg.serverFrozen ? "<span>Server frozen. In-progress matches are eligible for full emergency refunds.</span>" : ""}${pending()?.intentId ? '<button id="recoverPayment">Check original transaction hash</button>' : ""}`;
   $("recoverPayment")?.addEventListener("click", () => action(recoverPayment));
   $("register")?.addEventListener("click", () => action(async () => {
+    await wallet();
     const tx = await api("register", { id: crypto.randomUUID() });
     if (tx.alreadyRegistered || tx.replay || tx.alreadyResolved) return refresh();
     if (tx.network !== cfg.network) throw Error("Transaction network mismatch");

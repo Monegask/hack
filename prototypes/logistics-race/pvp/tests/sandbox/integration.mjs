@@ -4,6 +4,8 @@ import os from 'node:os';
 import path from 'node:path';
 import {createHash} from 'node:crypto';
 import assert from 'node:assert/strict';
+import {createRequire} from 'node:module';
+const require=createRequire(import.meta.url),Bot=require('../../../dist/bot.js');
 import {setTimeout as delay} from 'node:timers/promises';
 import {Account,JsonRpcProvider,KeyPair,actions} from 'near-api-js';
 import {Chain} from '../../server/chain.mjs';
@@ -32,9 +34,31 @@ async function open(){game=new GameService(cfg,store,chain);app=createApp(cfg,st
 async function close(){if(app){await new Promise(r=>app.close(r));app=null;}store.close();}
 async function prepare(who,m,kind,extra={}){const terms={stake:m.stake,revision:m.revision,feeBps:m.fee_bps,opponent:who==='alice'?f.bob.id:f.alice.id};return post(who,'/api/escrow/matches/'+m.id+'/transaction',{id:'sandbox-wallet-'+(++request),kind,terms,...extra});}
 async function pay(who,m,kind,extra={}){const req=await prepare(who,m,kind,extra),tx=await send(who,req.transaction),status=await post(who,'/api/payment-status',{id:req.intentId,hash:tx.transaction.hash});return {req,tx,status};}
-async function match(){const created=await post('alice','/api/matches',{amount:'5',id:'sandbox-create-'+(++request)});assert.equal(created.phase,'lobby');await post('bob','/api/matches/'+created.code+'/join',{});return game.matches.get(created.code);}
+async function match(){await game.sync();const created=await post('alice','/api/matches',{amount:'5',id:'sandbox-create-'+(++request)});assert.equal(created.phase,'lobby');await post('bob','/api/matches/'+created.code+'/join',{});return game.matches.get(created.code);}
 async function funded(){const m=await match();let c=await chain.match(m.chainId);assert.equal((await pay('alice',c,'deposit')).status.state,'accepted');c=await chain.match(m.chainId);assert.equal((await pay('bob',c,'deposit')).status.state,'accepted');return m;}
 async function start(m){await delay(3600);await game.reconcile(m);assert.equal(m.phase,'playing',JSON.stringify(m));}
+async function finishByAuthoritativeGame(m){
+ const engines=game.getEngines(m),sequence=[0,0];let commands=0,clock=game.now();const originalNow=game.now;
+ game.now=()=>clock;game.lastPump=clock;game.acc=0;m.resumeAt=clock;
+ const bots=engines.map((E,i)=>{
+  const remote=(state,name,args,command)=>{const result=game.command(m.code,m.players[i],{id:'sandbox-game-'+i+'-'+(++commands),sequence:++sequence[i],command});const local=E[name](state,...args);assert.equal(!!local,result.accepted);return local;};
+  const wrapper={...E,tick:()=>{},start:(state,...a)=>remote(state,'start',a,{type:'start',truck:a[0],kind:a[1],target:a[2]}),stopTruck:(state,...a)=>remote(state,'stopTruck',a,{type:'stopTruck',truck:a[0]}),buyTruck:state=>remote(state,'buyTruck',[],{type:'buyTruck'}),roadToCenter:state=>remote(state,'roadToCenter',[],{type:'roadToCenter'})};
+  const B=Bot.withEngine(wrapper);return {B,b:B.create(i?8742:42)};
+ });
+ try{
+  for(let step=0;step<22000&&m.phase==='playing';step++){
+   for(let i=0;i<2;i++){
+    game.snapshot(m.code,m.players[i],{touch:true});const {B,b}=bots[i];b.state=structuredClone(m.states[i]);b.state.paused=false;
+    const plants={...b.state.enabled},sites=Object.fromEntries(Object.entries(b.state.sites).map(([id,v])=>[id,v.enabled]));B.tick(b,.1);
+    for(const [plant,enabled] of Object.entries(plants))if(b.state.enabled[plant]!==enabled)game.command(m.code,m.players[i],{id:'sandbox-game-'+i+'-'+(++commands),sequence:++sequence[i],command:{type:'plant',plant,enabled:b.state.enabled[plant]}});
+    for(const [site,enabled] of Object.entries(sites))if(b.state.sites[site].enabled!==enabled)game.command(m.code,m.players[i],{id:'sandbox-game-'+i+'-'+(++commands),sequence:++sequence[i],command:{type:'site',site,enabled:b.state.sites[site].enabled}});
+   }
+   clock+=100;game.advance();
+  }
+ }finally{game.now=originalNow;game.lastPump=game.now();game.acc=0;}
+ assert.equal(m.phase,'settling');assert.equal(m.result.reason,'delivery');assert.ok(commands>30);
+ return {seed:m.seed,commands,simulationSeconds:m.result.time,winnerSide:m.players.indexOf(m.result.winner),statesSha256:hash(JSON.stringify(m.states))};
+}
 async function denied(promise,pattern){await assert.rejects(promise,error=>{const detail=String(error)+' '+JSON.stringify(error);return pattern.test(detail);});}
 async function balance(who){return BigInt(await chain.view(f.token,'ft_balance_of',{account_id:f[who].id}));}
 try{
@@ -52,14 +76,14 @@ try{
  await open();
  const registration=await post('carol','/api/register',{id:'carol-register',account_id:f.alice.id});assert.deepEqual(registration.transaction.actions[0].params.args,{account_id:f.carol.id,registration_only:true});const registrationTx=await send('carol',registration.transaction);assert.equal((await post('carol','/api/payment-status',{id:registration.intentId,hash:registrationTx.transaction.hash})).state,'registered');assert.equal((await post('carol','/api/register',{id:'carol-register'})).alreadyResolved,true);assert.equal((await post('carol','/api/register',{id:'carol-register-again'})).alreadyRegistered,true);report.checks.push('real FT minimum self-registration, request replay and no repeated storage payment');
  // Normal lifecycle through HTTP, with duplicate deposit resolver and exact ledger.
- let m=await match(),c=await chain.match(m.chainId),a0=await balance('alice'),b0=await balance('bob'),fee0=await balance('admin');
+ let m=await match(),c=await chain.match(m.chainId),a0=await balance('alice'),b0=await balance('bob'),fee0=await balance('admin');m.seed=42;game.save(m);
  const req=await prepare('alice',c,'deposit'),intent=store.get('payment',JSON.stringify([cfg.scope,f.alice.id,req.intentId]));
  let tx=await send('alice',req.transaction);assert.equal((await post('alice','/api/payment-status',{id:req.intentId,hash:tx.transaction.hash})).state,'accepted');const replay=await prepare('alice',c,'deposit',{id:req.intentId});assert.equal(replay.alreadyResolved,true);
  const duplicate=prepareIntent(store,cfg,{id:'duplicate-original',account:f.alice.id,code:null,kind:'deposit',match:c,transaction:req.transaction});tx=await send('alice',req.transaction);const duplicateResult=await reconcileIntent(chain,store,duplicate,tx.transaction.hash);assert.equal(duplicateResult.state,'refunded-by-resolver');
- c=await chain.match(m.chainId);await pay('bob',c,'deposit');await start(m);game.finish(m,0,'sandbox-server-result');await game.reconcile(m);await waitMatch(m.chainId,c=>c.state==='Completed');
- assert.equal(await balance('alice'),a0+4700000n);assert.equal(await balance('bob'),b0-5000000n);assert.equal(await balance('admin'),fee0+300000n);
+ c=await chain.match(m.chainId);await pay('bob',c,'deposit');await start(m);report.fullGame=await finishByAuthoritativeGame(m);await game.reconcile(m);await waitMatch(m.chainId,c=>c.state==='Completed');
+ assert.equal(await balance('alice'),a0+(report.fullGame.winnerSide===0?4700000n:-5000000n));assert.equal(await balance('bob'),b0+(report.fullGame.winnerSide===1?4700000n:-5000000n));assert.equal(await balance('admin'),fee0+300000n);
  const resultHash=store.get('outbox',m.code+':result').result.hash;await game.reconcile(m);assert.equal(store.get('outbox',m.code+':result').result.hash,resultHash);
- report.checks.push('HTTP create/bind/deposit/3s countdown/start/result; duplicate FT resolver refund; exact 9.7 prize/0.3 fee, result idempotency');
+ report.checks.push('HTTP create/bind/deposit/3s countdown; full authoritative engine game via legal commands determines winner; duplicate FT resolver refund; exact 9.7 prize/0.3 fee, result idempotency');
  // Failed fee receipt -> Ready; async winner payment is not repeated by fee retry.
  await raw('admin',f.token,'set_blocked',{account_id:f.admin.id,blocked:true});m=await funded();await start(m);const winnerBefore=await balance('alice');game.finish(m,0,'sandbox-failed-fee');await game.reconcile(m);
  c=await waitMatch(m.chainId,c=>c.payouts[0].state==='Paid'&&c.payouts[1].state==='Ready');assert.equal(c.state,'SettlementPending');assert.equal(await balance('alice'),winnerBefore+9700000n);
