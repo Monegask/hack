@@ -1,0 +1,11 @@
+{
+  "checkedOn": "2026-11-14",
+  "source": "https://api.github.com/repos/Monegask/hack/actions/runs?per_page=50",
+  "scope": "Latest existing integrated candidate PR #5, before this submission PR",
+  "commit": "0803b553ca29300815d87abc95e4d48ab94e8ebe",
+  "runs": [
+    {"id": 43578830790, "name": "Release integration checks", "status": "completed", "conclusion": "success"},
+    {"id": 43578830808, "name": "Mainnet escrow candidate", "status": "completed", "conclusion": "success"},
+    {"id": 43578830813, "name": "Escrow v2 backend integration", "status": "completed", "conclusion": "success"}
+  ]
+}

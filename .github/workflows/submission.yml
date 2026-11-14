@@ -1,0 +1,25 @@
+name: Submission build and checks
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+permissions:
+  contents: read
+jobs:
+  game:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Install locked build dependencies
+        run: npm ci --prefix prototypes/logistics-race/threejs-trial --include=dev
+      - name: Rebuild Vercel and offline games
+        run: npm run build
+      - name: Game regressions
+        run: npm test
+      - name: Local serving and documentation links
+        run: node --test tests/submission.test.cjs
