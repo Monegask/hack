@@ -5,7 +5,7 @@
 ## Конфигурации и совместимость
 
 - Testnet: `.env.example` / `.env.testnet.example`, сеть по умолчанию testnet, старый escrow-v1/WASM/mock FT. В wire API и пользовательской БД v1 нет миграции.
-- Mainnet: `.env.mainnet.example`, явные network/origin/RPC/escrow/server/token/code hash/абсолютный DATA_DIR и ESCROW_API_VERSION=2. REQUIRED не является адресом готового deployment. DB scope включает версию adapter; нельзя переиспользовать старую/чужую БД.
+- Mainnet: `.env.mainnet.example`, явные network/origin/RPC/escrow/server/token/code hash/абсолютный DATA_DIR, ESCROW_API_VERSION=2 и FEE_RECEIVER_ID. Preflight/new admissions требуют ровно300bps общего банка и совпадения admin с этим явно утверждённым получателем; generic ABI cap500bps не является разрешением иного тарифа. REQUIRED не является адресом готового deployment. DB scope включает версию adapter; нельзя переиспользовать старую/чужую БД.
 - Только [нативный Circle USDC](https://developers.circle.com/stablecoins/usdc-contract-addresses): `17208628f84f5d6ad33f0da3bbbeb27ffcb398eac501a31bd6ad2011e36133a1`, decimals=6. USDC.e и подмены по symbol отклоняются.
 - Preflight v2 проверяет chain_id, pinned code hash, schema/state_version=2, immutable token/roles, metadata и FT registration escrow/fee receiver. Config/code читаются на одном final block. Initially paused и server_frozen показываются read-only; допуск матчей при них закрыт.
 - SERVER_KEY_FILE в Mainnet запрещён. Опциональный **публичный** SERVER_RUNTIME_PUBLIC_KEY позволяет read-only проверить exact receiver/7 methods/finite allowance; это не загрузка signer и не разрешение транзакций. Необозначенная проверка возвращает signerChecked=false.

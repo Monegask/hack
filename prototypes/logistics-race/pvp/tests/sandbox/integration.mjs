@@ -14,7 +14,7 @@ import {SERVER_METHODS,CONTRACT_REVISION} from '../../server/adapters/escrow-v2.
 import {prepareIntent,reconcileIntent} from '../../server/recovery-v2.mjs';
 const f=JSON.parse(fs.readFileSync(process.env.SANDBOX_FIXTURE,'utf8'));
 if(!['localhost','127.0.0.1'].includes(new URL(f.rpc).hostname))throw Error('Sandbox fixture must be local');
-const provider=new JsonRpcProvider({url:f.rpc}),wallet={};for(const who of ['admin','server','alice','bob'])wallet[who]=new Account(f[who].id,provider,f[who].key);
+const provider=new JsonRpcProvider({url:f.rpc}),wallet={};for(const who of ['admin','server','alice','bob','carol'])wallet[who]=new Account(f[who].id,provider,f[who].key);
 const directory=fs.mkdtempSync(path.join(os.tmpdir(),'supply-backend-v2-')),report={contract:CONTRACT_REVISION,realRustSandbox:true,checks:[]};
 let store=new Store(directory),cfg={rpc:f.rpc,network:(await provider.sendJsonRpc('status',[])).chain_id,adapterVersion:'escrow-v2',token:f.token,escrow:f.escrow,server:f.server.id,gasReserve:'10000000000000000000000',expectedFeeReceiver:f.admin.id,maxActive:10,players:[],scope:'sandbox-v2:'+f.escrow},chain=new Chain(cfg,store);
 cfg.escrowCodeHash=(await chain.rpc('query',{request_type:'view_account',account_id:f.escrow,finality:'final'})).code_hash;
@@ -28,7 +28,7 @@ async function raw(who,receiver,method,args={},deposit='0',gas='250000000000000'
 async function send(who,tx){return raw(who,tx.receiverId,tx.actions[0].params.methodName,tx.actions[0].params.args,tx.actions[0].params.deposit,tx.actions[0].params.gas);}
 async function post(who,route,body){const r=await fetch(origin+route,{method:'POST',headers:{origin,cookie:'sl_session='+who,'content-type':'application/json','x-csrf-token':'csrf'},body:JSON.stringify(body)});const v=await r.json();assert.equal(r.status,200,JSON.stringify(v));return v;}
 async function waitMatch(id,predicate){for(let i=0;i<100;i++){const m=await chain.match(id);if(predicate(m))return m;await delay(100);}throw Error('Escrow state timeout: '+JSON.stringify(await chain.match(id)));}
-async function open(){game=new GameService(cfg,store,chain);app=createApp(cfg,store,chain,game);await new Promise(r=>app.listen(0,'127.0.0.1',r));origin='http://127.0.0.1:'+app.address().port;cfg.origin=origin;for(const who of ['alice','bob','admin'])store.put('session',hash(who),{account:f[who].id,scope:cfg.scope,csrf:'csrf',expires:Date.now()+3600000});}
+async function open(){game=new GameService(cfg,store,chain);app=createApp(cfg,store,chain,game);await new Promise(r=>app.listen(0,'127.0.0.1',r));origin='http://127.0.0.1:'+app.address().port;cfg.origin=origin;for(const who of ['alice','bob','admin','carol'])store.put('session',hash(who),{account:f[who].id,scope:cfg.scope,csrf:'csrf',expires:Date.now()+3600000});}
 async function close(){if(app){await new Promise(r=>app.close(r));app=null;}store.close();}
 async function prepare(who,m,kind,extra={}){const terms={stake:m.stake,revision:m.revision,feeBps:m.fee_bps,opponent:who==='alice'?f.bob.id:f.alice.id};return post(who,'/api/escrow/matches/'+m.id+'/transaction',{id:'sandbox-wallet-'+(++request),kind,terms,...extra});}
 async function pay(who,m,kind,extra={}){const req=await prepare(who,m,kind,extra),tx=await send(who,req.transaction),status=await post(who,'/api/payment-status',{id:req.intentId,hash:tx.transaction.hash});return {req,tx,status};}
@@ -50,6 +50,7 @@ try{
  assert.equal((await raw('alice',f.escrow,'cancel_unstarted_match',{match_id:String(recovered.value)},'1')).status.SuccessValue,'');
  report.checks.push('real broadcast ambiguity + SQLite restart: original signed bytes/hash, no new payment');
  await open();
+ const registration=await post('carol','/api/register',{id:'carol-register',account_id:f.alice.id});assert.deepEqual(registration.transaction.actions[0].params.args,{account_id:f.carol.id,registration_only:true});const registrationTx=await send('carol',registration.transaction);assert.equal((await post('carol','/api/payment-status',{id:registration.intentId,hash:registrationTx.transaction.hash})).state,'registered');assert.equal((await post('carol','/api/register',{id:'carol-register'})).alreadyResolved,true);assert.equal((await post('carol','/api/register',{id:'carol-register-again'})).alreadyRegistered,true);report.checks.push('real FT minimum self-registration, request replay and no repeated storage payment');
  // Normal lifecycle through HTTP, with duplicate deposit resolver and exact ledger.
  let m=await match(),c=await chain.match(m.chainId),a0=await balance('alice'),b0=await balance('bob'),fee0=await balance('admin');
  const req=await prepare('alice',c,'deposit'),intent=store.get('payment',JSON.stringify([cfg.scope,f.alice.id,req.intentId]));
@@ -66,11 +67,13 @@ try{
  await raw('admin',f.token,'set_blocked',{account_id:f.admin.id,blocked:false});const feeClaim=await pay('admin',await chain.match(m.chainId),'claim');assert(['paid','in-flight'].includes(feeClaim.status.state));c=await waitMatch(m.chainId,c=>c.state==='Completed');assert.equal(c.payouts[0].attempt,'1');assert.equal(c.payouts[1].attempt,'2');assert.equal(await balance('alice'),winnerBefore+9700000n);
  report.checks.push('failed FT callback restores Ready; persistent restart; fixed fee beneficiary retry, no repeated winner payout');
  // Only one accepted deposit: prestart cancellation refunds precisely that depositor.
- m=await match();c=await chain.match(m.chainId);const beforeRefund=await balance('alice');await pay('alice',c,'deposit');await pay('alice',await chain.match(m.chainId),'cancel');c=await waitMatch(m.chainId,c=>c.state==='Cancelled'&&c.payouts.every(p=>p.state==='Paid'));assert.equal(await balance('alice'),beforeRefund);assert.equal(c.payouts[1].amount,'0');
+ m=await match();c=await chain.match(m.chainId);const beforeRefund=await balance('alice');await pay('alice',c,'deposit');await pay('alice',await chain.match(m.chainId),'cancel');c=await waitMatch(m.chainId,c=>c.state==='Cancelled'&&c.payouts.every(p=>p.state==='Paid'));assert.equal(await balance('alice'),beforeRefund);assert.equal(c.payouts[1].amount,'0');await game.reconcile(m);
  report.checks.push('one-sided prestart cancellation: full original-depositor refund, zero opponent obligation');
  // Private callback spoof cannot forge Paid or reset attempts.
  const callback=await raw('alice',f.escrow,'on_payout',{match_id:m.chainId,index:0,attempt:'1'});assert(callback.status.Failure);assert.equal((await chain.match(m.chainId)).payouts[0].state,'Paid');
  report.checks.push('private payout callback forgery fails in actual Rust receipt');
+ // Mutual cancellation validates changing nonces and returns both original stakes without a fee.
+ m=await funded();await start(m);const refundFeeBefore=await balance('admin');await pay('alice',await chain.match(m.chainId),'mutual');const staleNonce=(await chain.match(m.chainId)).cancel_nonce;await pay('bob',await chain.match(m.chainId),'reject');const stale=await raw('bob',f.escrow,'confirm_mutual_cancel',{match_id:m.chainId,nonce:staleNonce},'1');assert(stale.status.Failure);await pay('alice',await chain.match(m.chainId),'mutual');await pay('bob',await chain.match(m.chainId),'mutual');await waitMatch(m.chainId,c=>c.state==='Cancelled'&&c.payouts.every(p=>p.state==='Paid'));assert.equal(await balance('admin'),refundFeeBefore);await game.reconcile(m);report.checks.push('mutual request/reject/re-request/confirm, stale nonce rejected, full refunds with zero fee');
  // Emergency revoke allows immediate refunds; backend must stop before sending a winner.
  m=await funded();await start(m);await raw('admin',f.escrow,'freeze_server');await game.reconcile(m);assert.equal(m.phase,'refund');assert.match(m.error,/frozen/i);await assert.rejects(chain.execute('frozen-result','submit_result',{match_id:m.chainId,winner:f.alice.id}),/frozen/);
  await pay('bob',await chain.match(m.chainId),'emergency');c=await waitMatch(m.chainId,c=>c.state==='Cancelled'&&c.payouts.every(p=>p.state==='Paid'));assert.equal(c.payouts[0].amount,'5000000');assert.equal(c.payouts[1].amount,'5000000');

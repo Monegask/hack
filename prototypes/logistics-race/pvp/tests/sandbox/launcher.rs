@@ -11,6 +11,7 @@ async fn main() -> Result<()> {
  let server=worker.dev_create_account().await?;
  let alice=worker.dev_create_account().await?;
  let bob=worker.dev_create_account().await?;
+ let carol=worker.dev_create_account().await?;
  let escrow=worker.dev_deploy(&fs::read("target/wasm32-unknown-unknown/release/near_pvp_escrow.wasm")?).await?;
  let ft=worker.dev_deploy(&fs::read("target/wasm32-unknown-unknown/release/test_usdc.wasm")?).await?;
  ft.call("new").args_json(json!({"owner":admin.id()})).transact().await?.into_result()?;
@@ -22,7 +23,7 @@ async fn main() -> Result<()> {
   admin.call(ft.id(),"mint").args_json(json!({"account_id":user.id(),"amount":"200000000"})).transact().await?.into_result()?;
  }
  let file=std::env::temp_dir().join(format!("supply-line-sandbox-{}.json",std::process::id()));
- fs::write(&file,serde_json::to_vec(&json!({"rpc":worker.rpc_addr(),"escrow":escrow.id(),"token":ft.id(),"admin":credential(&admin),"server":credential(&server),"alice":credential(&alice),"bob":credential(&bob)}))?)?;
+ fs::write(&file,serde_json::to_vec(&json!({"rpc":worker.rpc_addr(),"escrow":escrow.id(),"token":ft.id(),"admin":credential(&admin),"server":credential(&server),"alice":credential(&alice),"bob":credential(&bob),"carol":credential(&carol)}))?)?;
  #[cfg(unix)] {use std::os::unix::fs::PermissionsExt;fs::set_permissions(&file,fs::Permissions::from_mode(0o600))?;}
  let status=Command::new("node").arg(std::env::var("FRONTEND_SANDBOX_TEST")?).env("SANDBOX_FIXTURE",&file).status();
  fs::remove_file(&file)?;
