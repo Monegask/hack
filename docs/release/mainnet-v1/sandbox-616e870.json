@@ -1,0 +1,38 @@
+{
+  "sourceCommit": "616e870aafaeacfa47ac6150c72d5e01e1ea9723",
+  "run": "https://github.com/Monegask/hack/actions/runs/43577158948",
+  "report": {
+    "contract": "6b6cd1c2f71dead588bbd41e400da9403bc599f8",
+    "realRustSandbox": true,
+    "checks": [
+      "restricted runtime key: exact receiver/methods/allowance; FT/native transfers and upgrade rejected on chain",
+      "real broadcast ambiguity + SQLite restart: original signed bytes/hash, no new payment",
+      "real FT minimum self-registration, request replay and no repeated storage payment",
+      "HTTP create/bind/deposit/3s countdown; full authoritative engine game via legal commands determines winner; duplicate FT resolver refund; exact 9.7 prize/0.3 fee, result idempotency",
+      "failed FT callback restores Ready; persistent restart; fixed fee beneficiary retry, no repeated winner payout",
+      "one-sided prestart cancellation: full original-depositor refund, zero opponent obligation",
+      "private payout callback forgery fails in actual Rust receipt",
+      "mutual request/reject/re-request/confirm, stale nonce rejected, full refunds with zero fee",
+      "real in-progress SQLite restart preserves exact game state; both reconnect; one-sided disconnect after grace causes server winner and automatic Rust payout",
+      "server_frozen stops worker/result and enables immediate player full refunds; final accounting drains exactly"
+    ],
+    "fullGame": {
+      "seed": 42,
+      "commands": 91,
+      "simulationSeconds": 940.3000000001452,
+      "winnerSide": 1,
+      "statesSha256": "56171d893e7ed6758a6e6dea743b15f44d994f6ff443b3e904bf47a153b80759"
+    },
+    "accounting": {
+      "accepted": "55000000",
+      "locked": "0",
+      "owed": "0",
+      "paid": "55000000",
+      "in_flight": "0",
+      "live_matches": "0",
+      "stored_matches": "7"
+    },
+    "escrowFtBalance": "0",
+    "passed": true
+  }
+}

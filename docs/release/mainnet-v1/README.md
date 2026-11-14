@@ -16,7 +16,7 @@ Dedicated worktree: `publishing/release-mainnet-v1`; branch: `release/mainnet-v1
 
 Merged in this order. Semantic conflict resolutions preserve network/CSRF/session checks, public visibility and private invitations, scoped browser storage, metadata polling, grouped durable commands, monotonic simulation time, RPC read coalescing and lease checks immediately before signed broadcast. Generated files are rebuilt from source. Vercel auto-deployment is disabled for this integration branch in `vercel.json`.
 
-Follow-up PR #3 source through `04c9be1` is integrated: versioned v2 ABI validation, final-receipt recovery, persistent server payment intents and freeze/deadline-aware worker. Upstream actual backend/Rust Sandbox scenarios have passed; strengthened release-specific full-game receipt checks are recorded separately in VALIDATION. No Mainnet readiness is inferred from source integration.
+Follow-up PR #3 source through `e66161f` (code `7e2001d`) is integrated: versioned v2 ABI validation, final-receipt recovery, persistent server payment intents and freeze/deadline-aware worker. Upstream actual backend/Rust Sandbox scenarios have passed; strengthened release-specific full-game receipt checks are recorded separately in VALIDATION. No Mainnet readiness is inferred from source integration.
 
 ## Additional integration fixes
 

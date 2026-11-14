@@ -1,0 +1,88 @@
+{
+  "timestamp": "2026-11-14T08:29:25.693Z",
+  "label": "candidate",
+  "host": {
+    "platform": "win32",
+    "node": "v26.13.0",
+    "cpu": "Intel(R) Core(TM) i7-8700K CPU @ 3.70GHz",
+    "logicalCpus": 12,
+    "totalMemory": 34295083008
+  },
+  "settings": {
+    "matches": "50",
+    "seconds": "60",
+    "reconnect": "true",
+    "out": "docs/release/mainnet-v1/load-50-final.json"
+  },
+  "results": [
+    {
+      "matches": 50,
+      "players": 100,
+      "duration": 60,
+      "requests": 29392,
+      "bytes": 27878532,
+      "bytesPerSecond": 464642.2,
+      "errors": {},
+      "errorSamples": [],
+      "apiP95Ms": 27.696100000001024,
+      "apiMaxMs": 70.45179999999527,
+      "commandP95Ms": 38.37449999999808,
+      "commands": 3000,
+      "duplicates": 3000,
+      "unchanged": 0,
+      "reconnections": 100,
+      "setupP95Ms": 4459.8221,
+      "sourceSha256": {
+        "service.mjs": "4d7ef857e09943b97d533d103b53b5526284645b9cb43f49cde0db7828348dc7",
+        "store.mjs": "166809319bb1d331bbf15951ab92b629f42f3750f0637c8d5e6293eb8978f588",
+        "game.mjs": "284eca64653b47d79b514c91cf753ffe3b54853faedab0bd4c8c76260ad94b8e",
+        "http.mjs": "c736b3fec0eace0df4cec1bdbffea499396b46a763d4e2709d1d556537aafb35",
+        "chain.mjs": "efaa1a61d3ed303c83bff16e45aeed4a7b84732d34fdeb5c93b724901ca3bbb7",
+        "config.mjs": "a0fc8c8c403b4a3e515426a234a14731d2fecbf270bed1eb263924a570f7b614",
+        "durable.mjs": "7e7a7beb5bc28e22e26c65d8d551bcb6b409c19791515900a4ee40b49ad07e37",
+        "rpc.mjs": "3091fed41229b7de3a12bb4f9a3287c8ccd858c5e532e3f83bc9c5808f8d4015",
+        "recovery-v2.mjs": "1cf578eb237aecefca1ca17c900e5012a7853d87c0a298c8dd71cc3c0b9743cf",
+        "adapters/escrow-v2.mjs": "3f57a44ae571fec01b333a1f6476a68252a9a26cca316b96fd6465a3a0c87d9a",
+        "engine": "1b40dd0bf5f1f7bbf058c7bd42410b4da7cf03d45584c7e49af5677a0ce6e631"
+      },
+      "setupRpc": {
+        "reads": 350,
+        "writes": 250,
+        "maxInFlight": 50,
+        "inFlight": 0
+      },
+      "elapsedMs": 60190.5329,
+      "cpuMs": 10390,
+      "peakRss": 198475776,
+      "heap": 54636080,
+      "eventLoopP95Ms": 22.282239,
+      "eventLoopMaxMs": 44.892159,
+      "rpc": {
+        "reads": 2900,
+        "writes": 4,
+        "maxInFlight": 4,
+        "inFlight": 0
+      },
+      "syncCycles": 29,
+      "simulationLagMs": 90.53289999941626,
+      "sqliteMetrics": {
+        "writes": 6700,
+        "serializedBytes": 31677198,
+        "writeMs": 720.5065000001208,
+        "transactions": 362,
+        "commitMs": 315.92889999995987
+      },
+      "simulationMetrics": {
+        "backlogMs": 91.10156249999638,
+        "maxBacklogMs": 99.91699218749886,
+        "maxPumpDelayMs": 40.831298828125,
+        "pumps": 562
+      },
+      "databaseBytes": 1372160,
+      "tickP95Ms": 0.7451999999975669,
+      "checkpointP95Ms": 13.395000000000437,
+      "commandCountMatches": true,
+      "passed": true
+    }
+  ]
+}

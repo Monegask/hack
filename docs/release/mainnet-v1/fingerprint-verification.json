@@ -1,0 +1,19 @@
+{
+  "runtimeCommit": "616e870aafaeacfa47ac6150c72d5e01e1ea9723",
+  "reports": {
+    "load-50-final.json": {
+      "passed": true,
+      "adapterVersion": "escrow-v1",
+      "v2BranchExercised": null,
+      "currentServerHashesMatch": true,
+      "loadFixtureHashMatches": true
+    },
+    "load-50-v2-priority.json": {
+      "passed": true,
+      "adapterVersion": "escrow-v2",
+      "v2BranchExercised": true,
+      "currentServerHashesMatch": true,
+      "loadFixtureHashMatches": true
+    }
+  }
+}
