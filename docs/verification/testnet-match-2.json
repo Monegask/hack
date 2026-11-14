@@ -1,0 +1,97 @@
+{
+  "checkedAt": "2026-11-14T15:22:54.693Z",
+  "network": "testnet",
+  "rpc": "https://test.rpc.fastnear.com",
+  "escrow": "dev-20261105124711-29870979355191.testnet",
+  "token": "dev-20261105124714-71962479239708.testnet",
+  "account": {
+    "amount": "9995022721779686199999994",
+    "block_hash": "7A4hHSQVrsLanM5PumGLBPNMxFy5E7pbunRd6UWu9vdM",
+    "block_height": 277674870,
+    "code_hash": "AWkPGc7xMZtCm8ShbpWXFQWctsf2w1tYnvaBQCeCzYzz",
+    "locked": "0",
+    "storage_paid_at": 0,
+    "storage_usage": 462590
+  },
+  "config": {
+    "blockHeight": 277674869,
+    "blockHash": "7T9UWXhNq3DEBC3ioGoWgDonH4gbHzQPuPJogDakkoWV",
+    "value": {
+      "admin": "dev-20261105124658-14449107722704.testnet",
+      "pending_admin": null,
+      "server": "dev-20261105124701-22790623478956.testnet",
+      "token": "dev-20261105124714-71962479239708.testnet",
+      "fee_bps": 300,
+      "paused": false,
+      "last_heartbeat_ns": "1794669328622353510",
+      "state_version": 1
+    }
+  },
+  "accounting": {
+    "blockHeight": 277674870,
+    "blockHash": "7A4hHSQVrsLanM5PumGLBPNMxFy5E7pbunRd6UWu9vdM",
+    "value": {
+      "accepted": "70000000",
+      "locked": "0",
+      "owed": "0",
+      "paid": "70000000",
+      "in_flight": "0",
+      "live_matches": "0",
+      "stored_matches": "3"
+    }
+  },
+  "tokenMetadata": {
+    "blockHeight": 277674870,
+    "blockHash": "7A4hHSQVrsLanM5PumGLBPNMxFy5E7pbunRd6UWu9vdM",
+    "value": {
+      "spec": "ft-1.0.0",
+      "name": "Test USDC",
+      "symbol": "USDC",
+      "icon": null,
+      "reference": null,
+      "reference_hash": null,
+      "decimals": 6
+    }
+  },
+  "match": {
+    "blockHeight": 277674870,
+    "blockHash": "7A4hHSQVrsLanM5PumGLBPNMxFy5E7pbunRd6UWu9vdM",
+    "value": {
+      "id": "2",
+      "creator": "monegask.testnet",
+      "opponent": "widelibrary4002.testnet",
+      "stake": "5000000",
+      "revision": "0",
+      "fee_bps": 300,
+      "fee_receiver": "dev-20261105124658-14449107722704.testnet",
+      "created_at_ns": "1794668827706866335",
+      "deadline_ns": "1794669427706866335",
+      "joined_at_ns": "1794668857985177736",
+      "activity_confirmed": true,
+      "deposited": [
+        true,
+        true
+      ],
+      "ready_at_ns": "1794668912665157962",
+      "last_heartbeat_ns": "1794669328622353510",
+      "state": "Completed",
+      "winner": "widelibrary4002.testnet",
+      "cancel_requester": null,
+      "cancel_nonce": "0",
+      "payouts": [
+        {
+          "receiver": "widelibrary4002.testnet",
+          "amount": "9700000",
+          "state": "Paid",
+          "attempt": "1"
+        },
+        {
+          "receiver": "dev-20261105124658-14449107722704.testnet",
+          "amount": "300000",
+          "state": "Paid",
+          "attempt": "1"
+        }
+      ]
+    }
+  }
+}

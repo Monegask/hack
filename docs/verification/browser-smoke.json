@@ -1,0 +1,23 @@
+{
+  "checkedAt": "2026-11-14T15:35:52.478Z",
+  "errors": [],
+  "checks": [
+    "Local tutorial launches and returns to menu",
+    "Local bot launches and returns to menu",
+    "Isolated save sentinel preserved",
+    "Public Vercel → Play online → Railway matchmaking → Testnet Meteor selector; no login or transaction",
+    "Both rebuilt public files byte-match current Vercel production"
+  ],
+  "productionFiles": {
+    "index.html": {
+      "local": "c30302baeae8bb9465ecd9bc049f9b2926098989ce8b010893d130528cac2816",
+      "remote": "c30302baeae8bb9465ecd9bc049f9b2926098989ce8b010893d130528cac2816",
+      "equal": true
+    },
+    "playable-game.json": {
+      "local": "f9d449c1b0d0f317136658abb877ac0c5ceb6cd5c45e8a9487dedecc3c31f442",
+      "remote": "f9d449c1b0d0f317136658abb877ac0c5ceb6cd5c45e8a9487dedecc3c31f442",
+      "equal": true
+    }
+  }
+}

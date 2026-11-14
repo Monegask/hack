@@ -1,0 +1,114 @@
+{
+  "checkedAt": "2026-11-14T15:31:03.864Z",
+  "network": "testnet",
+  "transaction": "8s6v7dfg8YqQYVSR6tiZfYNmgAZW5ArWT3GeYH2G2rE6",
+  "finalExecutionStatus": "FINAL",
+  "status": {
+    "SuccessValue": ""
+  },
+  "receiver": "dev-20261105124711-29870979355191.testnet",
+  "actions": [
+    {
+      "FunctionCall": {
+        "args": "eyJtYXRjaF9pZCI6IjIiLCJ3aW5uZXIiOiJ3aWRlbGlicmFyeTQwMDIudGVzdG5ldCJ9",
+        "deposit": "0",
+        "gas": 250000000000000,
+        "method_name": "submit_result"
+      }
+    }
+  ],
+  "receipts": [
+    {
+      "id": "BQCa7CneWHUzka7Y54qbNxZF4hk5SvHNDHhv52kBGqxG",
+      "executor": "dev-20261105124711-29870979355191.testnet",
+      "status": {
+        "SuccessValue": ""
+      },
+      "logs": [
+        "EVENT_JSON:{\"standard\":\"near_pvp_escrow\",\"version\":\"1.0.0\",\"event\":\"result_recorded\",\"data\":[{\"match_id\":\"2\",\"winner\":\"widelibrary4002.testnet\",\"reason\":\"server_result\",\"payouts\":[{\"receiver\":\"widelibrary4002.testnet\",\"amount\":\"9700000\",\"state\":\"Ready\",\"attempt\":\"0\"},{\"receiver\":\"dev-20261105124658-14449107722704.testnet\",\"amount\":\"300000\",\"state\":\"Ready\",\"attempt\":\"0\"}]}]}",
+        "EVENT_JSON:{\"standard\":\"near_pvp_escrow\",\"version\":\"1.0.0\",\"event\":\"payout_dispatched\",\"data\":[{\"match_id\":\"2\",\"index\":0,\"attempt\":\"1\",\"receiver\":\"widelibrary4002.testnet\",\"amount\":\"9700000\"}]}",
+        "EVENT_JSON:{\"standard\":\"near_pvp_escrow\",\"version\":\"1.0.0\",\"event\":\"payout_dispatched\",\"data\":[{\"match_id\":\"2\",\"index\":1,\"attempt\":\"1\",\"receiver\":\"dev-20261105124658-14449107722704.testnet\",\"amount\":\"300000\"}]}"
+      ]
+    },
+    {
+      "id": "Hjkw79fSE62cAKuaBydWEdHmi587BUMgrjFbQvn3qJTu",
+      "executor": "dev-20261105124714-71962479239708.testnet",
+      "status": {
+        "SuccessValue": ""
+      },
+      "logs": [
+        "EVENT_JSON:{\"standard\":\"nep141\",\"version\":\"1.0.0\",\"event\":\"ft_transfer\",\"data\":[{\"old_owner_id\":\"dev-20261105124711-29870979355191.testnet\",\"new_owner_id\":\"widelibrary4002.testnet\",\"amount\":\"9700000\",\"memo\":\"escrow:2:0\"}]}"
+      ]
+    },
+    {
+      "id": "FNHUFopGdzZtXB4nYfSWk6Y2ojP9S8qryL9HzQ2Kzh59",
+      "executor": "dev-20261105124701-22790623478956.testnet",
+      "status": {
+        "SuccessValue": ""
+      },
+      "logs": []
+    },
+    {
+      "id": "75PBSCWESZxNTimiUn34NkMALkHxKfD3sN7Vsy6BzKeH",
+      "executor": "dev-20261105124711-29870979355191.testnet",
+      "status": {
+        "SuccessValue": "dHJ1ZQ=="
+      },
+      "logs": [
+        "EVENT_JSON:{\"standard\":\"near_pvp_escrow\",\"version\":\"1.0.0\",\"event\":\"payout_resolved\",\"data\":[{\"match_id\":\"2\",\"index\":0,\"attempt\":\"1\",\"success\":true,\"state\":\"SettlementPending\"}]}"
+      ]
+    },
+    {
+      "id": "D9orb7arioHJdQk1owiMt5DpnyNCfB16DHD5cSp9BgCd",
+      "executor": "dev-20261105124701-22790623478956.testnet",
+      "status": {
+        "SuccessValue": ""
+      },
+      "logs": []
+    },
+    {
+      "id": "4dYtSpc9nt5h8ZPQpparcjVPMNxJq4tf5YdDjHJKY3oJ",
+      "executor": "dev-20261105124714-71962479239708.testnet",
+      "status": {
+        "SuccessValue": ""
+      },
+      "logs": [
+        "EVENT_JSON:{\"standard\":\"nep141\",\"version\":\"1.0.0\",\"event\":\"ft_transfer\",\"data\":[{\"old_owner_id\":\"dev-20261105124711-29870979355191.testnet\",\"new_owner_id\":\"dev-20261105124658-14449107722704.testnet\",\"amount\":\"300000\",\"memo\":\"escrow:2:1\"}]}"
+      ]
+    },
+    {
+      "id": "9NMJxrFPbjbA4nXUwymNCgLf71EdxnSsNd2WMDb2j8qb",
+      "executor": "dev-20261105124701-22790623478956.testnet",
+      "status": {
+        "SuccessValue": ""
+      },
+      "logs": []
+    },
+    {
+      "id": "8g2FAc5xChxKvggasUiecWdtaGkgJjgA2eWcHRDrrY6S",
+      "executor": "dev-20261105124711-29870979355191.testnet",
+      "status": {
+        "SuccessValue": "dHJ1ZQ=="
+      },
+      "logs": [
+        "EVENT_JSON:{\"standard\":\"near_pvp_escrow\",\"version\":\"1.0.0\",\"event\":\"payout_resolved\",\"data\":[{\"match_id\":\"2\",\"index\":1,\"attempt\":\"1\",\"success\":true,\"state\":\"Completed\"}]}"
+      ]
+    },
+    {
+      "id": "2R73J1mQ7w4DgxvnGevjZmPvtgT9rhk3VQ3drYpJCGpH",
+      "executor": "dev-20261105124701-22790623478956.testnet",
+      "status": {
+        "SuccessValue": ""
+      },
+      "logs": []
+    },
+    {
+      "id": "Gs9JNxWuNd7MwRGHGTNbrQCYjHjsy75ng7hJSdnLmQRP",
+      "executor": "dev-20261105124701-22790623478956.testnet",
+      "status": {
+        "SuccessValue": ""
+      },
+      "logs": []
+    }
+  ]
+}
