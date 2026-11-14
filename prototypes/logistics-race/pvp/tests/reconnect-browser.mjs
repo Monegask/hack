@@ -12,6 +12,7 @@ const server=http.createServer((req,res)=>{
  if(req.url==='/api/auth/session')return send({account:'fixture.testnet',csrf:'fixture'});
  if(req.url==='/api/balance')return ++balanceCalls===1?send({error:'NEAR RPC is unavailable'},503):send({balance:'20000000',registered:true});
  if(req.url==='/api/matches')return send([]);
+ if(req.url.startsWith('/api/lobbies?'))return send({items:[],total:0,offset:0,limit:10,hasMore:false,serverNow:Date.now()});
  const files={'/':'index.html','/pvp/app.js':'app.js','/pvp/style.css':'style.css'},file=files[req.url];
  if(!file)return send({error:'Not found'},404);
  res.writeHead(200,{'Content-Type':file.endsWith('.js')?'text/javascript':file.endsWith('.css')?'text/css':'text/html'});fs.createReadStream(path.join(root,'public',file)).pipe(res);
