@@ -1,5 +1,6 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
+  "git": {"deploymentEnabled": {"feat/mainnet-integration": false, "release/mainnet-v1": false}},
   "framework": null,
   "installCommand": "npm ci --prefix prototypes/logistics-race/threejs-trial --include=dev",
   "buildCommand": "npm run build",

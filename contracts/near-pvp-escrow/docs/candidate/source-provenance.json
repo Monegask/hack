@@ -1,0 +1,275 @@
+{
+  "import_registry_date": "2026-11-05",
+  "checked_on": "2026-11-13",
+  "base_commit": "0e13688f559b0807b334c7e963b938d0107d0959",
+  "files": [
+    {
+      "path": ".gitignore",
+      "expected_sha256": "f193827a60e4cde5cca09ed2ae0b9a36e8b7f16f53b066495dc1c916a5b72b11",
+      "actual_sha256": "f193827a60e4cde5cca09ed2ae0b9a36e8b7f16f53b066495dc1c916a5b72b11"
+    },
+    {
+      "path": "API.md",
+      "expected_sha256": "8192b88ade4fa2c20ef54726f0a61b621aedea4c169c3554d7c5a073d3c53305",
+      "actual_sha256": "8192b88ade4fa2c20ef54726f0a61b621aedea4c169c3554d7c5a073d3c53305"
+    },
+    {
+      "path": "ARCHITECTURE.md",
+      "expected_sha256": "c4de78816bbb8749090ed866d9eb011ef62c4c8cf27849f6363f0e7b0e1e1e01",
+      "actual_sha256": "c4de78816bbb8749090ed866d9eb011ef62c4c8cf27849f6363f0e7b0e1e1e01"
+    },
+    {
+      "path": "Cargo.lock",
+      "expected_sha256": "e0211099c217ee9dccff9ddd3bd7b7c077736000dd9914bf7ef6121f14f0f107",
+      "actual_sha256": "e0211099c217ee9dccff9ddd3bd7b7c077736000dd9914bf7ef6121f14f0f107"
+    },
+    {
+      "path": "Cargo.toml",
+      "expected_sha256": "cf8099a2a97c6f6bb5847e70bbd408e80c533f9be1f7df71debbae154a0b2e0a",
+      "actual_sha256": "cf8099a2a97c6f6bb5847e70bbd408e80c533f9be1f7df71debbae154a0b2e0a"
+    },
+    {
+      "path": "DEPLOYMENT.md",
+      "expected_sha256": "98c4434bad773a2bea322bf6d839122671e805a851b3c4f0f44fe752f56783f0",
+      "actual_sha256": "98c4434bad773a2bea322bf6d839122671e805a851b3c4f0f44fe752f56783f0"
+    },
+    {
+      "path": "INTEGRATION.md",
+      "expected_sha256": "36c6b94fa5c4262300607a550fe3755cf09db2299afbff2ca88b178582544dca",
+      "actual_sha256": "36c6b94fa5c4262300607a550fe3755cf09db2299afbff2ca88b178582544dca"
+    },
+    {
+      "path": "LICENSE",
+      "expected_sha256": "845a51267ef094c3490f7b04e1fd50f6d96a328fc83c32e7645173f523b8b076",
+      "actual_sha256": "845a51267ef094c3490f7b04e1fd50f6d96a328fc83c32e7645173f523b8b076"
+    },
+    {
+      "path": "package-lock.json",
+      "expected_sha256": "69a12babaa5fe725e54d1494f04e874fc92f63737650c41cd70cfd0e913619fd",
+      "actual_sha256": "69a12babaa5fe725e54d1494f04e874fc92f63737650c41cd70cfd0e913619fd"
+    },
+    {
+      "path": "package.json",
+      "expected_sha256": "635de439ed97c68078feffd92c6a9460b1c534c9f29c4aa728bd11c63e5723c9",
+      "actual_sha256": "635de439ed97c68078feffd92c6a9460b1c534c9f29c4aa728bd11c63e5723c9"
+    },
+    {
+      "path": "README.md",
+      "expected_sha256": "fd4f8edd6393fca817e14e2492cca562ee1bccdd5b46c0ec9b56b349bb6dd924",
+      "actual_sha256": "fd4f8edd6393fca817e14e2492cca562ee1bccdd5b46c0ec9b56b349bb6dd924"
+    },
+    {
+      "path": "rust-toolchain.toml",
+      "expected_sha256": "d82a246a2cbb31cada83e4158cf7c37a488580db4d31d8a42a813d888613d38f",
+      "actual_sha256": "d82a246a2cbb31cada83e4158cf7c37a488580db4d31d8a42a813d888613d38f"
+    },
+    {
+      "path": "SECURITY.md",
+      "expected_sha256": "bd39d990e4000444fc7343d95a45ec97a810ec9830ef9341d0601c18af41584e",
+      "actual_sha256": "bd39d990e4000444fc7343d95a45ec97a810ec9830ef9341d0601c18af41584e"
+    },
+    {
+      "path": "TESTING.md",
+      "expected_sha256": "c36057c53782e6e167091403fa429c89fa47299026a589bab648ad5da425dbc4",
+      "actual_sha256": "c36057c53782e6e167091403fa429c89fa47299026a589bab648ad5da425dbc4"
+    },
+    {
+      "path": "tsconfig.json",
+      "expected_sha256": "26da0ce0a30e9f49e76c88dbdc88761e546296bf22c2d6b730a4ad4a979a7597",
+      "actual_sha256": "26da0ce0a30e9f49e76c88dbdc88761e546296bf22c2d6b730a4ad4a979a7597"
+    },
+    {
+      "path": ".github/workflows/ci.yml",
+      "expected_sha256": "9d83097e1e2d7bad0bdf563848fb729d15b310279bdc13cfbf75a7e4b3081cba",
+      "actual_sha256": "9d83097e1e2d7bad0bdf563848fb729d15b310279bdc13cfbf75a7e4b3081cba"
+    },
+    {
+      "path": "artifacts/near_pvp_escrow.wasm",
+      "expected_sha256": "8d581487374ce5f59935deb3710c952cfdda07ef9f9c9a8cd366716fb8f74d77",
+      "actual_sha256": "8d581487374ce5f59935deb3710c952cfdda07ef9f9c9a8cd366716fb8f74d77"
+    },
+    {
+      "path": "artifacts/SHA256SUMS.json",
+      "expected_sha256": "e32a8b6a4181719ee0aa8bfe456cd6bf25ede877e64f381db7faff299de9947f",
+      "actual_sha256": "e32a8b6a4181719ee0aa8bfe456cd6bf25ede877e64f381db7faff299de9947f"
+    },
+    {
+      "path": "artifacts/test_usdc.wasm",
+      "expected_sha256": "078655fa73254a5f7af248bc7e2e2289644119ce4c919a52075e3bef0490df86",
+      "actual_sha256": "078655fa73254a5f7af248bc7e2e2289644119ce4c919a52075e3bef0490df86"
+    },
+    {
+      "path": "contract/Cargo.toml",
+      "expected_sha256": "ebc5f2b51323e3a8b761a8da670f2159ed0e91384d474aa43d983976ed9402de",
+      "actual_sha256": "ebc5f2b51323e3a8b761a8da670f2159ed0e91384d474aa43d983976ed9402de"
+    },
+    {
+      "path": "contract/src/admin.rs",
+      "expected_sha256": "f29c557c105d2856b3f61a1df8be48b6f6a9b3a1f52c087ae763da43b11810c0",
+      "actual_sha256": "f29c557c105d2856b3f61a1df8be48b6f6a9b3a1f52c087ae763da43b11810c0"
+    },
+    {
+      "path": "contract/src/deposits.rs",
+      "expected_sha256": "bb705324ab6dc7039552b998cd27ab93115b082b022ae10b964337082dc39555",
+      "actual_sha256": "bb705324ab6dc7039552b998cd27ab93115b082b022ae10b964337082dc39555"
+    },
+    {
+      "path": "contract/src/events.rs",
+      "expected_sha256": "4252dec8b8ddce8feb1afd6b7b1f2762cfc5c4033c497d6463a7304eef4cd6e1",
+      "actual_sha256": "4252dec8b8ddce8feb1afd6b7b1f2762cfc5c4033c497d6463a7304eef4cd6e1"
+    },
+    {
+      "path": "contract/src/lib.rs",
+      "expected_sha256": "2245be0a8959c6fb218adce819d7c5896aa84650554027be91761f33f8fa5f1c",
+      "actual_sha256": "2245be0a8959c6fb218adce819d7c5896aa84650554027be91761f33f8fa5f1c"
+    },
+    {
+      "path": "contract/src/matches.rs",
+      "expected_sha256": "f599a9a4ed804760bc51530e7eb0bdebe6d9b583ce7b82dda066596fcec07ea6",
+      "actual_sha256": "f599a9a4ed804760bc51530e7eb0bdebe6d9b583ce7b82dda066596fcec07ea6"
+    },
+    {
+      "path": "contract/src/models.rs",
+      "expected_sha256": "8af821750053861a6681b7beaea15d8c65f163387106e77deb692069e295994b",
+      "actual_sha256": "8af821750053861a6681b7beaea15d8c65f163387106e77deb692069e295994b"
+    },
+    {
+      "path": "contract/src/settlement.rs",
+      "expected_sha256": "da227112de5e112db452a7324982afd36b8edd62ee5100d9458bc3a47e4c9f34",
+      "actual_sha256": "da227112de5e112db452a7324982afd36b8edd62ee5100d9458bc3a47e4c9f34"
+    },
+    {
+      "path": "contract/src/tests.rs",
+      "expected_sha256": "ee8e7665937a05d244914c27f75ddca02c37a0063940827c5230424cf4dc48c5",
+      "actual_sha256": "ee8e7665937a05d244914c27f75ddca02c37a0063940827c5230424cf4dc48c5"
+    },
+    {
+      "path": "docs/DESIGN.md",
+      "expected_sha256": "575fa49d456374e7719edfe263b4bc8f740e49baf5a0375c7a6a1c41ca6c075d",
+      "actual_sha256": "575fa49d456374e7719edfe263b4bc8f740e49baf5a0375c7a6a1c41ca6c075d"
+    },
+    {
+      "path": "docs/REQUIREMENTS.md",
+      "expected_sha256": "da993390b89fea0e0b5ec9ff3540667c8f4130a0da4126740011b10e64e9095b",
+      "actual_sha256": "da993390b89fea0e0b5ec9ff3540667c8f4130a0da4126740011b10e64e9095b"
+    },
+    {
+      "path": "docs/reports/circle-testnet-preflight.json",
+      "expected_sha256": "a47b19323ee6188a2feb415e54208725fee05c4ef177899f317c59d4d044996f",
+      "actual_sha256": "a47b19323ee6188a2feb415e54208725fee05c4ef177899f317c59d4d044996f"
+    },
+    {
+      "path": "docs/reports/demo-ft-preflight.json",
+      "expected_sha256": "639a7c534646805c6ff21e858e9a37af5a06eeb0f98551fc6eee2fb37d7e58b6",
+      "actual_sha256": "639a7c534646805c6ff21e858e9a37af5a06eeb0f98551fc6eee2fb37d7e58b6"
+    },
+    {
+      "path": "docs/reports/local-checks.log",
+      "expected_sha256": "8748a7c53579dabb1168fe2fe83198153f30ed6633ec206c91040b68396c5891",
+      "actual_sha256": "8748a7c53579dabb1168fe2fe83198153f30ed6633ec206c91040b68396c5891"
+    },
+    {
+      "path": "docs/reports/testnet-demo.json",
+      "expected_sha256": "f7d737aab9c52bf271efdfcf6fd2856988c93d720208c1b8c99d517c24f2f95c",
+      "actual_sha256": "f7d737aab9c52bf271efdfcf6fd2856988c93d720208c1b8c99d517c24f2f95c"
+    },
+    {
+      "path": "docs/reports/testnet-state.json",
+      "expected_sha256": "bf19eee1483b94877c76ed75282d92f8f878478b1e6453e387782e0737108f08",
+      "actual_sha256": "bf19eee1483b94877c76ed75282d92f8f878478b1e6453e387782e0737108f08"
+    },
+    {
+      "path": "docs/reports/VALIDATION.md",
+      "expected_sha256": "f73d8fa29b2be1222432f19bdd5a8c3bd1b6a510abe4301204705ff731009250",
+      "actual_sha256": "f73d8fa29b2be1222432f19bdd5a8c3bd1b6a510abe4301204705ff731009250"
+    },
+    {
+      "path": "docs/reports/wasm-sha256.json",
+      "expected_sha256": "e32a8b6a4181719ee0aa8bfe456cd6bf25ede877e64f381db7faff299de9947f",
+      "actual_sha256": "e32a8b6a4181719ee0aa8bfe456cd6bf25ede877e64f381db7faff299de9947f"
+    },
+    {
+      "path": "examples/client.test.ts",
+      "expected_sha256": "c53795943fc52a96ec50e1f378df035f48c2602d36fccde18031ae9cac2dc8f2",
+      "actual_sha256": "c53795943fc52a96ec50e1f378df035f48c2602d36fccde18031ae9cac2dc8f2"
+    },
+    {
+      "path": "examples/client.ts",
+      "expected_sha256": "84a6b4d870c347824f597a41cae092913939339dfa01b73597b4d0525dca2260",
+      "actual_sha256": "84a6b4d870c347824f597a41cae092913939339dfa01b73597b4d0525dca2260"
+    },
+    {
+      "path": "examples/full-flow.ts",
+      "expected_sha256": "bd81f9cb93879a650993573b38aa35679e8c1b8ac8348ff49d02c1255cef5891",
+      "actual_sha256": "bd81f9cb93879a650993573b38aa35679e8c1b8ac8348ff49d02c1255cef5891"
+    },
+    {
+      "path": "examples/testnet-config.json",
+      "expected_sha256": "63739e5fc067eb51513bc3cec7d7430c701e6cae5977c452c3128087517e7997",
+      "actual_sha256": "63739e5fc067eb51513bc3cec7d7430c701e6cae5977c452c3128087517e7997"
+    },
+    {
+      "path": "scripts/build.sh",
+      "expected_sha256": "1c275fd73512725b5a47425d486522a9a6d82acf8c7ee7251210d31ce8795f00",
+      "actual_sha256": "1c275fd73512725b5a47425d486522a9a6d82acf8c7ee7251210d31ce8795f00"
+    },
+    {
+      "path": "scripts/check.sh",
+      "expected_sha256": "04b3579602242458bbe1e040c98a34d75b69b5c31fbec5f9b148da37d4319f5b",
+      "actual_sha256": "04b3579602242458bbe1e040c98a34d75b69b5c31fbec5f9b148da37d4319f5b"
+    },
+    {
+      "path": "scripts/deploy-testnet.sh",
+      "expected_sha256": "bee65fd628b15ae3dda8d4b93b902bc47968375ca05d84777be2566d238b9bd8",
+      "actual_sha256": "bee65fd628b15ae3dda8d4b93b902bc47968375ca05d84777be2566d238b9bd8"
+    },
+    {
+      "path": "scripts/package.py",
+      "expected_sha256": "fb31c1d6c8c25ddaeaa83bd672677adc2337cd4e82abf8ec0fc25cb4743b4009",
+      "actual_sha256": "fb31c1d6c8c25ddaeaa83bd672677adc2337cd4e82abf8ec0fc25cb4743b4009"
+    },
+    {
+      "path": "scripts/preflight.py",
+      "expected_sha256": "fc428d80f2009748bf07c8ba6b3f689ba57ffb238c1d25ff29452ee318b040c5",
+      "actual_sha256": "fc428d80f2009748bf07c8ba6b3f689ba57ffb238c1d25ff29452ee318b040c5"
+    },
+    {
+      "path": "tests/mock-ft/Cargo.toml",
+      "expected_sha256": "a104b4fbe6a11637e70ce780ea5ec9c2a3f2088700a65edb28a32b06247c6a6d",
+      "actual_sha256": "a104b4fbe6a11637e70ce780ea5ec9c2a3f2088700a65edb28a32b06247c6a6d"
+    },
+    {
+      "path": "tests/mock-ft/src/lib.rs",
+      "expected_sha256": "8ccfd5d66c7b467d8b3733c57176a1aaccc6dfeb97d9f1bd38b91d51096c9fca",
+      "actual_sha256": "8ccfd5d66c7b467d8b3733c57176a1aaccc6dfeb97d9f1bd38b91d51096c9fca"
+    },
+    {
+      "path": "tests/sandbox/Cargo.lock",
+      "expected_sha256": "35d73e1db687ba4dc3a36f7119cba37def7ad92ee337cc7adfd8acdb54068298",
+      "actual_sha256": "35d73e1db687ba4dc3a36f7119cba37def7ad92ee337cc7adfd8acdb54068298"
+    },
+    {
+      "path": "tests/sandbox/Cargo.toml",
+      "expected_sha256": "80f8989231e9e21dd299a0328ef497fb162cd5229cdb4eae0f816ed4b7651785",
+      "actual_sha256": "80f8989231e9e21dd299a0328ef497fb162cd5229cdb4eae0f816ed4b7651785"
+    },
+    {
+      "path": "tests/sandbox/src/lib.rs",
+      "expected_sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+      "actual_sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b"
+    },
+    {
+      "path": "tests/sandbox/src/bin/testnet.rs",
+      "expected_sha256": "2c08a0ca4f8a34e35ba8aaa8c229014363385684444b9de146f47c6156ccc994",
+      "actual_sha256": "2c08a0ca4f8a34e35ba8aaa8c229014363385684444b9de146f47c6156ccc994"
+    },
+    {
+      "path": "tests/sandbox/tests/receipts.rs",
+      "expected_sha256": "61811f81421ed82460ca3c8782dbd14ddcede7a5bfc532e3108bd74ef76e5e13",
+      "actual_sha256": "61811f81421ed82460ca3c8782dbd14ddcede7a5bfc532e3108bd74ef76e5e13"
+    }
+  ],
+  "all_import_hashes_match": true,
+  "tracked_testnet_wasm_sha256": "8d581487374ce5f59935deb3710c952cfdda07ef9f9c9a8cd366716fb8f74d77",
+  "note": "Import identity is not independent proof of source-to-deployed-WASM reproducibility. Candidate is modified source, separate artifact; never replace tracked Testnet WASM."
+}

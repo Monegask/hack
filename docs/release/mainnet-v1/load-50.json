@@ -1,0 +1,83 @@
+{
+  "timestamp": "2026-11-13T19:30:30.379Z",
+  "label": "candidate",
+  "host": {
+    "platform": "win32",
+    "node": "v26.13.0",
+    "cpu": "Intel(R) Core(TM) i7-8700K CPU @ 3.70GHz",
+    "logicalCpus": 12,
+    "totalMemory": 34295083008
+  },
+  "settings": {
+    "matches": "50",
+    "seconds": "300",
+    "reconnect": "true",
+    "out": "docs/release/mainnet-v1/load-50.json"
+  },
+  "results": [
+    {
+      "matches": 50,
+      "players": 100,
+      "duration": 300,
+      "requests": 144726,
+      "bytes": 127005753,
+      "bytesPerSecond": 423352.51,
+      "errors": {},
+      "errorSamples": [],
+      "apiP95Ms": 31.12960000000021,
+      "apiMaxMs": 64.91289999999572,
+      "commandP95Ms": 41.12880000000587,
+      "commands": 14500,
+      "duplicates": 14500,
+      "unchanged": 0,
+      "reconnections": 100,
+      "setupP95Ms": 4250.6976,
+      "sourceSha256": {
+        "service.mjs": "e29ad8cd239405ae4e81ffba5bf4422639b240ccf0aa2fc01d5cc9e9b401a69c",
+        "store.mjs": "166809319bb1d331bbf15951ab92b629f42f3750f0637c8d5e6293eb8978f588",
+        "game.mjs": "284eca64653b47d79b514c91cf753ffe3b54853faedab0bd4c8c76260ad94b8e",
+        "http.mjs": "1e49237cb19be1ab5e1c5939e83e36008dc451b66c26a6bc53236280fa1415e6",
+        "chain.mjs": "eb0ffef69b2ae1eaf959c1031ebb6010efc3bcf5096441cc2dd7c1c98204e416",
+        "engine": "1b40dd0bf5f1f7bbf058c7bd42410b4da7cf03d45584c7e49af5677a0ce6e631"
+      },
+      "setupRpc": {
+        "reads": 350,
+        "writes": 250,
+        "maxInFlight": 50,
+        "inFlight": 0
+      },
+      "elapsedMs": 300200.2979,
+      "cpuMs": 48468,
+      "peakRss": 207806464,
+      "heap": 46340064,
+      "eventLoopP95Ms": 22.986751,
+      "eventLoopMaxMs": 52.756479,
+      "rpc": {
+        "reads": 14900,
+        "writes": 20,
+        "maxInFlight": 4,
+        "inFlight": 0
+      },
+      "syncCycles": 149,
+      "simulationLagMs": 100.29790000023786,
+      "sqliteMetrics": {
+        "writes": 30500,
+        "serializedBytes": 144548446,
+        "writeMs": 1848.018099998649,
+        "transactions": 1422,
+        "commitMs": 1649.1892999998454
+      },
+      "simulationMetrics": {
+        "backlogMs": 51.35131835935841,
+        "maxBacklogMs": 99.97534179687185,
+        "maxPumpDelayMs": 29.360595703125,
+        "pumps": 2783
+      },
+      "databaseBytes": 5701632,
+      "tickP95Ms": 0.598599999997532,
+      "checkpointP95Ms": 12.800000000017462,
+      "commandCountMatches": true,
+      "passed": true
+    }
+  ]
+}

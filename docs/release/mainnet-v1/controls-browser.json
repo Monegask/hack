@@ -1,0 +1,73 @@
+{
+  "chain": "fixture",
+  "checks": [
+    "Side 0: choose truck 2 only, truck card survives snapshots, recall through real UI",
+    "Side 1: choose truck 2 only, truck card survives snapshots, recall through real UI",
+    "Side 0: recalled truck returns, then accepts a different job through UI",
+    "Side 1: recalled truck returns, then accepts a different job through UI"
+  ],
+  "metrics": [
+    {
+      "side": 0,
+      "afterAssignment": {
+        "mode": "site",
+        "pending": {
+          "type": "haul",
+          "target": "iron",
+          "truck": null
+        },
+        "jobs": [
+          null,
+          null
+        ],
+        "sequence": 0
+      },
+      "serverSequence": 0
+    },
+    {
+      "side": 0,
+      "frames": 289,
+      "movingFraction": 0.9166666666666666,
+      "maxFreezeMs": 55.5,
+      "maxStep": 0.050757149861726525,
+      "renderer": {
+        "calls": 228,
+        "triangles": 927750,
+        "geometries": 212,
+        "textures": 14
+      }
+    },
+    {
+      "side": 1,
+      "afterAssignment": {
+        "mode": "site",
+        "pending": {
+          "type": "haul",
+          "target": "iron",
+          "truck": null
+        },
+        "jobs": [
+          null,
+          null
+        ],
+        "sequence": 0
+      },
+      "serverSequence": 0
+    },
+    {
+      "side": 1,
+      "frames": 289,
+      "movingFraction": 0.9201388888888888,
+      "maxFreezeMs": 62.5,
+      "maxStep": 0.05896032559830511,
+      "renderer": {
+        "calls": 228,
+        "triangles": 927750,
+        "geometries": 212,
+        "textures": 14
+      }
+    }
+  ],
+  "errors": [],
+  "passed": true
+}

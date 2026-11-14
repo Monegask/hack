@@ -1,0 +1,207 @@
+--- a/contract/Cargo.toml
++++ b/contract/Cargo.toml
+@@ -8,6 +8,10 @@
+ [lib]
+ crate-type = ["cdylib", "rlib"]
+ 
++[features]
++# NEVER enable this in a production artifact. Allows the Sandbox mock FT only.
++sandbox = []
++
+ [dependencies]
+ near-sdk = { workspace = true, features = ["legacy"] }
+ borsh.workspace = true
+--- a/contract/src/admin.rs
++++ b/contract/src/admin.rs
+@@ -9,14 +9,52 @@
+     }
+     pub fn unpause(&mut self) {
+         self.assert_admin();
++        require!(
++            !self.cfg.server_frozen,
++            "Replace frozen server after draining"
++        );
+         self.cfg.paused = false;
+         emit("unpaused", json!({}));
+     }
+     pub fn set_fee(&mut self, fee_bps: u16) {
+         self.assert_admin();
+-        require!(fee_bps <= 10_000, "Fee exceeds 100%");
+-        self.cfg.fee_bps = fee_bps;
+-        emit("fee_changed", json!({"fee_bps": fee_bps}));
++        require!(fee_bps <= MAX_FEE_BPS, "Fee exceeds safety cap");
++        let at = env::block_timestamp()
++            .checked_add(FEE_DELAY_NS)
++            .expect("Time overflow");
++        self.cfg.pending_fee = Some(PendingFee {
++            fee_bps,
++            activate_at_ns: U64(at),
++        });
++        emit(
++            "fee_scheduled",
++            json!({"fee_bps": fee_bps, "activate_at_ns": U64(at)}),
++        );
++    }
++
++    pub fn apply_fee(&mut self) {
++        let pending = self.cfg.pending_fee.clone().expect("No pending fee");
++        require!(
++            env::block_timestamp() >= pending.activate_at_ns.0,
++            "Fee timelock"
++        );
++        self.cfg.fee_bps = pending.fee_bps;
++        self.cfg.pending_fee = None;
++        emit("fee_changed", json!({"fee_bps": self.cfg.fee_bps}));
++    }
++
++    pub fn cancel_fee_change(&mut self) {
++        self.assert_admin();
++        self.cfg.pending_fee = None;
++        emit("fee_schedule_cancelled", json!({}));
++    }
++
++    /// Stops a compromised runtime account immediately; never redirects USDC.
++    pub fn freeze_server(&mut self) {
++        self.assert_admin();
++        self.cfg.server_frozen = true;
++        self.cfg.paused = true;
++        emit("server_frozen", json!({}));
+     }
+     pub fn propose_admin(&mut self, admin: AccountId) {
+         self.assert_admin();
+@@ -48,6 +86,7 @@
+             "Invalid server"
+         );
+         self.cfg.server = server;
++        self.cfg.server_frozen = false;
+         self.cfg.last_heartbeat_ns = U64(env::block_timestamp());
+         emit("server_changed", json!({"server": self.cfg.server}));
+     }
+@@ -89,7 +128,7 @@
+         );
+         let state: Self = env::state_read().expect("Missing state");
+         require!(
+-            state.cfg.state_version == 1 && state.can_upgrade(),
++            state.cfg.state_version == 2 && state.can_upgrade(),
+             "Invalid migration state"
+         );
+         state
+--- a/contract/src/lib.rs
++++ b/contract/src/lib.rs
+@@ -23,6 +23,10 @@
+ pub const COUNTDOWN_NS: u64 = 3 * SECOND;
+ pub const HEARTBEAT_NS: u64 = 1800 * SECOND;
+ pub const MIN_STAKE: u128 = 1_000_000;
++pub const CIRCLE_USDC: &str = "17208628f84f5d6ad33f0da3bbbeb27ffcb398eac501a31bd6ad2011e36133a1";
++pub const MAX_FEE_BPS: u16 = 500;
++pub const FEE_DELAY_NS: u64 = 48 * 3600 * SECOND;
++pub const MAX_GAME_NS: u64 = 6 * 3600 * SECOND;
+ const MAX_STORED: u64 = 10_000;
+ const STORAGE_MARGIN: u128 = 4096;
+ const OPERATING_RESERVE: u128 = 10_000_000_000_000_000_000_000; // 0.01 NEAR
+@@ -47,6 +51,14 @@
+ impl Contract {
+     #[init]
+     pub fn new(admin: AccountId, server: AccountId, token: AccountId) -> Self {
++        #[cfg(not(any(test, feature = "sandbox")))]
++        {
++            require!(token.as_str() == CIRCLE_USDC, "Circle native USDC only");
++            require!(
++                env::predecessor_account_id() == env::current_account_id(),
++                "Self initialization only"
++            );
++        }
+         require!(
+             admin != server
+                 && admin != env::current_account_id()
+@@ -64,9 +76,11 @@
+                 server,
+                 token,
+                 fee_bps: 300,
+-                paused: false,
++                paused: !cfg!(any(test, feature = "sandbox")),
++                server_frozen: false,
++                pending_fee: None,
+                 last_heartbeat_ns: U64(env::block_timestamp()),
+-                state_version: 1,
++                state_version: 2,
+             },
+             matches: LookupMap::new(b"m"),
+             active: LookupMap::new(b"a"),
+@@ -134,6 +148,7 @@
+ 
+ impl Contract {
+     fn assert_server(&self) {
++        require!(!self.cfg.server_frozen, "Server frozen");
+         require!(
+             env::predecessor_account_id() == self.cfg.server,
+             "Server only"
+--- a/contract/src/matches.rs
++++ b/contract/src/matches.rs
+@@ -37,6 +37,7 @@
+             deposited: [false; 2],
+             ready_at_ns: None,
+             last_heartbeat_ns: None,
++            game_deadline_ns: None,
+             state: MatchState::LobbyOpen,
+             winner: None,
+             cancel_requester: None,
+@@ -144,6 +145,7 @@
+         );
+         m.state = MatchState::InProgress;
+         m.last_heartbeat_ns = Some(U64(now));
++        m.game_deadline_ns = Some(U64(now.checked_add(MAX_GAME_NS).expect("Time overflow")));
+         self.save(&m);
+         emit(
+             "match_started",
+@@ -262,7 +264,8 @@
+         let m = self.load(match_id.0);
+         self.assert_player(&m);
+         require!(
+-            m.state == MatchState::InProgress && m.stale(env::block_timestamp()),
++            m.state == MatchState::InProgress
++                && (self.cfg.server_frozen || m.stale(env::block_timestamp())),
+             "Emergency refund unavailable"
+         );
+         self.refund(m, "heartbeat_timeout");
+--- a/contract/src/models.rs
++++ b/contract/src/models.rs
+@@ -65,6 +65,7 @@
+     pub deposited: [bool; 2],
+     pub ready_at_ns: Option<U64>,
+     pub last_heartbeat_ns: Option<U64>,
++    pub game_deadline_ns: Option<U64>,
+     pub state: MatchState,
+     pub winner: Option<AccountId>,
+     pub cancel_requester: Option<AccountId>,
+@@ -97,8 +98,10 @@
+                     .is_some_and(|t| now >= t.0.saturating_add(crate::IDLE_NS)))
+     }
+     pub fn stale(&self, now: u64) -> bool {
+-        self.last_heartbeat_ns
+-            .is_some_and(|t| now >= t.0.saturating_add(crate::HEARTBEAT_NS))
++        self.game_deadline_ns.is_some_and(|t| now >= t.0)
++            || self
++                .last_heartbeat_ns
++                .is_some_and(|t| now >= t.0.saturating_add(crate::HEARTBEAT_NS))
+     }
+     pub fn all_paid(&self) -> bool {
+         self.payouts.iter().all(|p| p.state == PayoutState::Paid)
+@@ -114,8 +117,17 @@
+     pub token: AccountId,
+     pub fee_bps: u16,
+     pub paused: bool,
++    pub server_frozen: bool,
++    pub pending_fee: Option<PendingFee>,
+     pub last_heartbeat_ns: U64,
+     pub state_version: u32,
++}
++
++#[near(serializers = [borsh, json])]
++#[derive(Clone)]
++pub struct PendingFee {
++    pub fee_bps: u16,
++    pub activate_at_ns: U64,
+ }
+ 
+ #[near(serializers = [json])]

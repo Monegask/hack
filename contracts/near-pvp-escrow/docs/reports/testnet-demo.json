@@ -1,0 +1,119 @@
+{
+  "admin": "dev-20261105124658-14449107722704.testnet",
+  "alice": "dev-20261105124704-41684631579002.testnet",
+  "balances": {
+    "dev-20261105124658-14449107722704.testnet": "1500000",
+    "dev-20261105124704-41684631579002.testnet": "48500000",
+    "dev-20261105124708-29694703510030.testnet": "0",
+    "dev-20261105124711-29870979355191.testnet": "0"
+  },
+  "bob": "dev-20261105124708-29694703510030.testnet",
+  "escrow": "dev-20261105124711-29870979355191.testnet",
+  "match": {
+    "activity_confirmed": true,
+    "cancel_nonce": "0",
+    "cancel_requester": null,
+    "created_at_ns": "1793883227507493430",
+    "creator": "dev-20261105124704-41684631579002.testnet",
+    "deadline_ns": "1793883827507493430",
+    "deposited": [
+      true,
+      true
+    ],
+    "fee_bps": 300,
+    "fee_receiver": "dev-20261105124658-14449107722704.testnet",
+    "id": "0",
+    "joined_at_ns": "1793883235747575919",
+    "last_heartbeat_ns": "1793883285731842836",
+    "opponent": "dev-20261105124708-29694703510030.testnet",
+    "payouts": [
+      {
+        "amount": "48500000",
+        "attempt": "1",
+        "receiver": "dev-20261105124704-41684631579002.testnet",
+        "state": "Paid"
+      },
+      {
+        "amount": "1500000",
+        "attempt": "1",
+        "receiver": "dev-20261105124658-14449107722704.testnet",
+        "state": "Paid"
+      }
+    ],
+    "ready_at_ns": "1793883262082577264",
+    "revision": "1",
+    "stake": "25000000",
+    "state": "Completed",
+    "winner": "dev-20261105124704-41684631579002.testnet"
+  },
+  "network": "testnet",
+  "server": "dev-20261105124701-22790623478956.testnet",
+  "token": "dev-20261105124714-71962479239708.testnet",
+  "token_kind": "project-owned test-only NEP-141 mock, not Circle USDC",
+  "transactions": [
+    {
+      "logs": [
+        "EVENT_JSON:{\"standard\":\"near_pvp_escrow\",\"version\":\"1.0.0\",\"event\":\"lobby_created\",\"data\":[{\"match\":{\"id\":\"0\",\"creator\":\"dev-20261105124704-41684631579002.testnet\",\"opponent\":null,\"stake\":\"10000000\",\"revision\":\"0\",\"fee_bps\":300,\"fee_receiver\":\"dev-20261105124658-14449107722704.testnet\",\"created_at_ns\":\"1793883227507493430\",\"deadline_ns\":\"1793883827507493430\",\"joined_at_ns\":null,\"activity_confirmed\":false,\"deposited\":[false,false],\"ready_at_ns\":null,\"last_heartbeat_ns\":null,\"state\":\"LobbyOpen\",\"winner\":null,\"cancel_requester\":null,\"cancel_nonce\":\"0\",\"payouts\":[{\"receiver\":\"dev-20261105124704-41684631579002.testnet\",\"amount\":\"0\",\"state\":\"Paid\",\"attempt\":\"0\"},{\"receiver\":\"dev-20261105124658-14449107722704.testnet\",\"amount\":\"0\",\"state\":\"Paid\",\"attempt\":\"0\"}]}}]}"
+      ],
+      "method": "create_lobby",
+      "result": "0",
+      "tx_hash": "3ZPAYJH6JQ1bbkqcr7NjMz4h5A56ZhpmmrS7jntwgXCa"
+    },
+    {
+      "logs": [
+        "EVENT_JSON:{\"standard\":\"near_pvp_escrow\",\"version\":\"1.0.0\",\"event\":\"opponent_bound\",\"data\":[{\"match_id\":\"0\",\"opponent\":\"dev-20261105124708-29694703510030.testnet\",\"joined_at_ns\":\"1793883235747575919\"}]}"
+      ],
+      "method": "bind_opponent",
+      "result": null,
+      "tx_hash": "BuqTAa2pEzijwGXtNQpWRdBPyGYcrXa8p2yHhQ8tRvuo"
+    },
+    {
+      "logs": [
+        "EVENT_JSON:{\"standard\":\"near_pvp_escrow\",\"version\":\"1.0.0\",\"event\":\"stake_updated\",\"data\":[{\"match_id\":\"0\",\"revision\":\"1\",\"stake\":\"25000000\"}]}"
+      ],
+      "method": "update_stake",
+      "result": null,
+      "tx_hash": "LzzsD1AYbv8SEbH6yHxRTeHGfFf2S722dF9ZhWZHrnC"
+    },
+    {
+      "method": "ft_transfer_call",
+      "signer": "dev-20261105124704-41684631579002.testnet",
+      "tx_hash": "KMHxtiYsfaG9a6djL9SMfP7kgzfKPgPEwWZS3k49j6b"
+    },
+    {
+      "method": "ft_transfer_call",
+      "signer": "dev-20261105124708-29694703510030.testnet",
+      "tx_hash": "7xuRk8JxZGwutLC9PFzBfUxAXM1GVRTXZRnxqthSpSfi"
+    },
+    {
+      "logs": [
+        "EVENT_JSON:{\"standard\":\"near_pvp_escrow\",\"version\":\"1.0.0\",\"event\":\"heartbeat\",\"data\":[{\"at_ns\":\"1793883277284118357\",\"updated\":[]}]}"
+      ],
+      "method": "heartbeat",
+      "result": null,
+      "tx_hash": "961SaJ4yL1Rm5NanGQ65n4PJC3jV3LvKvyJmDhdCqEEu"
+    },
+    {
+      "logs": [
+        "EVENT_JSON:{\"standard\":\"near_pvp_escrow\",\"version\":\"1.0.0\",\"event\":\"match_started\",\"data\":[{\"match_id\":\"0\",\"started_at_ns\":\"1793883285731842836\"}]}"
+      ],
+      "method": "start_match",
+      "result": null,
+      "tx_hash": "EcVzqXCwqPTp5kvJNCnMTJgzWemUDL7KhoVPP2pyjTji"
+    },
+    {
+      "logs": [
+        "EVENT_JSON:{\"standard\":\"near_pvp_escrow\",\"version\":\"1.0.0\",\"event\":\"result_recorded\",\"data\":[{\"match_id\":\"0\",\"winner\":\"dev-20261105124704-41684631579002.testnet\",\"reason\":\"server_result\",\"payouts\":[{\"receiver\":\"dev-20261105124704-41684631579002.testnet\",\"amount\":\"48500000\",\"state\":\"Ready\",\"attempt\":\"0\"},{\"receiver\":\"dev-20261105124658-14449107722704.testnet\",\"amount\":\"1500000\",\"state\":\"Ready\",\"attempt\":\"0\"}]}]}",
+        "EVENT_JSON:{\"standard\":\"near_pvp_escrow\",\"version\":\"1.0.0\",\"event\":\"payout_dispatched\",\"data\":[{\"match_id\":\"0\",\"index\":0,\"attempt\":\"1\",\"receiver\":\"dev-20261105124704-41684631579002.testnet\",\"amount\":\"48500000\"}]}",
+        "EVENT_JSON:{\"standard\":\"near_pvp_escrow\",\"version\":\"1.0.0\",\"event\":\"payout_dispatched\",\"data\":[{\"match_id\":\"0\",\"index\":1,\"attempt\":\"1\",\"receiver\":\"dev-20261105124658-14449107722704.testnet\",\"amount\":\"1500000\"}]}",
+        "EVENT_JSON:{\"standard\":\"nep141\",\"version\":\"1.0.0\",\"event\":\"ft_transfer\",\"data\":[{\"old_owner_id\":\"dev-20261105124711-29870979355191.testnet\",\"new_owner_id\":\"dev-20261105124704-41684631579002.testnet\",\"amount\":\"48500000\",\"memo\":\"escrow:0:0\"}]}",
+        "EVENT_JSON:{\"standard\":\"near_pvp_escrow\",\"version\":\"1.0.0\",\"event\":\"payout_resolved\",\"data\":[{\"match_id\":\"0\",\"index\":0,\"attempt\":\"1\",\"success\":true,\"state\":\"SettlementPending\"}]}",
+        "EVENT_JSON:{\"standard\":\"nep141\",\"version\":\"1.0.0\",\"event\":\"ft_transfer\",\"data\":[{\"old_owner_id\":\"dev-20261105124711-29870979355191.testnet\",\"new_owner_id\":\"dev-20261105124658-14449107722704.testnet\",\"amount\":\"1500000\",\"memo\":\"escrow:0:1\"}]}",
+        "EVENT_JSON:{\"standard\":\"near_pvp_escrow\",\"version\":\"1.0.0\",\"event\":\"payout_resolved\",\"data\":[{\"match_id\":\"0\",\"index\":1,\"attempt\":\"1\",\"success\":true,\"state\":\"Completed\"}]}"
+      ],
+      "method": "submit_result",
+      "result": null,
+      "tx_hash": "2qQQHWLMmeLQZGHuwJpYJf1nejMcqeumbQZStSMtqFii"
+    }
+  ]
+}

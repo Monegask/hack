@@ -1,4 +1,9 @@
-# Supply Line · Testnet PvP
+# Supply Line · PvP
+
+## 14 ноября 2026 — интеграция escrow-v2, Mainnet по-прежнему выключен
+
+Testnet сохранён. Mainnet использует escrow-v2 adapter для preflight/финансового чтения, баланс и сетевую аутентификацию; все денежные операции и signer заблокированы. Фактический escrow-v2 API из PR #1 интегрирован отдельным адаптером; полного автоматического восстановления lost callback/unaccounted resolver средств контракт пока не предоставляет. См. [границы, env и проверки](MAINNET.md) и [нужные данные API](ESCROW_API_REQUIRED.md). [Финансовый Sandbox и итоговые проверки](VALIDATION-escrow-v2.md). Записи о deployment ниже — история Testnet, этот PR ничего не развёртывает.
+
 
 ## Публичный запуск · 12 ноября 2026
 
@@ -95,3 +100,28 @@ Deployment `9f0bf3c1-6667-4cee-a1bf-43a82d4809fc` SUCCESS, runtime `597b47e`. П
 ## 12 ноября — управление грузовиками и плавное представление
 
 Текущий runtime 7c3a519 исправляет непреднамеренные команды при preview доступности, сброс выбранной карточки и дискретные анимации. После deployment обновить страницу на обоих устройствах. Старые назначения сохраняются: открыть нужный truck → End route, дождаться возврата и назначить новую работу. Экономику/победу по-прежнему рассчитывает сервер; локальные визуальные копии служат только для 3D и ограничены при обрыве сети. Пройдены 22 backend/presentation теста, 169 игровых регрессий и две отдельные браузерные стороны: выбор только truck 2, отзыв/возврат/переназначение, кадровое движение, reload/tamper/mobile. Тесты не являются новой on-chain выплатой.
+
+
+## 13 November 2026 — public matchmaking (feature branch, not deployed)
+
+Public Lobbies, Create Lobby, My Matches and Private Invite retain the existing Testnet UI. Creation accepts `visibility: "public" | "private"`; omitted visibility and all older saved records are private. Visibility is immutable and part of the existing create idempotency terms. Invitations still work for both types.
+
+Authenticated `GET /api/lobbies` accepts `limit` (1–50, default 20), `offset` (0–1000000), `sort` (`created` or `stake`), `order` (`asc` or `desc`), `minStake` and `maxStake` (integer strings in the configured token's six-decimal atomic units, 0–100000000). Unknown, duplicate and invalid query fields are rejected. Response: `{items, total, offset, limit, hasMore, serverNow}`. Each item contains only `{id, creator, stake, created, state: "open"}`; `created` and `serverNow` are Unix milliseconds. No private records, seed, game snapshots, request IDs, deposits or transaction data are returned. Offset pages are live, not a frozen snapshot; a disappearing last page resets to page one in the UI.
+
+Discovery coalesces concurrent chain reads and checks current escrow terms/state/deadline together with GameService's current seat/phase. Failed reads hide candidates. It does not submit transactions or change match phases. `POST /api/lobbies/:id/join` uses the existing authenticated/CSRF-protected GameService join and additionally rejects private IDs. The invitation endpoint remains available to holders of a private code/link; private means unlisted, not an account allowlist. Join reads escrow again, then rechecks availability and the player's active match after awaiting RPC. The seat is reserved and saved synchronously before binding. Existing SQLite single-owner lease remains required; this is not a multi-process shared-database architecture.
+
+The browser refreshes discovery about every 6 seconds (5-second threshold on the existing 1.5-second timer), even while a match is selected, and after Join/create. Server responses exclude a reserved seat immediately; other browsers remove their stale row on the next refresh, and a stale Join cannot claim the seat. Manual refresh, sorting and pagination are available. USDC is explicitly the configured **test/mock** token; no Circle USDC or new financial integration is claimed.
+
+Validation on the feature branch: 27 backend tests (including five new integration/concurrency cases), 169 game regressions, offline build, PvP build, and `node tests/matchmaking-browser.mjs` passed. The browser scenario uses three isolated sessions and a mock chain: public creation, automatic list refresh, sorting, Join, occupied removal, private invitation and mobile overflow check. No live transaction, deployment, contract, fee/deposit/countdown change or Mainnet configuration change. Browser automation can save its screenshot using `MATCHMAKING_SCREENSHOT`.
+## Scalability candidate (13 November 2026)
+
+The `perf/pvp-scalability` branch adds grouped durable command commits, batched dirty
+checkpoints, fixed-step backlog tracking, bounded chain reconciliation, route caches,
+and compressed/conditional state polling. Menu polling uses `?view=metadata`.
+`MAX_ACTIVE_MATCHES` now accepts 1–200; its default remains 10. This is a configuration
+range, not a certified capacity. Do not raise a public deployment's limit based on
+local mock-chain results alone. Keep exactly one authoritative process per DATA_DIR.
+
+Reproduction, resource constraints and limitations: [load/README.md](load/README.md).
+Measurements and scaling decisions: [performance report](../../../docs/performance-2026-11-13.md).
+No contract, Mainnet deployment, production database or production cap was changed.

@@ -1,0 +1,194 @@
+[
+  {
+    "profile": "CPU.20261113.161647.24696.0.001.cpuprofile",
+    "scope": "50 matches, 15 seconds, four logical CPU affinity; profiling overhead included",
+    "topSelfSamples": [
+      {
+        "function": "(idle)",
+        "file": "",
+        "line": 0,
+        "ms": 10528.12
+      },
+      {
+        "function": "key",
+        "file": "engine.js",
+        "line": 10,
+        "ms": 1125.44
+      },
+      {
+        "function": "travelPoint",
+        "file": "engine.js",
+        "line": 64,
+        "ms": 667.09
+      },
+      {
+        "function": "put",
+        "file": "store.mjs",
+        "line": 24,
+        "ms": 383.39
+      },
+      {
+        "function": "assertLease",
+        "file": "store.mjs",
+        "line": 22,
+        "ms": 369.24
+      },
+      {
+        "function": "",
+        "file": "engine.js",
+        "line": 72,
+        "ms": 308.13
+      },
+      {
+        "function": "processChunkSync",
+        "file": "node:zlib",
+        "line": 436,
+        "ms": 302.12
+      },
+      {
+        "function": "(garbage collector)",
+        "file": "",
+        "line": 0,
+        "ms": 228.6
+      },
+      {
+        "function": "",
+        "file": "http.mjs",
+        "line": 12,
+        "ms": 170.56
+      },
+      {
+        "function": "get",
+        "file": "store.mjs",
+        "line": 23,
+        "ms": 157.03
+      },
+      {
+        "function": "writev",
+        "file": "",
+        "line": 0,
+        "ms": 116.67
+      },
+      {
+        "function": "structuredClone",
+        "file": "js_transferable",
+        "line": 101,
+        "ms": 87.97
+      },
+      {
+        "function": "travelStepAllowed",
+        "file": "engine.js",
+        "line": 89,
+        "ms": 87.24
+      },
+      {
+        "function": "(program)",
+        "file": "",
+        "line": 0,
+        "ms": 78.33
+      },
+      {
+        "function": "update",
+        "file": "hash",
+        "line": 179,
+        "ms": 70.32
+      }
+    ]
+  },
+  {
+    "profile": "CPU.20261113.161825.24532.0.001.cpuprofile",
+    "scope": "50 matches, 15 seconds, four logical CPU affinity; profiling overhead included",
+    "topSelfSamples": [
+      {
+        "function": "(idle)",
+        "file": "",
+        "line": 0,
+        "ms": 11305.93
+      },
+      {
+        "function": "travelPoint",
+        "file": "engine.js",
+        "line": 73,
+        "ms": 720.78
+      },
+      {
+        "function": "put",
+        "file": "store.mjs",
+        "line": 24,
+        "ms": 503.05
+      },
+      {
+        "function": "assertLease",
+        "file": "store.mjs",
+        "line": 22,
+        "ms": 386.91
+      },
+      {
+        "function": "processChunkSync",
+        "file": "node:zlib",
+        "line": 436,
+        "ms": 319.98
+      },
+      {
+        "function": "",
+        "file": "engine.js",
+        "line": 81,
+        "ms": 306.42
+      },
+      {
+        "function": "(garbage collector)",
+        "file": "",
+        "line": 0,
+        "ms": 261.58
+      },
+      {
+        "function": "",
+        "file": "http.mjs",
+        "line": 12,
+        "ms": 195.73
+      },
+      {
+        "function": "writev",
+        "file": "",
+        "line": 0,
+        "ms": 182.12
+      },
+      {
+        "function": "get",
+        "file": "store.mjs",
+        "line": 23,
+        "ms": 123.98
+      },
+      {
+        "function": "structuredClone",
+        "file": "js_transferable",
+        "line": 101,
+        "ms": 104.94
+      },
+      {
+        "function": "travelStepAllowed",
+        "file": "engine.js",
+        "line": 98,
+        "ms": 103.63
+      },
+      {
+        "function": "key",
+        "file": "engine.js",
+        "line": 10,
+        "ms": 90.07
+      },
+      {
+        "function": "transaction",
+        "file": "store.mjs",
+        "line": 27,
+        "ms": 86.46
+      },
+      {
+        "function": "(program)",
+        "file": "",
+        "line": 0,
+        "ms": 82.01
+      }
+    ]
+  }
+]

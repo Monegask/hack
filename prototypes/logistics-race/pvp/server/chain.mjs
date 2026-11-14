@@ -1,19 +1,24 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import {createHash} from 'node:crypto';
-import {Account,JsonRpcProvider,KeyPair,baseEncode} from 'near-api-js';
+import {Account,JsonRpcProvider,KeyPair,baseEncode,SignedTransaction} from 'near-api-js';
 import {verifyMessage} from 'near-api-js/nep413';
-import {root} from './config.mjs';
+import {EscrowV2Adapter,SERVER_METHODS,validateRuntimeAccess,assertAdmissionPolicy} from './adapters/escrow-v2.mjs';
+import {root,accountOnNetwork,requirePayments,CIRCLE_USDC} from './config.mjs';
 import {durableSend,PendingChain} from './durable.mjs';
 import {callRpc} from './rpc.mjs';
-const METHODS=['create_lobby','bind_opponent','update_stake','record_activity','start_match','submit_result','heartbeat'];
+const METHODS=SERVER_METHODS;
 export {PendingChain};
 export class Chain{
- constructor(cfg,store){this.cfg=cfg;this.store=store;this.provider=new JsonRpcProvider({url:cfg.rpc});this.tail=Promise.resolve();}
- rpc(method,params){return callRpc(this.cfg.rpc,method,params);}
- async view(account,method,args={}){const r=await this.rpc('query',{request_type:'call_function',account_id:account,method_name:method,args_base64:Buffer.from(JSON.stringify(args)).toString('base64'),finality:'final'});return JSON.parse(Buffer.from(r.result).toString());}
- match(id){return this.view(this.cfg.escrow,'get_match',{match_id:String(id)});}
+ constructor(cfg,store){this.cfg=cfg;this.store=store;this.provider=new JsonRpcProvider({url:cfg.rpc});this.tail=Promise.resolve();this.adapter=(cfg.network==='mainnet'||cfg.adapterVersion==='escrow-v2')?new EscrowV2Adapter(cfg):null;}
+ rpc(method,params){if(method==='send_tx')this.store.assertLease();return callRpc(this.cfg.rpc,method,params);}
+ async view(account,method,args={},blockId=null){const r=await this.rpc('query',{request_type:'call_function',account_id:account,method_name:method,args_base64:Buffer.from(JSON.stringify(args)).toString('base64'),...(blockId?{block_id:blockId}:{finality:'final'})});return JSON.parse(Buffer.from(r.result).toString());}
+ match(id){
+  this.matchReads??=new Map();id=String(id);if(this.matchReads.has(id))return this.matchReads.get(id);
+  const pending=this.view(this.cfg.escrow,'get_match',{match_id:id}).then(m=>this.adapter?this.adapter.match(m):m).finally(()=>this.matchReads.delete(id));this.matchReads.set(id,pending);return pending;
+ }
  async preflight({loadSigner=true}={}){
+  if(this.adapter)return this.v2Preflight();
   const [status,cfg,token,account]=await Promise.all([this.rpc('status',[]),this.view(this.cfg.escrow,'get_config'),this.view(this.cfg.token,'ft_metadata'),this.rpc('query',{request_type:'view_account',account_id:this.cfg.escrow,finality:'final'})]);
   if(status.chain_id!=='testnet'||cfg.token!==this.cfg.token||cfg.server!==this.cfg.server||token.decimals!==6||cfg.paused)throw Error('Testnet escrow configuration mismatch or paused');
   const wasm=fs.readFileSync(path.resolve(root,'../../../contracts/near-pvp-escrow/artifacts/near_pvp_escrow.wasm'));
@@ -22,7 +27,7 @@ export class Chain{
   if(loadSigner){
    if(!this.cfg.keyFile||!path.isAbsolute(this.cfg.keyFile))throw Error('SERVER_KEY_FILE must be an absolute external file path');
    const keyPath=fs.realpathSync(this.cfg.keyFile),project=fs.realpathSync(path.resolve(root,'../../..'));
-   const relative=path.relative(project,keyPath);if(!relative.startsWith('..')&&!path.isAbsolute(relative))throw Error('Signer must be outside the project');
+   const relative=path.relative(project,keyPath);if(relative!=='..'&&!relative.startsWith('..'+path.sep)&&!path.isAbsolute(relative))throw Error('Signer must be outside the project');
    let key,pair;try{key=JSON.parse(fs.readFileSync(keyPath,'utf8'));pair=KeyPair.fromString(key.private_key||key.secret_key);}catch{throw Error('Signer credential is unreadable or malformed');}
    if(key.account_id!==this.cfg.server)throw Error('Signer account mismatch');const publicKey=pair.getPublicKey().toString();
    const access=await this.rpc('query',{request_type:'view_access_key',account_id:this.cfg.server,public_key:publicKey,finality:'final'});const p=access.permission?.FunctionCall;
@@ -32,21 +37,75 @@ export class Chain{
   this.chainConfig=cfg;return {network:'testnet',escrow:this.cfg.escrow,token:this.cfg.token,feeBps:cfg.fee_bps,symbol:token.symbol,signerChecked:loadSigner};
  }
  async authenticate(signed,payload){
-  if(typeof signed.accountId!=='string'||!/^([a-z0-9._-]+\.testnet|[a-f0-9]{64})$/.test(signed.accountId))throw Error('Use a Testnet account');
+  if(!signed||!accountOnNetwork(signed.accountId,this.cfg.network||'testnet'))throw Error('Use an account on the selected network');
+  await this.assertNetwork();
   await verifyMessage({signerAccountId:signed.accountId,signerPublicKey:signed.publicKey,signature:Buffer.from(signed.signature,'base64'),payload,provider:this.provider});
   // Authentication requires an actual full-access wallet key, not a delegated app key.
   const a=await this.rpc('query',{request_type:'view_access_key',account_id:signed.accountId,public_key:signed.publicKey,finality:'final'});if(a.permission!=='FullAccess')throw Error('Sign with your wallet owner key');return signed.accountId;
  }
- async execute(id,method,args){const task=()=>this.executeSerial(id,method,args);const p=this.tail.then(task,task);this.tail=p.catch(()=>{});return p;}
+ async execute(id,method,args){
+  if(!this.adapter){const task=()=>this.executeSerial(id,method,args);const p=this.tail.then(task,task);this.tail=p.catch(()=>{});return p;}
+  this.dispatchQueue??=[];
+  return new Promise((resolve,reject)=>{
+   const task={id,method,args,resolve,reject};if(method==='heartbeat')this.dispatchQueue.unshift(task);else this.dispatchQueue.push(task);
+   if(!this.dispatching){this.dispatching=true;void this.drainDispatch();}
+  });
+ }
+ async drainDispatch(){
+  try{while(this.dispatchQueue.length){const task=this.dispatchQueue.shift();try{task.resolve(await this.executeSerial(task.id,task.method,task.args));}catch(e){task.reject(e);}}}finally{this.dispatching=false;}
+ }
  async executeSerial(id,method,args){
+  requirePayments(this.cfg);
   if(!METHODS.includes(method))throw Error('Server method not allowed');
+  await this.assertNetwork();
+  if(this.adapter&&!this.repairingOutbox){
+   // Priority applies only to unsigned work. Reconcile older signed nonces first;
+   // an unknown predecessor fences new signing rather than replacing its bytes.
+   const pending=this.store.pendingOutbox().map(op=>{
+    if(op.accountId!==this.cfg.server||op.receiverId!==this.cfg.escrow)throw Error('Pending outbox deployment mismatch');
+    const tx=SignedTransaction.decode(Buffer.from(op.bytes,'base64')).transaction;
+    return {op,key:String(tx.publicKey),nonce:tx.nonce};
+   }).sort((a,b)=>a.key===b.key?(a.nonce<b.nonce?-1:a.nonce>b.nonce?1:0):(a.op.created||0)-(b.op.created||0));
+   this.repairingOutbox=true;try{for(const {op} of pending){if(op.id===id)break;await this.executeSerial(op.id,op.method,op.args);}}finally{this.repairingOutbox=false;}
+  }
+  // A prior signed operation must be reconciled even after pause/freeze; never create replacement bytes.
+  if(this.adapter&&this.store.get('outbox',id)){this.adapter.serverCall(method,args);await this.control();return durableSend({store:this.store,id,method,args,receiverId:this.cfg.escrow,accountId:this.cfg.server,account:this.account,rpc:this.rpc.bind(this)});}
+  if(this.adapter){this.adapter.serverCall(method,args);const c=await this.control();if(c.server_frozen)throw Error('Server frozen');if(['create_lobby','bind_opponent','update_stake','start_match'].includes(method)&&c.paused)throw Error('Escrow paused');if(method==='create_lobby'){assertAdmissionPolicy(c,this.cfg);await this.requireRegistered([this.cfg.escrow,c.admin],this.controlBlock.hash);}}
   return durableSend({store:this.store,id,method,args,receiverId:this.cfg.escrow,accountId:this.cfg.server,account:this.account,rpc:this.rpc.bind(this)});
  }
  async balance(account){
+  await this.assertNetwork();
   if(!this.bounds||this.bounds.until<Date.now()){
    const cached={until:Date.now()+60000};cached.promise=this.view(this.cfg.token,'storage_balance_bounds').catch(error=>{if(this.bounds===cached)this.bounds=null;throw error;});this.bounds=cached;
   }
-  const [balance,storage,bounds]=await Promise.all([this.view(this.cfg.token,'ft_balance_of',{account_id:account}),this.view(this.cfg.token,'storage_balance_of',{account_id:account}),this.bounds.promise]);return {balance,registered:!!storage,storageMinimum:bounds.min};
+  const [balance,storage,bounds,native,protocol]=await Promise.all([this.view(this.cfg.token,'ft_balance_of',{account_id:account}),this.view(this.cfg.token,'storage_balance_of',{account_id:account}),this.bounds.promise,this.rpc('query',{request_type:'view_account',account_id:account,finality:'final'}),this.rpc('EXPERIMENTAL_protocol_config',{finality:'final'})]);
+  const storagePrice=protocol.runtime_config?.storage_amount_per_byte;if(typeof storagePrice!=='string'||!/^\d+$/.test(storagePrice)||!Number.isSafeInteger(native.storage_usage))throw Error('Invalid RPC storage cost/account schema');
+  const locked=BigInt(native.storage_usage)*BigInt(storagePrice),available=BigInt(native.amount)>locked?BigInt(native.amount)-locked:0n;
+  return {balance,registered:!!storage,storageMinimum:bounds.min,nearAvailable:String(available),gasReserve:this.cfg.gasReserve,hasGas:available>=BigInt(this.cfg.gasReserve)};
  }
- async chainTime(){const r=await this.rpc('block',{finality:'final'});return BigInt(r.header.timestamp_nanosec);}
+ async assertNetwork(){const status=await this.rpc('status',[]);if(status.chain_id!==(this.cfg.network||'testnet'))throw Error('RPC chain_id does not match selected network');}
+ async control(){
+  if(!this.adapter)return this.chainConfig;
+  const block=await this.rpc('block',{finality:'final'});
+  const [c,code]=await Promise.all([this.view(this.cfg.escrow,'get_config',{},block.header.hash),this.rpc('query',{request_type:'view_account',account_id:this.cfg.escrow,block_id:block.header.hash})]);
+  if(code.code_hash!==this.cfg.escrowCodeHash)throw Error('Escrow code hash mismatch');
+  this.controlBlock=block.header;this.chainConfig=this.adapter.config(c);return this.chainConfig;
+ }
+ async requireRegistered(accounts,blockId=null){for(const id of new Set(accounts))if(!await this.view(this.cfg.token,'storage_balance_of',{account_id:id},blockId))throw Error('FT recipient not registered: '+id);}
+ async v2Preflight(){
+  await this.assertNetwork();const c=await this.control();
+  const token=await this.view(this.cfg.token,'ft_metadata',{},this.controlBlock.hash);
+  if(token.decimals!==6||(this.cfg.network==='mainnet'&&token.symbol!=='USDC'))throw Error('USDC metadata mismatch');
+  await this.requireRegistered([this.cfg.escrow,c.admin],this.controlBlock.hash);
+  if(c.fee_bps!==300||c.admin!==this.cfg.expectedFeeReceiver)throw Error('Approved 3% fee/receiver policy mismatch');
+  if(this.cfg.runtimePublicKey)await this.checkRuntimeKey(this.cfg.runtimePublicKey);
+  return {network:this.cfg.network,escrow:this.cfg.escrow,token:this.cfg.token,symbol:token.symbol,feeBps:c.fee_bps,pendingFee:c.pending_fee,paused:c.paused,serverFrozen:c.server_frozen,signerChecked:false,runtimeKeyChecked:!!this.cfg.runtimePublicKey,paymentsEnabled:false,escrowApi:'escrow-v2'};
+ }
+ async checkRuntimeKey(publicKey){const access=await this.rpc('query',{request_type:'view_access_key',account_id:this.cfg.server,public_key:publicKey,finality:'final'});validateRuntimeAccess(access,this.cfg);return true;}
+
+ async chainTime(){
+  if(!this.blockTime||Date.now()-this.blockTime.at>=250){
+   const entry={at:Infinity};entry.promise=this.rpc('block',{finality:'final'}).then(r=>{entry.at=Date.now();return BigInt(r.header.timestamp_nanosec);}).catch(e=>{if(this.blockTime===entry)this.blockTime=null;throw e;});this.blockTime=entry;
+  }return this.blockTime.promise;
+ }
 }

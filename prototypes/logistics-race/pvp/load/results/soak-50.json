@@ -1,0 +1,85 @@
+{
+  "timestamp": "2026-11-13T13:37:01.964Z",
+  "label": "50-matches-5-minute-reconnect",
+  "host": {
+    "platform": "win32",
+    "node": "v26.13.0",
+    "cpu": "Intel(R) Core(TM) i7-8700K CPU @ 3.70GHz",
+    "logicalCpus": 12,
+    "totalMemory": 34295083008
+  },
+  "settings": {
+    "matches": "50",
+    "seconds": "300",
+    "affinity": "15",
+    "reconnect": "true",
+    "label": "50-matches-5-minute-reconnect",
+    "out": "prototypes/logistics-race/pvp/load/results/soak-50.json"
+  },
+  "results": [
+    {
+      "matches": 50,
+      "players": 100,
+      "duration": 300,
+      "requests": 145676,
+      "bytes": 126419962,
+      "bytesPerSecond": 421399.87333333335,
+      "errors": {},
+      "errorSamples": [],
+      "apiP95Ms": 29.261999999987893,
+      "apiMaxMs": 61.29130000001169,
+      "commandP95Ms": 36.83780000000843,
+      "commands": 14600,
+      "duplicates": 14600,
+      "unchanged": 0,
+      "reconnections": 100,
+      "setupP95Ms": 4106.6738000000005,
+      "sourceSha256": {
+        "service.mjs": "12a694309ece0a46b70ce49a92aef77d36bc75c5bc339fa04b8359dde170c40a",
+        "store.mjs": "166809319bb1d331bbf15951ab92b629f42f3750f0637c8d5e6293eb8978f588",
+        "game.mjs": "284eca64653b47d79b514c91cf753ffe3b54853faedab0bd4c8c76260ad94b8e",
+        "http.mjs": "125fe037d9d8c38b9bc8c66af04c0f5aa69d7c640607c62f0ec104fa8af9aa29",
+        "chain.mjs": "52155e9b328e5a63d13cfa71292cb7d94869a780f685971bbeb7c74bbc55496d",
+        "engine": "1b40dd0bf5f1f7bbf058c7bd42410b4da7cf03d45584c7e49af5677a0ce6e631"
+      },
+      "setupRpc": {
+        "reads": 250,
+        "writes": 250,
+        "maxInFlight": 50,
+        "inFlight": 0
+      },
+      "elapsedMs": 300176.991,
+      "cpuMs": 46187,
+      "peakRss": 194560000,
+      "heap": 39331792,
+      "eventLoopP95Ms": 22.233087,
+      "eventLoopMaxMs": 47.644671,
+      "rpc": {
+        "reads": 14900,
+        "writes": 20,
+        "maxInFlight": 4,
+        "inFlight": 0
+      },
+      "syncCycles": 149,
+      "simulationLagMs": 176.99100000027101,
+      "sqliteMetrics": {
+        "writes": 30600,
+        "serializedBytes": 144406321,
+        "writeMs": 2110.647800001584,
+        "transactions": 1555,
+        "commitMs": 1781.2810999998128
+      },
+      "simulationMetrics": {
+        "backlogMs": 99.95385742185795,
+        "maxBacklogMs": 99.97363281248391,
+        "maxPumpDelayMs": 30.697998046875,
+        "pumps": 2774
+      },
+      "databaseBytes": 5738496,
+      "tickP95Ms": 0.6315000000176951,
+      "checkpointP95Ms": 12.507100000002538,
+      "commandCountMatches": true,
+      "passed": true
+    }
+  ]
+}

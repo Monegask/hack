@@ -1,0 +1,35 @@
+name: Release integration checks
+on:
+  pull_request:
+    branches: [testnet-pvp-server]
+    paths: ['prototypes/logistics-race/**', 'scripts/**', '.github/workflows/release-integration.yml']
+permissions:
+  contents: read
+jobs:
+  integrated-game-and-backend:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Install pinned build and server dependencies
+        run: |
+          npm ci --prefix prototypes/logistics-race/threejs-trial --ignore-scripts
+          npm ci --prefix prototypes/logistics-race/pvp --ignore-scripts
+      - name: Rebuild all playable modes and PvP
+        run: |
+          npm run build
+          npm run build --prefix prototypes/logistics-race/pvp
+      - name: Game and server regressions
+        run: |
+          npm test
+          npm test --prefix prototypes/logistics-race/pvp
+          node --test contracts/near-pvp-escrow/examples/client.test.ts
+      - name: Exact original-engine replay through 50 completed matches
+        run: |
+          node prototypes/logistics-race/pvp/load/export-baseline.mjs
+          node prototypes/logistics-race/pvp/load/determinism.mjs 50

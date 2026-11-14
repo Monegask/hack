@@ -1,0 +1,49 @@
+name: Escrow v2 backend integration
+on:
+  pull_request:
+    branches: [testnet-pvp-server]
+    paths: ['prototypes/logistics-race/pvp/**', '.github/workflows/escrow-v2-integration.yml']
+permissions:
+  contents: read
+concurrency:
+  group: escrow-v2-integration-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  sandbox:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Backend dependencies and fast tests
+        working-directory: prototypes/logistics-race/pvp
+        run: |
+          npm ci --ignore-scripts
+          npm test
+      - uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            contracts/near-pvp-escrow/target
+            contracts/near-pvp-escrow/tests/sandbox/target
+          key: escrow-v2-release-${{ runner.os }}-${{ hashFiles('contracts/near-pvp-escrow/**/Cargo.lock') }}
+      - name: Compile integrated Rust v2 logic for local Sandbox only
+        working-directory: contracts/near-pvp-escrow
+        run: |
+          rustup show
+          cargo build --workspace --locked --release --target wasm32-unknown-unknown --features near-pvp-escrow/sandbox
+          cp "$GITHUB_WORKSPACE/prototypes/logistics-race/pvp/tests/sandbox/launcher.rs" tests/sandbox/src/bin/frontend_integration.rs
+      - name: Real backend/frontend requests and Rust receipts in Sandbox
+        working-directory: contracts/near-pvp-escrow
+        env:
+          FRONTEND_SANDBOX_TEST: ${{ github.workspace }}/prototypes/logistics-race/pvp/tests/sandbox/integration.mjs
+          SANDBOX_REPORT: ${{ runner.temp }}/escrow-v2-integration.json
+        run: cargo run --manifest-path tests/sandbox/Cargo.toml --locked --bin frontend_integration
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: escrow-v2-integration-report
+          path: ${{ runner.temp }}/escrow-v2-integration.json

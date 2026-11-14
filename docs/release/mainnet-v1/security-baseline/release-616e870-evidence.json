@@ -1,0 +1,60 @@
+{
+  "candidate": "616e870aafaeacfa47ac6150c72d5e01e1ea9723",
+  "ciMerge": "0ca5092485e34399f9b15aed70338409791237ac",
+  "local": {
+    "node": "26.13.0",
+    "backend": 79,
+    "newAudit": 5,
+    "previousPositiveAudit": 12
+  },
+  "jobs": [
+    {
+      "id": 132393793865,
+      "selectedLogLines": [
+        "2026-11-14T08:43:30.0022556Z HEAD is now at 0ca5092 Merge 616e870aafaeacfa47ac6150c72d5e01e1ea9723 into 0e13688f559b0807b334c7e963b938d0107d0959",
+        "2026-11-14T08:43:31.8900769Z ✔ HTTP player transactions bind exact accepted terms, use yocto deposits, and claim a fixed payout index (28.969082ms)",
+        "2026-11-14T08:43:32.6911011Z ✔ release A03: expired unpaid lobbies release local capacity; funded obligations and host stay reserved (2.088877ms)",
+        "2026-11-14T08:43:36.6687320Z ✔ recovery requires exact signer/receiver/arguments and receipt-linked accepted deposit (0.814461ms)",
+        "2026-11-14T08:43:36.6696515Z ℹ tests 79",
+        "2026-11-14T08:43:36.6696856Z ℹ pass 79",
+        "2026-11-14T08:43:48.4477670Z \u001b[36;1mcargo build --workspace --locked --release --target wasm32-unknown-unknown --features near-pvp-escrow/sandbox\u001b[0m",
+        "2026-11-14T08:43:59.6800491Z ##[group]Run cargo run --manifest-path tests/sandbox/Cargo.toml --locked --bin frontend_integration",
+        "2026-11-14T08:43:59.6800882Z \u001b[36;1mcargo run --manifest-path tests/sandbox/Cargo.toml --locked --bin frontend_integration\u001b[0m",
+        "2026-11-14T08:45:14.9462127Z     \"statesSha256\": \"56171d893e7ed6758a6e6dea743b15f44d994f6ff443b3e904bf47a153b80759\"",
+        "2026-11-14T08:45:14.9462575Z     \"accepted\": \"55000000\",",
+        "2026-11-14T08:45:14.9462703Z     \"locked\": \"0\",",
+        "2026-11-14T08:45:14.9462933Z     \"paid\": \"55000000\",",
+        "2026-11-14T08:45:14.9463078Z     \"in_flight\": \"0\",",
+        "2026-11-14T08:45:14.9463265Z     \"live_matches\": \"0\",",
+        "2026-11-14T08:45:14.9463479Z     \"stored_matches\": \"7\"",
+        "2026-11-14T08:45:14.9463827Z   \"escrowFtBalance\": \"0\",",
+        "2026-11-14T08:45:14.9464021Z   \"passed\": true"
+      ]
+    },
+    {
+      "id": 132393793546,
+      "selectedLogLines": [
+        "2026-11-14T08:43:30.0382986Z HEAD is now at 0ca5092 Merge 616e870aafaeacfa47ac6150c72d5e01e1ea9723 into 0e13688f559b0807b334c7e963b938d0107d0959",
+        "2026-11-14T08:43:40.9652010Z ##[group]Run cargo clippy --workspace --all-targets --locked -- -D warnings",
+        "2026-11-14T08:43:40.9652460Z \u001b[36;1mcargo clippy --workspace --all-targets --locked -- -D warnings\u001b[0m",
+        "2026-11-14T08:43:40.9652800Z \u001b[36;1mcargo test -p near-pvp-escrow --lib --locked\u001b[0m",
+        "2026-11-14T08:45:05.0001587Z test tests::accepted_raise_changes_revision_rejected_raise_never_reaches_chain ... ok",
+        "2026-11-14T08:45:06.9511269Z test tests::prune_only_paid_records_and_never_reuse_ids_or_clear_new_active_match ... ok",
+        "2026-11-14T08:45:07.3351219Z test result: ok. 38 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 2.48s",
+        "2026-11-14T08:45:21.1432068Z     \"artifacts/near_pvp_escrow.wasm\": \"8d581487374ce5f59935deb3710c952cfdda07ef9f9c9a8cd366716fb8f74d77\",",
+        "2026-11-14T08:45:21.1432727Z     \"artifacts/candidate/rebuilt-v1-Testnet.wasm\": \"62795eacd3a59fd2981c0a7c10262e46da2d47a5a436cd0016394adc8e9ca33f\"",
+        "2026-11-14T08:45:21.1433329Z   \"equal\": false",
+        "2026-11-14T08:45:55.0199084Z a6ebecd0b7f78dad11167b63cffd2fe9c646f307f73ac95dbc62c683ca0d9e91  artifacts/candidate/mainnet-escrow.wasm",
+        "2026-11-14T08:45:55.0202235Z 62795eacd3a59fd2981c0a7c10262e46da2d47a5a436cd0016394adc8e9ca33f  artifacts/candidate/rebuilt-v1-Testnet.wasm",
+        "2026-11-14T08:45:55.1693362Z ##[group]Run cargo clippy --manifest-path tests/sandbox/Cargo.toml --all-targets --locked -- -D warnings",
+        "2026-11-14T08:45:55.1693969Z \u001b[36;1mcargo clippy --manifest-path tests/sandbox/Cargo.toml --all-targets --locked -- -D warnings\u001b[0m",
+        "2026-11-14T08:45:55.1694479Z \u001b[36;1mcargo test --manifest-path tests/sandbox/Cargo.toml --locked -- --test-threads=1\u001b[0m",
+        "2026-11-14T08:47:59.3331430Z test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s",
+        "2026-11-14T08:47:59.3343615Z test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s",
+        "2026-11-14T08:50:15.6796859Z test result: ok. 9 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 136.34s",
+        "2026-11-14T08:50:15.6930929Z test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s"
+      ]
+    }
+  ],
+  "limits": "Local tests use synthetic RPC/receipts and offline ephemeral signatures. No real network transaction or credential. CI is producer evidence; Rust was not run locally."
+}
