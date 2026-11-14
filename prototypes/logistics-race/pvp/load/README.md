@@ -62,3 +62,16 @@ when errors are zero, command counts match, API **and command** p95 are below
 500 ms and maximum observed simulation delay/backlog is below 250 ms.
 The full-game deterministic replay is a separate correctness gate. No test here
 justifies raising the public server cap automatically.
+
+## Explicit v2 scheduling run
+
+Use `--adapter=v2 --matches=50 --seconds=300 --reconnect=true` to execute the
+v2 service control/heartbeat/background scheduler with schema-validated fake
+config/match views. The result requires `v2BranchExercised: true` and positive
+`simulationMetrics.v2SyncCycles`. Default `--adapter=v1` remains the independent
+Testnet path. Older reports without this marker do not establish v2 execution.
+
+Both modes use mock chain transport and simulated deposits. The v2 mode does not
+measure real RPC, restricted-key signing/nonce throughput or FT callbacks. Those
+are separate Rust Sandbox correctness scenarios; production throughput remains
+unverified. Source and load-fixture hashes are recorded for each new run.

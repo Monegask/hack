@@ -106,6 +106,7 @@ export class GameService{
   const dt=Math.max(0,(now-this.lastPump)/1000);this.lastPump=now;this.acc+=dt;this.metrics.maxPumpDelayMs=Math.max(this.metrics.maxPumpDelayMs,dt*1000-100);
   let steps=0;while(this.acc>=.1&&steps++<5){this.acc-=.1;for(const m of this.matches.values()){
    if(m.phase!=='playing'||!m.states)continue;
+   if(this.chain.adapter&&this.chain.chainConfig?.server_frozen){m.states.forEach(s=>s.paused=true);continue;}
    const connected=m.seen.map(t=>now-t<120000);
    if(m.recovering){if(connected.every(Boolean)){m.recovering=false;m.resumeAt=now;this.save(m);}else continue;}
    if(!connected[0]&&!connected[1]){m.phase='refund';m.result={reason:'both-disconnected',winner:null};m.states.forEach(s=>s.paused=true);this.save(m);continue;}
@@ -182,17 +183,49 @@ export class GameService{
   const worker=async()=>{while(cursor<queue.length){const m=queue[cursor++];try{await this.reconcile(m);}catch{}}};
   await Promise.all(Array.from({length:Math.min(4,queue.length)},worker));
  }
+ async syncV2(){
+  this.metrics.v2SyncCycles=(this.metrics.v2SyncCycles||0)+1;
+  // A history backlog must never sit in front of live safety checks or heartbeat.
+  let control=await this.chain.control();this.chain.chainConfig=control;
+  const now=this.now(),due=[...this.matches.values()].filter(m=>m.phase==='playing'&&!m.recovering&&now-(m.heartbeatCheckedAt??0)>=30000)
+   .sort((a,b)=>(a.heartbeatCheckedAt??0)-(b.heartbeatCheckedAt??0)||a.created-b.created||a.code.localeCompare(b.code)).slice(0,32);
+  const fresh=[];let cursor=0,heartbeatError=null;
+  const read=async()=>{while(cursor<due.length){const m=due[cursor++];m.heartbeatCheckedAt=now;try{const c=await this.chain.match(m.chainId);if(!c||c.creator!==m.players[0]||c.opponent!==m.players[1]||c.stake!==m.stake)throw Error('Escrow terms mismatch');fresh.push([m,c]);}catch(e){heartbeatError??=e;}}};
+  await Promise.all(Array.from({length:Math.min(4,due.length)},read));
+  if(fresh.length){
+   // Recheck freeze and time after the bounded reads, not before a potentially slow batch.
+   control=await this.chain.control();this.chain.chainConfig=control;const chainNow=await this.chain.chainTime(),ids=[];
+   for(const [m,c] of fresh){
+    m.chain=c;
+    if(['Completed','Cancelled'].includes(c.state)){m.phase=c.state==='Completed'?'finished':'cancelled';m.states?.forEach(s=>s.paused=true);}
+    else if(c.state==='SettlementPending'){m.phase='settling';m.states?.forEach(s=>s.paused=true);}
+    else if(c.state==='InProgress'){
+     const reason=this.chain.adapter.refundReason(c,control,chainNow);
+     if(reason){m.phase='refund';m.error=reason;m.states?.forEach(s=>s.paused=true);}
+     else if(m.phase==='playing'&&!m.recovering)ids.push(m.chainId);
+    }
+    this.save(m);
+   }
+   if(!control.server_frozen&&ids.length){try{await this.chain.execute('heartbeat-v2:'+Math.floor(this.now()/30000)+':'+ids.join(','),'heartbeat',{match_ids:ids});}catch(e){heartbeatError??=e;}}
+  }
+  // At most four reconciliations per cycle, with a reserved background share.
+  // Round-robin progress does not require draining an unbounded historical queue.
+  const queue=[...this.matches.values()].filter(m=>!['finished','cancelled'].includes(m.phase)||m.chain?.payouts?.some(p=>p.state!=='Paid'&&p.amount!=='0'));
+  const urgent=m=>['playing','countdown'].includes(m.phase)||(m.phase==='settling'&&m.result?.winner&&m.chain?.state==='InProgress');
+  const active=queue.filter(urgent),history=queue.filter(m=>!urgent(m));
+  const take=(items,count,key)=>{if(!items.length)return [];const start=(this[key]||0)%items.length,n=Math.min(count,items.length);this[key]=(start+n)%items.length;return Array.from({length:n},(_,i)=>items[(start+i)%items.length]);};
+  const selected=take(active,history.length?3:4,'reconcileActiveCursor');selected.push(...take(history,4-selected.length,'reconcileHistoryCursor'));
+  await Promise.all(selected.map(async m=>{try{await this.reconcile(m);}catch{}}));
+  if(heartbeatError)throw heartbeatError;
+ }
  async sync(){
-  if(this.chain.adapter)await this.reconcileAll();
-  const control=this.chain.adapter?await this.chain.control():null;
-  let heartbeatError=null;const now=this.now();if(!control?.server_frozen&&now-this.lastHeartbeat>=30000){
-   // Deliberately exclude refund-required games, even when their on-chain state is InProgress.
+  if(this.chain.adapter)return this.syncV2();
+  let heartbeatError=null;const now=this.now();if(now-this.lastHeartbeat>=30000){
    const ids=[...this.matches.values()].filter(m=>m.phase==='playing'&&!m.recovering).map(m=>m.chainId);
    for(let i=0;i<ids.length;i+=32){try{await this.chain.execute('heartbeat:'+Math.floor(now/30000)+':'+i,'heartbeat',{match_ids:ids.slice(i,i+32)});}catch(e){heartbeatError=e;}}
    if(!heartbeatError)this.lastHeartbeat=now;
   }
-  if(!this.chain.adapter)await this.reconcileAll();
-  // A failed/expired heartbeat batch must not starve reconciliation that removes it.
+  await this.reconcileAll();
   if(heartbeatError)throw heartbeatError;
  }
 }

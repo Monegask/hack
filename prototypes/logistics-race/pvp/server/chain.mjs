@@ -1,7 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import {createHash} from 'node:crypto';
-import {Account,JsonRpcProvider,KeyPair,baseEncode} from 'near-api-js';
+import {Account,JsonRpcProvider,KeyPair,baseEncode,SignedTransaction} from 'near-api-js';
 import {verifyMessage} from 'near-api-js/nep413';
 import {EscrowV2Adapter,SERVER_METHODS,validateRuntimeAccess,assertAdmissionPolicy} from './adapters/escrow-v2.mjs';
 import {root,accountOnNetwork,requirePayments,CIRCLE_USDC} from './config.mjs';
@@ -27,7 +27,7 @@ export class Chain{
   if(loadSigner){
    if(!this.cfg.keyFile||!path.isAbsolute(this.cfg.keyFile))throw Error('SERVER_KEY_FILE must be an absolute external file path');
    const keyPath=fs.realpathSync(this.cfg.keyFile),project=fs.realpathSync(path.resolve(root,'../../..'));
-   const relative=path.relative(project,keyPath);if(!relative.startsWith('..')&&!path.isAbsolute(relative))throw Error('Signer must be outside the project');
+   const relative=path.relative(project,keyPath);if(relative!=='..'&&!relative.startsWith('..'+path.sep)&&!path.isAbsolute(relative))throw Error('Signer must be outside the project');
    let key,pair;try{key=JSON.parse(fs.readFileSync(keyPath,'utf8'));pair=KeyPair.fromString(key.private_key||key.secret_key);}catch{throw Error('Signer credential is unreadable or malformed');}
    if(key.account_id!==this.cfg.server)throw Error('Signer account mismatch');const publicKey=pair.getPublicKey().toString();
    const access=await this.rpc('query',{request_type:'view_access_key',account_id:this.cfg.server,public_key:publicKey,finality:'final'});const p=access.permission?.FunctionCall;
@@ -43,11 +43,31 @@ export class Chain{
   // Authentication requires an actual full-access wallet key, not a delegated app key.
   const a=await this.rpc('query',{request_type:'view_access_key',account_id:signed.accountId,public_key:signed.publicKey,finality:'final'});if(a.permission!=='FullAccess')throw Error('Sign with your wallet owner key');return signed.accountId;
  }
- async execute(id,method,args){const task=()=>this.executeSerial(id,method,args);const p=this.tail.then(task,task);this.tail=p.catch(()=>{});return p;}
+ async execute(id,method,args){
+  if(!this.adapter){const task=()=>this.executeSerial(id,method,args);const p=this.tail.then(task,task);this.tail=p.catch(()=>{});return p;}
+  this.dispatchQueue??=[];
+  return new Promise((resolve,reject)=>{
+   const task={id,method,args,resolve,reject};if(method==='heartbeat')this.dispatchQueue.unshift(task);else this.dispatchQueue.push(task);
+   if(!this.dispatching){this.dispatching=true;void this.drainDispatch();}
+  });
+ }
+ async drainDispatch(){
+  try{while(this.dispatchQueue.length){const task=this.dispatchQueue.shift();try{task.resolve(await this.executeSerial(task.id,task.method,task.args));}catch(e){task.reject(e);}}}finally{this.dispatching=false;}
+ }
  async executeSerial(id,method,args){
   requirePayments(this.cfg);
   if(!METHODS.includes(method))throw Error('Server method not allowed');
   await this.assertNetwork();
+  if(this.adapter&&!this.repairingOutbox){
+   // Priority applies only to unsigned work. Reconcile older signed nonces first;
+   // an unknown predecessor fences new signing rather than replacing its bytes.
+   const pending=this.store.pendingOutbox().map(op=>{
+    if(op.accountId!==this.cfg.server||op.receiverId!==this.cfg.escrow)throw Error('Pending outbox deployment mismatch');
+    const tx=SignedTransaction.decode(Buffer.from(op.bytes,'base64')).transaction;
+    return {op,key:String(tx.publicKey),nonce:tx.nonce};
+   }).sort((a,b)=>a.key===b.key?(a.nonce<b.nonce?-1:a.nonce>b.nonce?1:0):(a.op.created||0)-(b.op.created||0));
+   this.repairingOutbox=true;try{for(const {op} of pending){if(op.id===id)break;await this.executeSerial(op.id,op.method,op.args);}}finally{this.repairingOutbox=false;}
+  }
   // A prior signed operation must be reconciled even after pause/freeze; never create replacement bytes.
   if(this.adapter&&this.store.get('outbox',id)){this.adapter.serverCall(method,args);await this.control();return durableSend({store:this.store,id,method,args,receiverId:this.cfg.escrow,accountId:this.cfg.server,account:this.account,rpc:this.rpc.bind(this)});}
   if(this.adapter){this.adapter.serverCall(method,args);const c=await this.control();if(c.server_frozen)throw Error('Server frozen');if(['create_lobby','bind_opponent','update_stake','start_match'].includes(method)&&c.paused)throw Error('Escrow paused');if(method==='create_lobby'){assertAdmissionPolicy(c,this.cfg);await this.requireRegistered([this.cfg.escrow,c.admin],this.controlBlock.hash);}}

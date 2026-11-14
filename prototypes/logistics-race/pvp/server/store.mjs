@@ -10,6 +10,7 @@ export class Store{
   this.db=new DatabaseSync(memory?':memory:':path.join(directory,'pvp.sqlite'));
   this.db.exec('PRAGMA journal_mode=WAL; PRAGMA synchronous=FULL; PRAGMA busy_timeout=5000; CREATE TABLE IF NOT EXISTS records(kind TEXT NOT NULL,id TEXT NOT NULL,value TEXT NOT NULL,PRIMARY KEY(kind,id)); CREATE TABLE IF NOT EXISTS commands(match_id TEXT,account TEXT,id TEXT,value TEXT NOT NULL,PRIMARY KEY(match_id,account,id));');
   this.metrics={writes:0,serializedBytes:0,writeMs:0,transactions:0,commitMs:0};
+  this.db.exec("CREATE INDEX IF NOT EXISTS pending_outbox ON records(kind,id) WHERE kind='outbox' AND json_extract(value,'$.status')='signed'");
   this.commandQ=this.db.prepare('SELECT value FROM commands WHERE match_id=? AND account=? AND id=?');this.insertCommandQ=this.db.prepare('INSERT INTO commands VALUES(?,?,?,?)');
   this.getQ=this.db.prepare('SELECT value FROM records WHERE kind=? AND id=?');this.putQ=this.db.prepare('INSERT INTO records VALUES(?,?,?) ON CONFLICT(kind,id) DO UPDATE SET value=excluded.value');
   if(!memory){
@@ -32,6 +33,7 @@ export class Store{
    catch(e){this.db.exec(nested?'ROLLBACK TO '+savepoint:'ROLLBACK');if(nested)this.db.exec('RELEASE '+savepoint);throw e;}
   }finally{this.depth--;}
  }
+ pendingOutbox(){this.assertLease();return this.db.prepare("SELECT value FROM records WHERE kind='outbox' AND json_extract(value,'$.status')='signed'").all().map(r=>JSON.parse(r.value));}
  command(match,account,id){this.assertLease();const r=this.commandQ.get(match,account,id);return r?JSON.parse(r.value):null;}
  putCommand(match,account,id,value){this.assertLease();this.insertCommandQ.run(match,account,id,JSON.stringify(value));}
  close(){clearInterval(this.leaseTimer);if(this.owner)this.db.prepare('DELETE FROM lease WHERE id=1 AND owner=?').run(this.owner);this.db.close();}

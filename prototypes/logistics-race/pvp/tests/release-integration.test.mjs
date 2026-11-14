@@ -1,6 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {createHash} from 'node:crypto';
+import fs from 'node:fs';
+import path from 'node:path';
 import {fixture,playing} from './fixture.mjs';
 import {createApp} from '../server/http.mjs';
 import {GameService} from '../server/service.mjs';
@@ -8,6 +10,8 @@ import {Chain} from '../server/chain.mjs';
 import {durableSend} from '../server/durable.mjs';
 import {replayIntent} from '../server/recovery-v2.mjs';
 import {Account,KeyPair} from 'near-api-js';
+import {baseEncode} from 'near-api-js';
+import {root} from '../server/config.mjs';
 import {signMessage} from 'near-api-js/nep413';
 
 test('release: two distinct NEP413 wallets discover and join one public lobby over HTTP',async t=>{
@@ -149,4 +153,15 @@ test('release: direct escrow payment replay remains bound to the requested on-ch
  f.store.put('payment',JSON.stringify([cfg.scope,account,id]),{code:null,kind:'cancel',terms:null,matchId:'1',transaction:{receiverId:'escrow.testnet'}});
  assert.equal(replayIntent(f.store,cfg,{id,account,code:null,kind:'cancel',matchId:'1'}).replay,true);
  assert.throws(()=>replayIntent(f.store,cfg,{id,account,code:null,kind:'cancel',matchId:'2'}),/reused/);
+});
+
+test('release: a dot-dot-prefixed child folder cannot masquerade as an external signer',async t=>{
+ const f=fixture();t.after(()=>f.store.close());const project=fs.realpathSync(path.resolve(root,'../../..'));
+ const directory=fs.mkdtempSync(path.join(project,'..signer-guard-')),file=path.join(directory,'empty-fixture.json');fs.writeFileSync(file,'{}');
+ t.after(()=>{assert.equal(path.dirname(directory),project);assert.ok(path.basename(directory).startsWith('..signer-guard-'));fs.rmSync(directory,{recursive:true,force:true});});
+ const cfg={...f.cfg,rpc:'https://unused',keyFile:file},chain=new Chain(cfg,f.store);
+ const wasm=fs.readFileSync(path.join(project,'contracts/near-pvp-escrow/artifacts/near_pvp_escrow.wasm'));
+ chain.rpc=async method=>method==='status'?{chain_id:'testnet'}:{code_hash:baseEncode(createHash('sha256').update(wasm).digest())};
+ chain.view=async(_account,method)=>method==='get_config'?{token:cfg.token,server:cfg.server,paused:false}:method==='ft_metadata'?{decimals:6,symbol:'TEST'}:{total:'1'};
+ await assert.rejects(chain.preflight(),/Signer must be outside the project/);
 });
