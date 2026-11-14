@@ -3,17 +3,19 @@ import path from 'node:path';
 import {createHash} from 'node:crypto';
 import {Account,JsonRpcProvider,KeyPair,baseEncode} from 'near-api-js';
 import {verifyMessage} from 'near-api-js/nep413';
-import {root} from './config.mjs';
+import {EscrowV2Adapter,SERVER_METHODS,validateRuntimeAccess,assertAdmissionPolicy} from './adapters/escrow-v2.mjs';
+import {root,accountOnNetwork,requirePayments,CIRCLE_USDC} from './config.mjs';
 import {durableSend,PendingChain} from './durable.mjs';
 import {callRpc} from './rpc.mjs';
-const METHODS=['create_lobby','bind_opponent','update_stake','record_activity','start_match','submit_result','heartbeat'];
+const METHODS=SERVER_METHODS;
 export {PendingChain};
 export class Chain{
- constructor(cfg,store){this.cfg=cfg;this.store=store;this.provider=new JsonRpcProvider({url:cfg.rpc});this.tail=Promise.resolve();}
- rpc(method,params){return callRpc(this.cfg.rpc,method,params);}
- async view(account,method,args={}){const r=await this.rpc('query',{request_type:'call_function',account_id:account,method_name:method,args_base64:Buffer.from(JSON.stringify(args)).toString('base64'),finality:'final'});return JSON.parse(Buffer.from(r.result).toString());}
- match(id){return this.view(this.cfg.escrow,'get_match',{match_id:String(id)});}
+ constructor(cfg,store){this.cfg=cfg;this.store=store;this.provider=new JsonRpcProvider({url:cfg.rpc});this.tail=Promise.resolve();this.adapter=(cfg.network==='mainnet'||cfg.adapterVersion==='escrow-v2')?new EscrowV2Adapter(cfg):null;}
+ rpc(method,params){if(method==='send_tx')this.store.assertLease();return callRpc(this.cfg.rpc,method,params);}
+ async view(account,method,args={},blockId=null){const r=await this.rpc('query',{request_type:'call_function',account_id:account,method_name:method,args_base64:Buffer.from(JSON.stringify(args)).toString('base64'),...(blockId?{block_id:blockId}:{finality:'final'})});return JSON.parse(Buffer.from(r.result).toString());}
+ async match(id){const m=await this.view(this.cfg.escrow,'get_match',{match_id:String(id)});return this.adapter?this.adapter.match(m):m;}
  async preflight({loadSigner=true}={}){
+  if(this.adapter)return this.v2Preflight();
   const [status,cfg,token,account]=await Promise.all([this.rpc('status',[]),this.view(this.cfg.escrow,'get_config'),this.view(this.cfg.token,'ft_metadata'),this.rpc('query',{request_type:'view_account',account_id:this.cfg.escrow,finality:'final'})]);
   if(status.chain_id!=='testnet'||cfg.token!==this.cfg.token||cfg.server!==this.cfg.server||token.decimals!==6||cfg.paused)throw Error('Testnet escrow configuration mismatch or paused');
   const wasm=fs.readFileSync(path.resolve(root,'../../../contracts/near-pvp-escrow/artifacts/near_pvp_escrow.wasm'));
@@ -32,21 +34,51 @@ export class Chain{
   this.chainConfig=cfg;return {network:'testnet',escrow:this.cfg.escrow,token:this.cfg.token,feeBps:cfg.fee_bps,symbol:token.symbol,signerChecked:loadSigner};
  }
  async authenticate(signed,payload){
-  if(typeof signed.accountId!=='string'||!/^([a-z0-9._-]+\.testnet|[a-f0-9]{64})$/.test(signed.accountId))throw Error('Use a Testnet account');
+  if(!signed||!accountOnNetwork(signed.accountId,this.cfg.network||'testnet'))throw Error('Use an account on the selected network');
+  await this.assertNetwork();
   await verifyMessage({signerAccountId:signed.accountId,signerPublicKey:signed.publicKey,signature:Buffer.from(signed.signature,'base64'),payload,provider:this.provider});
   // Authentication requires an actual full-access wallet key, not a delegated app key.
   const a=await this.rpc('query',{request_type:'view_access_key',account_id:signed.accountId,public_key:signed.publicKey,finality:'final'});if(a.permission!=='FullAccess')throw Error('Sign with your wallet owner key');return signed.accountId;
  }
  async execute(id,method,args){const task=()=>this.executeSerial(id,method,args);const p=this.tail.then(task,task);this.tail=p.catch(()=>{});return p;}
  async executeSerial(id,method,args){
+  requirePayments(this.cfg);
   if(!METHODS.includes(method))throw Error('Server method not allowed');
+  await this.assertNetwork();
+  // A prior signed operation must be reconciled even after pause/freeze; never create replacement bytes.
+  if(this.adapter&&this.store.get('outbox',id)){this.adapter.serverCall(method,args);await this.control();return durableSend({store:this.store,id,method,args,receiverId:this.cfg.escrow,accountId:this.cfg.server,account:this.account,rpc:this.rpc.bind(this)});}
+  if(this.adapter){this.adapter.serverCall(method,args);const c=await this.control();if(c.server_frozen)throw Error('Server frozen');if(['create_lobby','bind_opponent','update_stake','start_match'].includes(method)&&c.paused)throw Error('Escrow paused');if(method==='create_lobby'){assertAdmissionPolicy(c,this.cfg);await this.requireRegistered([this.cfg.escrow,c.admin],this.controlBlock.hash);}}
   return durableSend({store:this.store,id,method,args,receiverId:this.cfg.escrow,accountId:this.cfg.server,account:this.account,rpc:this.rpc.bind(this)});
  }
  async balance(account){
+  await this.assertNetwork();
   if(!this.bounds||this.bounds.until<Date.now()){
    const cached={until:Date.now()+60000};cached.promise=this.view(this.cfg.token,'storage_balance_bounds').catch(error=>{if(this.bounds===cached)this.bounds=null;throw error;});this.bounds=cached;
   }
-  const [balance,storage,bounds]=await Promise.all([this.view(this.cfg.token,'ft_balance_of',{account_id:account}),this.view(this.cfg.token,'storage_balance_of',{account_id:account}),this.bounds.promise]);return {balance,registered:!!storage,storageMinimum:bounds.min};
+  const [balance,storage,bounds,native,protocol]=await Promise.all([this.view(this.cfg.token,'ft_balance_of',{account_id:account}),this.view(this.cfg.token,'storage_balance_of',{account_id:account}),this.bounds.promise,this.rpc('query',{request_type:'view_account',account_id:account,finality:'final'}),this.rpc('EXPERIMENTAL_protocol_config',{finality:'final'})]);
+  const storagePrice=protocol.runtime_config?.storage_amount_per_byte;if(typeof storagePrice!=='string'||!/^\d+$/.test(storagePrice)||!Number.isSafeInteger(native.storage_usage))throw Error('Invalid RPC storage cost/account schema');
+  const locked=BigInt(native.storage_usage)*BigInt(storagePrice),available=BigInt(native.amount)>locked?BigInt(native.amount)-locked:0n;
+  return {balance,registered:!!storage,storageMinimum:bounds.min,nearAvailable:String(available),gasReserve:this.cfg.gasReserve,hasGas:available>=BigInt(this.cfg.gasReserve)};
  }
- async chainTime(){const r=await this.rpc('block',{finality:'final'});return BigInt(r.header.timestamp_nanosec);}
+ async assertNetwork(){const status=await this.rpc('status',[]);if(status.chain_id!==(this.cfg.network||'testnet'))throw Error('RPC chain_id does not match selected network');}
+ async control(){
+  if(!this.adapter)return this.chainConfig;
+  const block=await this.rpc('block',{finality:'final'});
+  const [c,code]=await Promise.all([this.view(this.cfg.escrow,'get_config',{},block.header.hash),this.rpc('query',{request_type:'view_account',account_id:this.cfg.escrow,block_id:block.header.hash})]);
+  if(code.code_hash!==this.cfg.escrowCodeHash)throw Error('Escrow code hash mismatch');
+  this.controlBlock=block.header;this.chainConfig=this.adapter.config(c);return this.chainConfig;
+ }
+ async requireRegistered(accounts,blockId=null){for(const id of new Set(accounts))if(!await this.view(this.cfg.token,'storage_balance_of',{account_id:id},blockId))throw Error('FT recipient not registered: '+id);}
+ async v2Preflight(){
+  await this.assertNetwork();const c=await this.control();
+  const token=await this.view(this.cfg.token,'ft_metadata',{},this.controlBlock.hash);
+  if(token.decimals!==6||(this.cfg.network==='mainnet'&&token.symbol!=='USDC'))throw Error('USDC metadata mismatch');
+  await this.requireRegistered([this.cfg.escrow,c.admin],this.controlBlock.hash);
+  if(c.fee_bps!==300||c.admin!==this.cfg.expectedFeeReceiver)throw Error('Approved 3% fee/receiver policy mismatch');
+  if(this.cfg.runtimePublicKey)await this.checkRuntimeKey(this.cfg.runtimePublicKey);
+  return {network:this.cfg.network,escrow:this.cfg.escrow,token:this.cfg.token,symbol:token.symbol,feeBps:c.fee_bps,pendingFee:c.pending_fee,paused:c.paused,serverFrozen:c.server_frozen,signerChecked:false,runtimeKeyChecked:!!this.cfg.runtimePublicKey,paymentsEnabled:false,escrowApi:'escrow-v2'};
+ }
+ async checkRuntimeKey(publicKey){const access=await this.rpc('query',{request_type:'view_access_key',account_id:this.cfg.server,public_key:publicKey,finality:'final'});validateRuntimeAccess(access,this.cfg);return true;}
+
+ async chainTime(){if(!this.timeCache||this.timeCache.until<Date.now()){const cached={until:Date.now()+250};cached.promise=this.rpc('block',{finality:'final'}).then(r=>BigInt(r.header.timestamp_nanosec)).catch(e=>{if(this.timeCache===cached)this.timeCache=null;throw e;});this.timeCache=cached;}return this.timeCache.promise;}
 }

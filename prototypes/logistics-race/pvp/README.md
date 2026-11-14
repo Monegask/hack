@@ -1,4 +1,9 @@
-# Supply Line · Testnet PvP
+# Supply Line · PvP
+
+## 14 ноября 2026 — интеграция escrow-v2, Mainnet по-прежнему выключен
+
+Testnet сохранён. Mainnet использует escrow-v2 adapter для preflight/финансового чтения, баланс и сетевую аутентификацию; все денежные операции и signer заблокированы. Фактический escrow-v2 API из PR #1 интегрирован отдельным адаптером; полного автоматического восстановления lost callback/unaccounted resolver средств контракт пока не предоставляет. См. [границы, env и проверки](MAINNET.md) и [нужные данные API](ESCROW_API_REQUIRED.md). [Финансовый Sandbox и итоговые проверки](VALIDATION-escrow-v2.md). Записи о deployment ниже — история Testnet, этот PR ничего не развёртывает.
+
 
 ## Публичный запуск · 12 ноября 2026
 
