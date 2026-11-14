@@ -1,0 +1,25 @@
+{
+  "date": "2026-11-14",
+  "code_sha": "7e2001d48f0cb2cba4025c826f67d29f2a5d094b",
+  "contract_sha": "6b6cd1c2f71dead588bbd41e400da9403bc599f8",
+  "ci_url": "https://github.com/Monegask/hack/actions/runs/43575894085",
+  "artifact_id": 14106058612,
+  "artifact_zip_sha256": "01e44b8c4b0e5669df99db6264206f806c33b763caa905a83bd6103f020d8b46",
+  "real_rust_sandbox": true,
+  "passed": true,
+  "accounting": {
+    "accepted": "45000000",
+    "paid": "45000000",
+    "locked": "0",
+    "owed": "0",
+    "in_flight": "0",
+    "live_matches": "0",
+    "stored_matches": "6"
+  },
+  "escrow_ft_balance": "0",
+  "recipient_total_assertion": "400000000",
+  "backend_tests": 48,
+  "local_game_tests": 117,
+  "mainnet_enabled": false,
+  "live_funds_used": false
+}
