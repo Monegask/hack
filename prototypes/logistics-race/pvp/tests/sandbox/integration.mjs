@@ -98,6 +98,14 @@ try{
  report.checks.push('private payout callback forgery fails in actual Rust receipt');
  // Mutual cancellation validates changing nonces and returns both original stakes without a fee.
  m=await funded();await start(m);const refundFeeBefore=await balance('admin');await pay('alice',await chain.match(m.chainId),'mutual');const staleNonce=(await chain.match(m.chainId)).cancel_nonce;await pay('bob',await chain.match(m.chainId),'reject');const stale=await raw('bob',f.escrow,'confirm_mutual_cancel',{match_id:m.chainId,nonce:staleNonce},'1');assert(stale.status.Failure);await pay('alice',await chain.match(m.chainId),'mutual');await pay('bob',await chain.match(m.chainId),'mutual');await waitMatch(m.chainId,c=>c.state==='Cancelled'&&c.payouts.every(p=>p.state==='Paid'));assert.equal(await balance('admin'),refundFeeBefore);await game.reconcile(m);report.checks.push('mutual request/reject/re-request/confirm, stale nonce rejected, full refunds with zero fee');
+ // A real in-progress escrow survives authority restart, then the normal disconnect policy settles on chain.
+ m=await funded();await start(m);game.checkpoint();const resumedCode=m.code,storedStateHash=hash(JSON.stringify(m.states));
+ await close();store=new Store(directory);chain=new Chain(cfg,store);chain.account=runtime;await chain.preflight();await open();m=game.matches.get(resumedCode);
+ assert.equal(m.recovering,true);assert.equal(hash(JSON.stringify(m.states)),storedStateHash);
+ await delay(120);for(const player of m.players)game.snapshot(m.code,player,{touch:true});game.advance();assert.equal(m.recovering,false);assert.equal(hash(JSON.stringify(m.states)),storedStateHash);
+ const clock=game.now;game.now=()=>clock()+120001;game.snapshot(m.code,f.bob.id,{touch:true});game.advance();game.now=clock;game.lastPump=game.now();game.acc=0;
+ assert.equal(m.result.reason,'disconnect');assert.equal(m.result.winner,f.bob.id);await game.reconcile(m);c=await waitMatch(m.chainId,c=>c.state==='Completed');assert.equal(c.winner,f.bob.id);assert.equal(c.payouts[0].amount,'9700000');assert.equal(c.payouts[1].amount,'300000');await game.reconcile(m);
+ report.checks.push('real in-progress SQLite restart preserves exact game state; both reconnect; one-sided disconnect after grace causes server winner and automatic Rust payout');
  // Emergency revoke allows immediate refunds; backend must stop before sending a winner.
  m=await funded();await start(m);await raw('admin',f.escrow,'freeze_server');await game.reconcile(m);assert.equal(m.phase,'refund');assert.match(m.error,/frozen/i);await assert.rejects(chain.execute('frozen-result','submit_result',{match_id:m.chainId,winner:f.alice.id}),/frozen/);
  await pay('bob',await chain.match(m.chainId),'emergency');c=await waitMatch(m.chainId,c=>c.state==='Cancelled'&&c.payouts.every(p=>p.state==='Paid'));assert.equal(c.payouts[0].amount,'5000000');assert.equal(c.payouts[1].amount,'5000000');

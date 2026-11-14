@@ -13,7 +13,7 @@ This is a preparation checklist, not authorization to deploy. Keep the running R
 ## Network and secret separation
 
 - [ ] Separate hostnames/origins, ports or networks, database directories/volumes, cookies/deployment identity, backups, server accounts and signer files for each network. Verify mismatch startup and cross-network cookie rejection.
-- [ ] Explicit Mainnet native Circle USDC account, six decimals, reviewed escrow code hash/configuration, role recipients and FT storage registration. Reject mock FT/USDC.e even if symbol is USDC.
+- [ ] Explicit Mainnet native Circle USDC account, six decimals, ESCROW_API_VERSION=2, reviewed escrow code hash/configuration, FEE_RECEIVER_ID and exactly 300bps admission policy, role recipients and FT storage registration. Optional SERVER_RUNTIME_PUBLIC_KEY verifies public on-chain permission only; it does not prove private-key possession. Reject mock FT/USDC.e even if symbol is USDC.
 - [ ] Runtime key external to source/image, read-only secret mount, restrictive ownership, restricted receiver/seven methods, funded limited allowance. Owner/admin/player keys never enter the application server.
 - [ ] Do not set a Mainnet signer or enable financial routes in this candidate. Read-only preparation must start without signing capability.
 
